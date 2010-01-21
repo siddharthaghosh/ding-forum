@@ -9,7 +9,7 @@ import _root_.net.liftweb.sitemap.Loc._
 import Helpers._
 import _root_.net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, ConnectionIdentifier}
 import _root_.java.sql.{Connection, DriverManager}
-//import _root_.com.ding.model._
+import _root_.com.ding.model._
 import _root_.javax.servlet.http.{HttpServletRequest}
 
 /**
@@ -27,11 +27,14 @@ class Boot {
 
     // where to search snippet
     LiftRules.addToPackages("com.ding")
-//    Schemifier.schemify(true, Log.infoF _, User)
+    Schemifier.schemify(true, Log.infoF _, User, LiftCategory)
 
     // Build SiteMap
-    val entries = Menu(Loc("Home", List("index"), "Home")) :: Nil
-//    LiftRules.setSiteMap(SiteMap(entries:_*))
+//    val entries = Menu(Loc("Home", List("index"), "Home")) :: Nil
+    val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("AdminForum",
+                                                                       List("admin", "category", "index"),
+        "admin forum")) ::User.menus
+    LiftRules.setSiteMap(SiteMap(entries:_*))
 
     /*
      * Show the spinny image when an Ajax call starts
@@ -47,7 +50,7 @@ class Boot {
 
     LiftRules.early.append(makeUtf8)
 
-//    LiftRules.loggedInTest = Full(() => User.loggedIn_?)
+    LiftRules.loggedInTest = Full(() => User.loggedIn_?)
 
     S.addAround(DB.buildLoanWrapper)
     
