@@ -33,7 +33,8 @@ class Boot {
 //    val entries = Menu(Loc("Home", List("index"), "Home")) :: Nil
     val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("AdminForum",
                                                                        List("admin", "category", "index"),
-        "admin forum")) ::User.menus
+        "admin forum")) :: Menu(Loc("EditForum",List("admin", "category", "edit"),
+        "edit forum")) :: User.menus
     LiftRules.setSiteMap(SiteMap(entries:_*))
 
     /*
