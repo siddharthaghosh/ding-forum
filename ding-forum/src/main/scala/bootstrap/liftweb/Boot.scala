@@ -27,14 +27,15 @@ class Boot {
 
         // where to search snippet
         LiftRules.addToPackages("com.ding")
-        Schemifier.schemify(true, Log.infoF _, User, LiftCategory, LiftForum)
+        Schemifier.schemify(true, Log.infoF _, User, LiftCategory, LiftForum, LiftUser)
 
         // Build SiteMap
 //    val entries = Menu(Loc("Home", List("index"), "Home")) :: Nil
         val adminMenu = Menu(Loc("Admin", List("admin", "index"), "Admin"),
                              Menu(Loc("EditCategory",List("admin", "category", "edit"), "Create Category")),
                              Menu(Loc("EditForum",List("admin", "forum", "edit"), "Create Forum")))
-        val entries = Menu(Loc("Home", List("index"), "Home")) :: adminMenu :: User.menus
+        val viewMenu = Menu(Loc("Test", List("TestView", "test"), "Test"))
+        val entries = Menu(Loc("Home", List("index"), "Home")) :: adminMenu :: viewMenu :: User.menus
         LiftRules.setSiteMap(SiteMap(entries:_*))
 
         /*
@@ -54,6 +55,8 @@ class Boot {
         LiftRules.loggedInTest = Full(() => User.loggedIn_?)
 
         S.addAround(DB.buildLoanWrapper)
+
+        println("ding forum boot complete")
     
     }
 
