@@ -27,7 +27,7 @@ class Boot {
 
         // where to search snippet
         LiftRules.addToPackages("com.ding")
-        Schemifier.schemify(true, Log.infoF _, User, LiftCategory, LiftForum, LiftUser)
+        Schemifier.schemify(true, Log.infoF _, User, LiftCategory, LiftForum, LiftUser, LiftSessionDAO)
 
         // Build SiteMap
 //    val entries = Menu(Loc("Home", List("index"), "Home")) :: Nil
