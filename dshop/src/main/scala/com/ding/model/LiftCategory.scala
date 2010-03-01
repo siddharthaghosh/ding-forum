@@ -17,8 +17,11 @@ class LiftCategory extends LongKeyedMapper[LiftCategory] {
     object cat_id extends MappedLongIndex(this)
     object parent_id extends MappedLong(this)
     object active extends MappedBoolean(this)
+    object image extends MappedString(this, 128)
+    object display_order extends MappedInt(this)
     object add_time extends MappedDateTime(this)
     object update_time extends MappedDateTime(this)
+    
 
 }
 
