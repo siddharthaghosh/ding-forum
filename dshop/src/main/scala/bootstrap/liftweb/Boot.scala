@@ -11,6 +11,7 @@ import _root_.net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConn
 import _root_.java.sql.{Connection, DriverManager}
 import _root_.com.ding.model._
 import _root_.javax.servlet.http.{HttpServletRequest}
+import com.ding.controller._
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -23,12 +24,12 @@ class Boot {
 
         // where to search snippet
         LiftRules.addToPackages("com.ding")
-        Schemifier.schemify(true, Log.infoF _, User, LiftDocument)
+        Schemifier.schemify(true, Log.infoF _, User, LiftDocument, LiftCategory)
 
-        LiftRules.dispatch.append({
-            case Req(List("doc","add"), _, _) => () => addDocContent()
-            })
-
+//        LiftRules.dispatch.append({
+//            case Req(List("doc","add"), _, _) => () => addDocContent()
+//            })
+        FrontController.setupController()
         // Build SiteMap
         val entries = Menu(Loc("Home", List("index"), "Home")) :: User.sitemap
         LiftRules.setSiteMap(SiteMap(entries:_*))
@@ -60,21 +61,6 @@ class Boot {
      */
     private def makeUtf8(req: HTTPRequest) {
         req.setCharacterEncoding("UTF-8")
-    }
-
-    private def addDocContent() : Box[LiftResponse] = {
-        val reqbox = S.request
-        val req = reqbox.open_!
-        val reqbody : Array[Byte] = req.body.openOr(Array())
-        val responsemsg = if (reqbody.isEmpty){
-            "reqbody empty"
-        }
-        else{
-            val doc_entry = LiftDocument.create.content(reqbody)
-            doc_entry.save
-            doc_entry.doc_id.toString
-        }
-        Full(InMemoryResponse((responsemsg.getBytes("UTF-8")), "Content-Type" -> "text/plain; charset=utf-8" :: Nil, Nil, 200))
     }
 
 }
