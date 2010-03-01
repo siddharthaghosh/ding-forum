@@ -23,7 +23,19 @@ object FrontController {
     }
 
     private def dispathProcess() : Box[LiftResponse] = {
-        Full(OkResponse())
+
+        /*
+         * authorization code here, next step
+         */
+
+        val req = S.request.open_!
+        val path = req.path
+        val partpath = path.partPath
+        partpath(1) match {
+            case "language" => admin.LanguageController.process()
+            case _ => Full(NotFoundResponse())
+        }
+        
     }
 
     private def addDocContent() : Box[LiftResponse] = {
