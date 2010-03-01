@@ -11,14 +11,14 @@ import net.liftweb.mapper._
 
 class LiftCategory extends LongKeyedMapper[LiftCategory] {
 
-    def getSignleton = LiftCategory
+    override def getSingleton = LiftCategory
     override def primaryKeyField = cat_id
 
     object cat_id extends MappedLongIndex(this)
     object parent_id extends MappedLong(this)
     object active extends MappedBoolean(this)
-    object add_time extends MappedTime(this)
-    object update_time extends MappedTime(this)
+    object add_time extends MappedDateTime(this)
+    object update_time extends MappedDateTime(this)
 
 }
 
