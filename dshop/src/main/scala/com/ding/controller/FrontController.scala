@@ -10,6 +10,8 @@ import net.liftweb.mapper._
 import net.liftweb.common._
 import com.ding.model._
 
+
+
 object FrontController {
 
     val controller_func : LiftRules.DispatchPF = {
