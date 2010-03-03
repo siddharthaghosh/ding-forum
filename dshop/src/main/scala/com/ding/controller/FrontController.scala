@@ -9,13 +9,16 @@ import net.liftweb.http._
 import net.liftweb.mapper._
 import net.liftweb.common._
 import com.ding.model._
+import com.ding.model.lift._
 
-
+object reqInfo extends RequestVar[RequestInfo]({new RequestInfo})
 
 object FrontController {
 
+    //requestPathProcess()
+
     val controller_func : LiftRules.DispatchPF = {
-        case Req(List("admin",_*), _, _) => {
+        case Req(List( _*), _, _) => {
                 () => dispathProcess()
             }
     }
@@ -24,20 +27,51 @@ object FrontController {
         LiftRules.dispatch.append(controller_func)
     }
 
+    private def requestPathProcess() {
+
+        val req = S.request.open_!
+        val path = req.path
+        val partpath = path.partPath
+
+        reqInfo.is.module = partpath(0)
+        reqInfo.is.application = partpath(1)
+        reqInfo.is.action = partpath(2)
+    }
+
     private def dispathProcess() : Box[LiftResponse] = {
+
+        requestPathProcess()
 
         /*
          * authorization code here, next step
          */
 
-        val req = S.request.open_!
-        val path = req.path
-        val partpath = path.partPath
-        partpath(1) match {
+        reqInfo.is.module match {
+            case "admin" => adminProcess()
+            case _ => Full(NotFoundResponse())
+        }
+        /*
+         * authorization code here, next step
+         */
+//        val req = S.request.open_!
+//        val path = req.path
+//        val partpath = path.partPath
+//
+//        partpath(1) match {
+//            case "language" => admin.LanguageController.process()
+//            case _ => Full(NotFoundResponse())
+//        }
+    }
+
+    private def adminProcess() : Box[LiftResponse] = {
+        /*
+         * authorization code here, next step
+         */
+
+        reqInfo.is.application match {
             case "language" => admin.LanguageController.process()
             case _ => Full(NotFoundResponse())
         }
-        
     }
 
     private def addDocContent() : Box[LiftResponse] = {
