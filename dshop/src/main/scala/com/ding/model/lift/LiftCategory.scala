@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package com.ding.model
+package com.ding.model.lift
 
 import net.liftweb.util._
 import net.liftweb.common._

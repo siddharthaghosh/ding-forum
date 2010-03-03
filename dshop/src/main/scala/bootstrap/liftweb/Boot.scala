@@ -10,6 +10,7 @@ import Helpers._
 import _root_.net.liftweb.mapper.{DB, ConnectionManager, Schemifier, DefaultConnectionIdentifier, ConnectionIdentifier, BaseMetaMapper}
 import _root_.java.sql.{Connection, DriverManager}
 import _root_.com.ding.model._
+import _root_.com.ding.model.lift._
 import _root_.javax.servlet.http.{HttpServletRequest}
 import com.ding.controller._
 
