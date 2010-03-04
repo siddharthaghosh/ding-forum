@@ -14,7 +14,7 @@ import com.ding.controller._
 
 object LanguageController {
 
-    val langFactory : MetaLanguage = LiftLanguage
+    def metaModel : MetaLanguage = LiftLanguage
 
     def process() : Box[LiftResponse] = {
         println("language controller works")
@@ -40,14 +40,14 @@ object LanguageController {
 
     }
 
-    def add() : Box[LiftResponse] = {
+    private def add() : Box[LiftResponse] = {
 
         /*
          * 从reqeust对象内读出信息, 代码未实现
          */
 
         //生成新实例
-        val addRecord : Language = langFactory.newInstance()
+        val addRecord : Language = metaModel.newInstance()
         //更新实例对象
         addRecord.updateInstance("chinese", "cc", "cn2", "chinese2", 9)
         //保存实例
@@ -83,21 +83,21 @@ object LanguageController {
         )
     }
 
-    def edit() {
+    private def edit() {
         /*
          * 从reqeust对象内读出信息, 代码未实现
          */
-        val item_id : Int = 4
-        val edit_item = langFactory.findOneInstance(item_id)
+        val item_id : Int = 5
+        val edit_item = metaModel.findOneInstance(item_id)
         if (edit_item != null) {
             edit_item.updateInstance( "chinese", "cc", "cn2", "chinese2", edit_item.getDisplayOrder() + 1 )
             edit_item.saveInstance()
         }
     }
 
-    def delete() {
+    private def delete() {
         val item_id : Int = 4
-        val del_item = langFactory.findOneInstance(item_id)
+        val del_item = metaModel.findOneInstance(item_id)
         if(del_item != null) {
             del_item.deleteInstance()
         }

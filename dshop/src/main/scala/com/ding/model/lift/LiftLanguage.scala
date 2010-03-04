@@ -8,7 +8,7 @@ package com.ding.model.lift
 import net.liftweb.mapper._
 import com.ding.model._
 
-class LiftLanguage extends LongKeyedMapper[LiftLanguage] with Language {
+class LiftLanguage extends LiftModel[LiftLanguage] with Language {
 
     override def getSingleton = LiftLanguage
     override def primaryKeyField = lang_id
@@ -20,14 +20,8 @@ class LiftLanguage extends LongKeyedMapper[LiftLanguage] with Language {
     object directory extends MappedString(this, 128)
     object display_order extends MappedInt(this)
 
-    override def saveInstance() = this.save
-
     override def updateInstance(name : String, code : String, image : String, dir : String, display_order : Int) {
         this.name(name).code(code).image(image).directory(dir).display_order(display_order)
-    }
-
-    override def deleteInstance() : Boolean = {
-        this.delete_!
     }
 
     override def getID() : Long = this.lang_id.is
@@ -55,14 +49,10 @@ class LiftLanguage extends LongKeyedMapper[LiftLanguage] with Language {
 
 }
 
-object LiftLanguage extends LiftLanguage with LongKeyedMetaMapper[LiftLanguage] with MetaLanguage {
+object LiftLanguage extends LiftLanguage with LiftMetaModel[LiftLanguage] with MetaLanguage {
 
     override def dbTableName = "dshop_language"
-    override def newInstance() = this.create
     override def findOneInstance(id : Int) = {
         LiftLanguage.find(By(LiftLanguage.lang_id, id)).openOr(null)
-    }
-    override def findAllInstances() = {
-        LiftLanguage.findAll
     }
 }

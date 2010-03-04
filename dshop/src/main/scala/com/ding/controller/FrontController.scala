@@ -70,6 +70,7 @@ object FrontController {
 
         reqInfo.is.application match {
             case "language" => admin.LanguageController.process()
+            case "category" => admin.CategoryController.process()
             case _ => Full(NotFoundResponse())
         }
     }

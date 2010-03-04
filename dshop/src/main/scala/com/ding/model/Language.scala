@@ -5,11 +5,9 @@
 
 package com.ding.model
 
-trait Language {
+trait Language extends Model {
 
-    def saveInstance() : Boolean
     def updateInstance(name : String, code : String, image : String, dir : String, display_order : Int)
-    def deleteInstance() : Boolean
 
     def getID() : Long
     def getName() : String
@@ -26,10 +24,4 @@ trait Language {
 
 }
 
-trait MetaLanguage {
-
-    def newInstance() : Language
-    def findOneInstance(id : Int) : Language
-    def findAllInstances() : List[Language]
-    
-}
+trait MetaLanguage extends MetaModel[Language]
