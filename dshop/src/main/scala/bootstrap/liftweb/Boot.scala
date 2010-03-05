@@ -13,6 +13,7 @@ import _root_.com.ding.model._
 import _root_.com.ding.model.lift._
 import _root_.javax.servlet.http.{HttpServletRequest}
 import com.ding.controller._
+import com.ding.util._
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -52,6 +53,8 @@ class Boot {
         LiftRules.loggedInTest = Full(() => User.loggedIn_?)
 
         S.addAround(DB.buildLoanWrapper)
+
+        println(LangProps.langPropList)
     }
 
     private val schemify_arr : Array[BaseMetaMapper] = Array(User, LiftDocument, LiftLanguage, LiftCategory, LiftCategoryDescription)

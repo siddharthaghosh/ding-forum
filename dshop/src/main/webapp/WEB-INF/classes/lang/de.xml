@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">  
+<properties>    
+<entry key="name">Deutsch</entry>  
+<entry key="code">de</entry>  
+<entry key="directory">german</entry>  
+<entry key="image">de.png</entry>   
+</properties> 

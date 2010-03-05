@@ -13,6 +13,7 @@ import com.ding.model.lift._
 import com.ding.controller._
 import net.liftweb.util._
 import net.liftweb.json.JsonAST._
+import com.ding.util._
 
 object LanguageController {
 
@@ -40,31 +41,43 @@ object LanguageController {
             case "list" => {
                     list()
             }
+            case "listsupport" => {
+                    listSupport()
+            }
             case _ => Full(NotFoundResponse())
         }
 
     }
-
+    
     private def list() : Box[LiftResponse] = {
         val allInsList = metaModel.findAllInstances
-        val resultList : ThreadGlobal[List[JsonAST.JValue]] = new ThreadGlobal
-        resultList(Nil)
-        allInsList.foreach( item => {
-                resultList(JsonAST.JField("id", JsonAST.JInt(item.getID()))
-                           ++
-                           JsonAST.JField("name", JsonAST.JString(item.getName()))
-                           ++
-                           JsonAST.JField("display_order", JsonAST.JInt(item.getDisplayOrder())) :: resultList.value
-                )
-            }
-        )
+        val resultList = allInsList.flatMap {
+            case item : Language => {
+                    List(JsonAST.JField("id", JsonAST.JInt(item.getID()))
+                         ++
+                         JsonAST.JField("name", JsonAST.JString(item.getName()))
+                         ++
+                         JsonAST.JField("display_order", JsonAST.JInt(item.getDisplayOrder()))
+                    )
+                }
+        }
         Full(JsonResponse(
-                JsonAST.JArray(resultList.value)
+                JsonAST.JArray(resultList)
             ))
     }
-
+    
     private def listSupport() : Box[LiftResponse] = {
-        Full(OkResponse())
+        val resultList : List[JsonAST.JValue] = LangProps.langPropList.flatMap {
+            case LangProperty(name, code, directory, image) => {
+                    List(JsonAST.JField("name", JsonAST.JString(name))
+                         ++
+                         JsonAST.JField("image",JsonAST.JString(image))
+                    )
+                }
+        }
+        Full(JsonResponse(
+                JsonAST.JArray(resultList)
+            ))
     }
 
     private def add() : Box[LiftResponse] = {
