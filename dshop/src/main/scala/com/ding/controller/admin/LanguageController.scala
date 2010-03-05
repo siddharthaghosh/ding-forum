@@ -11,6 +11,8 @@ import net.liftweb.json._
 import com.ding.model._
 import com.ding.model.lift._
 import com.ding.controller._
+import net.liftweb.util._
+import net.liftweb.json.JsonAST._
 
 object LanguageController {
 
@@ -35,9 +37,34 @@ object LanguageController {
                     delete()
                     Full(OkResponse())
                 }
+            case "list" => {
+                    list()
+            }
             case _ => Full(NotFoundResponse())
         }
 
+    }
+
+    private def list() : Box[LiftResponse] = {
+        val allInsList = metaModel.findAllInstances
+        val resultList : ThreadGlobal[List[JsonAST.JValue]] = new ThreadGlobal
+        resultList(Nil)
+        allInsList.foreach( item => {
+                resultList(JsonAST.JField("id", JsonAST.JInt(item.getID()))
+                           ++
+                           JsonAST.JField("name", JsonAST.JString(item.getName()))
+                           ++
+                           JsonAST.JField("display_order", JsonAST.JInt(item.getDisplayOrder())) :: resultList.value
+                )
+            }
+        )
+        Full(JsonResponse(
+                JsonAST.JArray(resultList.value)
+            ))
+    }
+
+    private def listSupport() : Box[LiftResponse] = {
+        Full(OkResponse())
     }
 
     private def add() : Box[LiftResponse] = {
@@ -45,48 +72,41 @@ object LanguageController {
         /*
          * 从reqeust对象内读出信息, 代码未实现
          */
-
+        val currentReq = S.request.open_!
+        println(currentReq.param("name"))
         //生成新实例
         val addRecord : Language = metaModel.newInstance()
         //更新实例对象
         addRecord.updateInstance("chinese", "cc", "cn2", "chinese2", 9)
         //保存实例
         addRecord.saveInstance()
-        val results : List[JsonAST.JValue] = (
-            JsonAST.JField("lang_id", JsonAST.JInt(addRecord.getID()))
-            ++
-            JsonAST.JField("lang_name", JsonAST.JString(addRecord.getName()))
-            ++
-            JsonAST.JField("lang_code", JsonAST.JString(addRecord.getCode()))
-            ++
-            JsonAST.JField("lang_image", JsonAST.JString(addRecord.getImage()))
-            ++
-            JsonAST.JField("lang_directory", JsonAST.JString(addRecord.getDirectory()))
-            ++
-            JsonAST.JField("lang_display_order", JsonAST.JInt(addRecord.getDisplayOrder()))
-        ) :: (
-            JsonAST.JField("lang_id", JsonAST.JInt(addRecord.getID()))
-            ++
-            JsonAST.JField("lang_name", JsonAST.JString(addRecord.getName()))
-            ++
-            JsonAST.JField("lang_code", JsonAST.JString(addRecord.getCode()))
-            ++
-            JsonAST.JField("lang_image", JsonAST.JString(addRecord.getImage()))
-            ++
-            JsonAST.JField("lang_directory", JsonAST.JString(addRecord.getDirectory()))
-            ++
-            JsonAST.JField("lang_display_order", JsonAST.JInt(addRecord.getDisplayOrder()))
-        ) :: Nil
-        Full(JsonResponse(
-                JsonAST.JArray(results)
-            )
-        )
+        Full(OkResponse())
     }
 
     private def edit() {
         /*
          * 从reqeust对象内读出信息, 代码未实现
          */
+        val jstr = "[{\"id\":16, \"name\":\"chinese\",  \"code\":\"cc\",  \"image\":\"cn2\",  \"directory\":\"chinese2\",  \"display_order\":9}]"
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(jstr).asInstanceOf[JsonAST.JArray].arr
+        jsonList.foreach(
+            json_item => {
+                val jobj : JObject = json_item.asInstanceOf[JObject]
+                val childrenlist = jobj.children
+                val find = childrenlist.find( child => {
+                        val jf : JField = child.asInstanceOf[JField]
+                        println(jf)
+                        println(jf.name)
+                        if(jf.name == "id")
+                        {
+                            println("found id property")
+                            return true
+                        }
+                        return false
+                    })
+                println("pig!!!!!!!!!!!")
+            }
+        )
         val item_id : Int = 5
         val edit_item = metaModel.findOneInstance(item_id)
         if (edit_item != null) {

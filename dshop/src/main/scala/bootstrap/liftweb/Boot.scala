@@ -32,7 +32,7 @@ class Boot {
 //            })
         FrontController.setupController()
         // Build SiteMap
-        val entries = Menu(Loc("Home", List("index"), "Home")) :: User.sitemap
+        val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("Test", List("test"), "Test")) :: User.sitemap
         LiftRules.setSiteMap(SiteMap(entries:_*))
 
         /*

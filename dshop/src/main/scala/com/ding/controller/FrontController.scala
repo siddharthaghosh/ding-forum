@@ -18,7 +18,7 @@ object FrontController {
     //requestPathProcess()
 
     val controller_func : LiftRules.DispatchPF = {
-        case Req(List( _*), _, _) => {
+        case Req(List("admin", _*), _, _) => {
                 () => dispathProcess()
             }
     }
