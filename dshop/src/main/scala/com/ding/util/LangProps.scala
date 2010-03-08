@@ -43,4 +43,8 @@ object LangProps {
                 List(LangProperty(ret.getProperty("name"), ret.getProperty("code"), ret.getProperty("directory"), ret.getProperty("image")))
             }
     }
+
+    def findLangProperty(name : String) : LangProperty = {
+        langPropList.find(item => item.name == name).getOrElse(null)
+    }
 }

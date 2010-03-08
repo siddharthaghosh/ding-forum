@@ -30,9 +30,8 @@ object LanguageController {
             case "add" => {
                     add()
                 }
-            case "edit" => {
+            case "save" => {
                     edit()
-                    Full(OkResponse())
                 }
             case "delete" => {
                     delete()
@@ -57,10 +56,13 @@ object LanguageController {
                          ++
                          JsonAST.JField("name", JsonAST.JString(item.getName()))
                          ++
-                         JsonAST.JField("display_order", JsonAST.JInt(item.getDisplayOrder()))
+                         JsonAST.JField("image", JsonAST.JString( "i18n/flags/" + item.getImage()))
+                         ++
+                         JsonAST.JField("displayOrder", JsonAST.JInt(item.getDisplayOrder()))
                     )
                 }
         }
+
         Full(JsonResponse(
                 JsonAST.JArray(resultList)
             ))
@@ -96,36 +98,69 @@ object LanguageController {
         Full(OkResponse())
     }
 
-    private def edit() {
+    private def edit() = {
         /*
-         * 从reqeust对象内读出信息, 代码未实现
+         * 从reqeust对象内读出信息
          */
-        val jstr = "[{\"id\":16, \"name\":\"chinese\",  \"code\":\"cc\",  \"image\":\"cn2\",  \"directory\":\"chinese2\",  \"display_order\":9}]"
+        val reqbox = S.request
+        val req = S.request.open_!
+        val reqbody : Array[Byte] = req.body.openOr(Array())
+        //val jstr = new String(reqbody, "UTF-8")
+        val jstr = "[{\"id\":20, \"name\":\"America\",  \"code\":\"cc\",  \"image\":\"cn2\",  \"directory\":\"chinese2\",  \"displayOrder\":11, \"delete\":true}]"
+        println(jstr + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         val jsonList : List[JsonAST.JValue] = JsonParser.parse(jstr).asInstanceOf[JsonAST.JArray].arr
         jsonList.foreach(
             json_item => {
                 val jobj : JObject = json_item.asInstanceOf[JObject]
-                val childrenlist = jobj.children
-                val find = childrenlist.find( child => {
-                        val jf : JField = child.asInstanceOf[JField]
-                        println(jf)
-                        println(jf.name)
-                        if(jf.name == "id")
-                        {
-                            println("found id property")
-                            return true
-                        }
-                        return false
-                    })
-                println("pig!!!!!!!!!!!")
+                val jid = jobj \ "id"
+                jid match {
+                    case JField("id", JInt(id)) => {
+                            val jname = jobj \ "name"
+                            val jdisplay_order = jobj \ "displayOrder"
+                            val delete = jobj \ "delete"
+                            (jname, jdisplay_order, delete) match {
+                                case (_, _, JField("delete", JBool(true))) => {
+                                        if (id >= 0) {
+                                            val del_item = metaModel.findOneInstance(id.toInt)
+                                            if(del_item != null){
+                                                println("delete the lang item id:" + id)
+                                                del_item.deleteInstance()
+                                            }
+                                        }
+                                }
+                                case (JField("name", JString(name)), JField("displayOrder", JInt(display_order)), JField("delete", JBool(false)))
+                                    if(LangProps.findLangProperty(name) != null )
+                                        => {
+                                        val langProp= LangProps.findLangProperty(name)
+                                        val dir = langProp.directory
+                                        val code = langProp.code
+                                        val image = langProp.image
+                                        val edit_item = if(id >= 0) {
+                                            metaModel.findOneInstance(id.toInt)
+                                        }
+                                        else{
+                                            println("create new one")
+                                            metaModel.newInstance()
+                                        }
+                                        if (edit_item != null) {
+                                            edit_item.updateInstance( name , code, image, dir, display_order.toInt )
+                                            edit_item.saveInstance()
+                                        }
+                                }
+                            }
+                            
+                    }
+                    case _ => {}
+                }
             }
         )
-        val item_id : Int = 5
-        val edit_item = metaModel.findOneInstance(item_id)
-        if (edit_item != null) {
-            edit_item.updateInstance( "chinese", "cc", "cn2", "chinese2", edit_item.getDisplayOrder() + 1 )
-            edit_item.saveInstance()
-        }
+//        val item_id : Int = 5
+//        val edit_item = metaModel.findOneInstance(item_id)
+//        if (edit_item != null) {
+//            edit_item.updateInstance( "chinese", "cc", "cn2", "chinese2", edit_item.getDisplayOrder() + 1 )
+//            edit_item.saveInstance()
+//        }
+        list()
     }
 
     private def delete() {
