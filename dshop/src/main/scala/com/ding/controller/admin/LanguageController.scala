@@ -20,23 +20,23 @@ object LanguageController {
     def metaModel : MetaLanguage = LiftLanguage
 
     def process() : Box[LiftResponse] = {
-        println("language controller works")
+        ShopLogger.debug("Language Controller works")
         processAction(reqInfo.is.action)
     }
 
     def processAction(action : String) : Box[LiftResponse] = {
 
         action match {
-            case "add" => {
-                    add()
-                }
+//            case "add" => {
+//                    add()
+//                }
             case "save" => {
-                    edit()
+                    save()
                 }
-            case "delete" => {
-                    delete()
-                    Full(OkResponse())
-                }
+//            case "delete" => {
+//                    delete()
+//                    Full(OkResponse())
+//                }
             case "list" => {
                     list()
             }
@@ -73,7 +73,7 @@ object LanguageController {
             case LangProperty(name, code, directory, image) => {
                     List(JsonAST.JField("name", JsonAST.JString(name))
                          ++
-                         JsonAST.JField("image",JsonAST.JString(image))
+                         JsonAST.JField("image",JsonAST.JString("i18n/flags/" + image))
                     )
                 }
         }
@@ -82,78 +82,80 @@ object LanguageController {
             ))
     }
 
-    private def add() : Box[LiftResponse] = {
+    private def addItem(name : String, code : String, image : String, dir : String, display_order : Int) : Boolean = {
 
-        /*
-         * 从reqeust对象内读出信息, 代码未实现
-         */
-        val currentReq = S.request.open_!
-        println(currentReq.param("name"))
         //生成新实例
-        val addRecord : Language = metaModel.newInstance()
+        val add_item : Language = metaModel.newInstance()
         //更新实例对象
-        addRecord.updateInstance("chinese", "cc", "cn2", "chinese2", 9)
+        add_item.updateInstance(name, code, image, dir, display_order)
         //保存实例
-        addRecord.saveInstance()
-        Full(OkResponse())
+        add_item.saveInstance()
     }
 
-    private def edit() = {
+    private def editItem(id : Int, name : String, code : String, image : String, dir : String, display_order : Int) : Boolean = {
+        val edit_item = metaModel.findOneInstance(id)
+        if(edit_item != null){
+            edit_item.updateInstance(name, code, image, dir, display_order)
+            edit_item.saveInstance()
+        } else {
+            false
+        }
+    }
+
+    private def save() = {
         /*
          * 从reqeust对象内读出信息
          */
         val reqbox = S.request
         val req = S.request.open_!
         val reqbody : Array[Byte] = req.body.openOr(Array())
-        //val jstr = new String(reqbody, "UTF-8")
-        val jstr = "[{\"id\":20, \"name\":\"America\",  \"code\":\"cc\",  \"image\":\"cn2\",  \"directory\":\"chinese2\",  \"displayOrder\":11, \"delete\":true}]"
-        println(jstr + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        val jsonList : List[JsonAST.JValue] = JsonParser.parse(jstr).asInstanceOf[JsonAST.JArray].arr
-        jsonList.foreach(
-            json_item => {
-                val jobj : JObject = json_item.asInstanceOf[JObject]
-                val jid = jobj \ "id"
-                jid match {
-                    case JField("id", JInt(id)) => {
-                            val jname = jobj \ "name"
-                            val jdisplay_order = jobj \ "displayOrder"
-                            val delete = jobj \ "delete"
-                            (jname, jdisplay_order, delete) match {
-                                case (_, _, JField("delete", JBool(true))) => {
-                                        if (id >= 0) {
-                                            val del_item = metaModel.findOneInstance(id.toInt)
-                                            if(del_item != null){
-                                                println("delete the lang item id:" + id)
-                                                del_item.deleteInstance()
+        val jstr = new String(reqbody, "UTF-8")
+        //val jstr = "[{\"id\":20, \"name\":\"America\",  \"code\":\"cc\",  \"image\":\"cn2\",  \"directory\":\"chinese2\",  \"displayOrder\":11, \"delete\":true}]"
+        ShopLogger.debug(jstr)
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(jstr).asInstanceOf[JsonAST.JArray].arr
+            jsonList.foreach(
+                json_item => {
+                    val jobj : JObject = json_item.asInstanceOf[JObject]
+                    val jid = jobj \ "id"
+                    jid match {
+                        case JField("id", JInt(id)) => {
+                                val jname = jobj \ "name"
+                                val jdisplay_order = jobj \ "displayOrder"
+                                val delete = jobj \ "delete"
+                                (jname, jdisplay_order, delete) match {
+                                    case (_, _, JField("delete", JBool(true))) => {
+                                            deleteItem(id.toInt)
+                                        }
+                                    case (JField("name", JString(name)), JField("displayOrder", JInt(display_order)), JField("delete", JBool(false)))
+                                        if(LangProps.findLangProperty(name) != null )
+                                            => {
+                                                val langProp= LangProps.findLangProperty(name)
+                                                val dir = langProp.directory
+                                                val code = langProp.code
+                                                val image = langProp.image
+                                                val edit_item = null
+                                                if(id >= 0) {
+                                                    editItem(id.toInt, name, code, image, dir, display_order.toInt)
+                                                }
+                                                else{
+                                                    addItem(name, code, image, dir, display_order.toInt)
+                                                }
                                             }
-                                        }
+                                    case (_, _, _) => {}
                                 }
-                                case (JField("name", JString(name)), JField("displayOrder", JInt(display_order)), JField("delete", JBool(false)))
-                                    if(LangProps.findLangProperty(name) != null )
-                                        => {
-                                        val langProp= LangProps.findLangProperty(name)
-                                        val dir = langProp.directory
-                                        val code = langProp.code
-                                        val image = langProp.image
-                                        val edit_item = if(id >= 0) {
-                                            metaModel.findOneInstance(id.toInt)
-                                        }
-                                        else{
-                                            println("create new one")
-                                            metaModel.newInstance()
-                                        }
-                                        if (edit_item != null) {
-                                            edit_item.updateInstance( name , code, image, dir, display_order.toInt )
-                                            edit_item.saveInstance()
-                                        }
-                                }
+
                             }
-                            
+                        case _ => {}
                     }
-                    case _ => {}
                 }
+            )}
+        catch {
+            case ex : Exception => {
+                    ShopLogger.error(ex.getMessage)
+                    ShopLogger.error(ex.getStackTraceString)
             }
-        )
+        }
 //        val item_id : Int = 5
 //        val edit_item = metaModel.findOneInstance(item_id)
 //        if (edit_item != null) {
@@ -163,12 +165,12 @@ object LanguageController {
         list()
     }
 
-    private def delete() {
-        val item_id : Int = 4
+    private def deleteItem(item_id : Int) {
+        if(item_id < 0)
+            return
         val del_item = metaModel.findOneInstance(item_id)
         if(del_item != null) {
             del_item.deleteInstance()
         }
-
     }
 }

@@ -54,7 +54,8 @@ class Boot {
 
         S.addAround(DB.buildLoanWrapper)
 
-        println(LangProps.langPropList)
+        ShopLogger.debug(LangProps.langPropList.toString)
+
     }
 
     private val schemify_arr : Array[BaseMetaMapper] = Array(User, LiftDocument, LiftLanguage, LiftCategory, LiftCategoryDescription)
