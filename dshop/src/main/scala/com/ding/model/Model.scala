@@ -12,6 +12,6 @@ trait Model {
 
 trait MetaModel[+T] {
     def newInstance() : T
-    def findOneInstance(id : Int) : T
+    def findOneInstance(id : Long) : T
     def findAllInstances() : List[T]
 }

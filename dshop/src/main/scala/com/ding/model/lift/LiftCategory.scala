@@ -9,8 +9,9 @@ import net.liftweb.util._
 import net.liftweb.common._
 import net.liftweb.mapper._
 import com.ding.model._
+import java.util.Date
 
-class LiftCategory extends LongKeyedMapper[LiftCategory] with Category with OneToMany[Long, LiftCategory] {
+class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[Long, LiftCategory] {
 
     override def getSingleton = LiftCategory
     override def primaryKeyField = cat_id
@@ -26,6 +27,67 @@ class LiftCategory extends LongKeyedMapper[LiftCategory] with Category with OneT
     object update_time extends MappedDateTime(this)
 
     object descriptions extends MappedOneToMany(LiftCategoryDescription, LiftCategoryDescription.category_id)
+
+    override def updateInstance(parent_id : Long, image : String, active : Boolean, display_order : Int, descriptions : Tuple3[Long, String, String]*) {
+        this.parent_id(parent_id).image(image).active(active).display_order(display_order)
+        descriptions.foreach {
+            desc_item => {
+                this.setName(desc_item._1, desc_item._2)
+                this.setDescription(desc_item._1, desc_item._3)
+            }
+        }
+        this.update_time(new Date())
+    }
+    override def getID() : Long = this.cat_id.is
+    override def getParentID() : Long = this.parent_id.is
+    override def getUpdateTime() : Date = this.update_time.is
+    override def getAddTime() : Date = this.add_time.is
+    override def getName(lang_id : Long) : String = {
+        val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(desc_item == null)
+            null
+        else
+            desc_item.name.is
+    }
+    override def getDescription(lang_id : Long) : String = {
+        val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(desc_item == null)
+            null
+        else
+            desc_item.description.is
+    }
+    override def getActive() : Boolean = this.active.is
+    override def getImage() : String = this.image.is
+    override def getDisplayOrder() : Int = this.display_order.is
+
+    override def setParentID(id : Long) {
+        this.parent_id(id)
+    }
+    override def setUpdateTime(date : Date) {
+        this.update_time(date)
+    }
+    override def setAddTime(date : Date) {
+        this.add_time(date)
+    }
+    override def setName(lang_id : Long, name : String) {
+        val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(desc_item != null)
+            desc_item.name(name)
+    }
+    override def setDescription(lang_id : Long, desc : String) {
+        val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(desc_item != null)
+            desc_item.description(desc)
+    }
+    override def setActive(active : Boolean) {
+        this.active(active)
+    }
+    override def setImage(image : String) {
+        this.image(image)
+    }
+    override def setDisplayOrder(order : Int) {
+        this.display_order(order)
+    }
     
     override def saveInstance() : Boolean = this.save
     override def deleteInstance() : Boolean = {
@@ -52,13 +114,9 @@ class LiftCategory extends LongKeyedMapper[LiftCategory] with Category with OneT
     }
 }
 
-object LiftCategory extends LiftCategory with LongKeyedMetaMapper[LiftCategory] with MetaCategory {
+object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with MetaCategory {
     override def dbTableName = "dshop_category"
-    override def newInstance() = this.create
-    override def findOneInstance(id : Int) = {
+    override def findOneInstance(id : Long) = {
         LiftCategory.find(By(LiftCategory.cat_id, id)).openOr(null)
-    }
-    override def findAllInstances() = {
-        LiftCategory.findAll
     }
 }

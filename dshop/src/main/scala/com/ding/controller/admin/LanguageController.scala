@@ -56,7 +56,7 @@ object LanguageController {
                          ++
                          JsonAST.JField("name", JsonAST.JString(item.getName()))
                          ++
-                         JsonAST.JField("image", JsonAST.JString( /*"i18n/flags/" +*/ item.getImage()))
+                         JsonAST.JField("code", JsonAST.JString( /*"i18n/flags/" +*/ item.getCode()))
                          ++
                          JsonAST.JField("displayOrder", JsonAST.JInt(item.getDisplayOrder()))
                     )
@@ -73,7 +73,7 @@ object LanguageController {
             case LangProperty(name, code, directory, image) => {
                     List(JsonAST.JField("name", JsonAST.JString(name))
                          ++
-                         JsonAST.JField("image",JsonAST.JString(/*"i18n/flags/" +*/ image))
+                         JsonAST.JField("code",JsonAST.JString(/*"i18n/flags/" +*/ code))
                     )
                 }
         }
