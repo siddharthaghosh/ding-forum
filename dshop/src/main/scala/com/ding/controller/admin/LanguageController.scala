@@ -56,7 +56,7 @@ object LanguageController {
                          ++
                          JsonAST.JField("name", JsonAST.JString(item.getName()))
                          ++
-                         JsonAST.JField("image", JsonAST.JString( "i18n/flags/" + item.getImage()))
+                         JsonAST.JField("image", JsonAST.JString( /*"i18n/flags/" +*/ item.getImage()))
                          ++
                          JsonAST.JField("displayOrder", JsonAST.JInt(item.getDisplayOrder()))
                     )
@@ -73,7 +73,7 @@ object LanguageController {
             case LangProperty(name, code, directory, image) => {
                     List(JsonAST.JField("name", JsonAST.JString(name))
                          ++
-                         JsonAST.JField("image",JsonAST.JString("i18n/flags/" + image))
+                         JsonAST.JField("image",JsonAST.JString(/*"i18n/flags/" +*/ image))
                     )
                 }
         }
@@ -149,11 +149,14 @@ object LanguageController {
                         case _ => {}
                     }
                 }
-            )}
+            )
+            Full(OkResponse())
+        }
         catch {
             case ex : Exception => {
                     ShopLogger.error(ex.getMessage)
                     ShopLogger.error(ex.getStackTraceString)
+                    Full(BadResponse())
             }
         }
 //        val item_id : Int = 5
@@ -162,7 +165,8 @@ object LanguageController {
 //            edit_item.updateInstance( "chinese", "cc", "cn2", "chinese2", edit_item.getDisplayOrder() + 1 )
 //            edit_item.saveInstance()
 //        }
-        list()
+//        list()
+        
     }
 
     private def deleteItem(item_id : Int) {
