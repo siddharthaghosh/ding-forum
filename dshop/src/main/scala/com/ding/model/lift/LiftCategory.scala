@@ -29,6 +29,15 @@ class LiftCategory extends LongKeyedMapper[LiftCategory] with Category {
     override def deleteInstance() : Boolean = {
         this.delete_!
     }
+
+    def findDescriptions : List[LiftCategoryDescription] = {
+        LiftCategoryDescription.findAll(By(LiftCategoryDescription.category_id, this.cat_id))
+    }
+
+    def findDescriptionByLang(lang : LiftLanguage) : LiftCategoryDescription = {
+        LiftCategoryDescription.find(By(LiftCategoryDescription.lang_id, lang.lang_id),
+                                     By(LiftCategoryDescription.category_id, this.cat_id)).openOr( null )
+    }
 }
 
 object LiftCategory extends LiftCategory with LongKeyedMetaMapper[LiftCategory] with MetaCategory {

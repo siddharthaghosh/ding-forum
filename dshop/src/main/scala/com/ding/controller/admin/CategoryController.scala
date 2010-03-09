@@ -8,16 +8,18 @@ package com.ding.controller.admin
 import net.liftweb.http._
 import net.liftweb.common._
 import net.liftweb.json._
+import net.liftweb.mapper._
 import com.ding.model._
 import com.ding.model.lift._
 import com.ding.controller._
+import com.ding.util._
 
 object CategoryController {
 
     def metaModel : MetaCategory = LiftCategory
 
     def process() : Box[LiftResponse] = {
-        println("category controller works")
+        ShopLogger.debug("category controller works")
         processAction(reqInfo.is.action)
     }
 
@@ -33,6 +35,17 @@ object CategoryController {
             case "delete" => {
                     Full(OkResponse())
                 }
+            case "list" => {
+                    val cat = LiftCategory.find(By(LiftCategory.cat_id, 1)).open_!
+                    val dlist = cat.findDescriptions
+                    dlist.foreach(
+                        desc => {
+                            ShopLogger.debug(desc.name.is)
+                            ShopLogger.debug(desc.description.is)
+                        }
+                    )
+                    Full(OkResponse())
+            }
             case _ => Full(NotFoundResponse())
         }
     }
