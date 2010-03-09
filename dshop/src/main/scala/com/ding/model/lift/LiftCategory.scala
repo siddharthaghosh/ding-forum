@@ -10,7 +10,7 @@ import net.liftweb.common._
 import net.liftweb.mapper._
 import com.ding.model._
 
-class LiftCategory extends LongKeyedMapper[LiftCategory] with Category {
+class LiftCategory extends LongKeyedMapper[LiftCategory] with Category with OneToMany[Long, LiftCategory] {
 
     override def getSingleton = LiftCategory
     override def primaryKeyField = cat_id
@@ -24,6 +24,8 @@ class LiftCategory extends LongKeyedMapper[LiftCategory] with Category {
     object display_order extends MappedInt(this)
     object add_time extends MappedDateTime(this)
     object update_time extends MappedDateTime(this)
+
+    object descriptions extends MappedOneToMany(LiftCategoryDescription, LiftCategoryDescription.category_id)
     
     override def saveInstance() : Boolean = this.save
     override def deleteInstance() : Boolean = {
@@ -31,12 +33,22 @@ class LiftCategory extends LongKeyedMapper[LiftCategory] with Category {
     }
 
     def findDescriptions : List[LiftCategoryDescription] = {
-        LiftCategoryDescription.findAll(By(LiftCategoryDescription.category_id, this.cat_id))
+        descriptions.all
+        //LiftCategoryDescription.findAll(By(LiftCategoryDescription.category_id, this.cat_id))
     }
 
     def findDescriptionByLang(lang : LiftLanguage) : LiftCategoryDescription = {
-        LiftCategoryDescription.find(By(LiftCategoryDescription.lang_id, lang.lang_id),
-                                     By(LiftCategoryDescription.category_id, this.cat_id)).openOr( null )
+        if(lang == null)
+            null
+        else
+            descriptions.all.find(
+                descitem => {
+                    if(descitem.lang_id.is == lang.lang_id.is)
+                        true
+                    else
+                        false
+                }
+            ).orNull
     }
 }
 
