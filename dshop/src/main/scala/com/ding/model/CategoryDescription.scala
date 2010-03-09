@@ -5,6 +5,8 @@
 
 package com.ding.model
 
-trait CategoryDescription {
+trait CategoryDescription extends Model {
 
 }
+
+trait MetaCategoryDescription extends MetaModel[CategoryDescription]

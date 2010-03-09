@@ -29,8 +29,7 @@ object CategoryController {
                     Full(OkResponse())
                 }
             case "save" => {
-
-                    Full(OkResponse())
+                    save()
                 }
             case "delete" => {
                     Full(OkResponse())
@@ -56,6 +55,9 @@ object CategoryController {
     }
 
     private def save() = {
+        val cat = LiftCategory.find(By(LiftCategory.cat_id, 1)).open_!
+        cat.updateInstance(0, "cat", true, 11, (23, "CatChangeAgain", "cat ccccccccc"))
+        cat.save
         Full(OkResponse())
     }
 

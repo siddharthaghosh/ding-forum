@@ -52,7 +52,10 @@ class LiftLanguage extends LiftModel[LiftLanguage] with Language {
 object LiftLanguage extends LiftLanguage with LiftMetaModel[LiftLanguage] with MetaLanguage {
 
     override def dbTableName = "dshop_language"
-    override def findOneInstance(id : Int) = {
+    override def findOneInstance(id : Long) = {
         LiftLanguage.find(By(LiftLanguage.lang_id, id)).openOr(null)
+    }
+    override def findAllInstances() = {
+        LiftLanguage.findAll(OrderBy(LiftLanguage.display_order, Ascending))
     }
 }
