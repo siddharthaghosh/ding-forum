@@ -58,4 +58,7 @@ object LiftLanguage extends LiftLanguage with LiftMetaModel[LiftLanguage] with M
     override def findAllInstances() = {
         LiftLanguage.findAll(OrderBy(LiftLanguage.display_order, Ascending))
     }
+    override def isLanguageExist(name : String) : Boolean = {
+        !(LiftLanguage.findAll(By(LiftLanguage.name, name)).isEmpty)       
+    }
 }

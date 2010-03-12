@@ -38,6 +38,10 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
         }
         this.update_time(new Date())
     }
+
+    override def children() : List[LiftCategory] = {
+        LiftCategory.findAll(By(LiftCategory.parent_id, this.cat_id), OrderBy(LiftCategory.display_order, Ascending))
+    }
     override def getID() : Long = this.cat_id.is
     override def getParentID() : Long = this.parent_id.is
     override def getUpdateTime() : Date = this.update_time.is
@@ -118,5 +122,21 @@ object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with M
     override def dbTableName = "dshop_category"
     override def findOneInstance(id : Long) = {
         LiftCategory.find(By(LiftCategory.cat_id, id)).openOr(null)
+    }
+    override def getChildren(parentId : Long) : List[LiftCategory] = {
+        LiftCategory.findAll(By(LiftCategory.parent_id, parentId), OrderBy(LiftCategory.display_order, Ascending))
+    }
+    override def getAllAncestor(categoryId : Long) : List[Category] = {
+        val cat = LiftCategory.findOneInstance(categoryId)
+        if(cat == null) {
+            Nil
+        } else {
+            val parentCat = LiftCategory.find(By(LiftCategory.cat_id, cat.parent_id)).openOr(null)
+            if(parentCat == null) {
+                cat :: Nil
+            } else {
+                LiftCategory.getAllAncestor(parentCat.cat_id) ++ (cat :: Nil)
+            }
+        }
     }
 }

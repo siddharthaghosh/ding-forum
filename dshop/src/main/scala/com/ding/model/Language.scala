@@ -24,4 +24,6 @@ trait Language extends Model {
 
 }
 
-trait MetaLanguage extends MetaModel[Language]
+trait MetaLanguage extends MetaModel[Language] {
+    def isLanguageExist(name : String) : Boolean
+}

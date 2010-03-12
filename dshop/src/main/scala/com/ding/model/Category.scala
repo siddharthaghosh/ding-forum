@@ -11,6 +11,8 @@ trait Category extends Model {
     
     def updateInstance(parent_id : Long, image : String, active : Boolean, display_order : Int, descriptions : Tuple3[Long, String, String]*)
 
+    def children() : List[Category]
+
     def getID() : Long
     def getParentID() : Long
     def getUpdateTime() : Date
@@ -31,4 +33,7 @@ trait Category extends Model {
     def setDisplayOrder(order : Int)
 }
 
-trait MetaCategory extends MetaModel[Category]
+trait MetaCategory extends MetaModel[Category] {
+    def getChildren(parentId : Long) : List[Category]
+    def getAllAncestor(categoryId : Long) : List[Category]
+}

@@ -83,16 +83,25 @@ object LanguageController {
     }
 
     private def addItem(name : String, code : String, image : String, dir : String, display_order : Int) : Boolean = {
-
-        //生成新实例
-        val add_item : Language = metaModel.newInstance()
-        //更新实例对象
-        add_item.updateInstance(name, code, image, dir, display_order)
-        //保存实例
-        add_item.saveInstance()
+        if(metaModel.isLanguageExist(name))
+            false
+        else {
+            //生成新实例
+            val add_item : Language = metaModel.newInstance()
+            //更新实例对象
+            add_item.updateInstance(name, code, image, dir, display_order)
+            //保存实例
+            add_item.saveInstance()
+        }
+//        //生成新实例
+//        val add_item : Language = metaModel.newInstance()
+//        //更新实例对象
+//        add_item.updateInstance(name, code, image, dir, display_order)
+//        //保存实例
+//        add_item.saveInstance()
     }
 
-    private def editItem(id : Int, name : String, code : String, image : String, dir : String, display_order : Int) : Boolean = {
+    private def editItem(id : Long, name : String, code : String, image : String, dir : String, display_order : Int) : Boolean = {
         val edit_item = metaModel.findOneInstance(id)
         if(edit_item != null){
             edit_item.updateInstance(name, code, image, dir, display_order)
@@ -122,10 +131,11 @@ object LanguageController {
                         case JField("id", JInt(id)) => {
                                 val jname = jobj \ "name"
                                 val jdisplay_order = jobj \ "displayOrder"
+                                ShopLogger.logger.debug(jdisplay_order.toString)
                                 val delete = jobj \ "delete"
                                 (jname, jdisplay_order, delete) match {
                                     case (_, _, JField("delete", JBool(true))) => {
-                                            deleteItem(id.toInt)
+                                            deleteItem(id.toLong)
                                         }
                                     case (JField("name", JString(name)), JField("displayOrder", JInt(display_order)), JField("delete", JBool(false)))
                                         if(LangProps.findLangProperty(name) != null )
@@ -136,7 +146,7 @@ object LanguageController {
                                                 val image = langProp.image
                                                 val edit_item = null
                                                 if(id >= 0) {
-                                                    editItem(id.toInt, name, code, image, dir, display_order.toInt)
+                                                    editItem(id.toLong, name, code, image, dir, display_order.toInt)
                                                 }
                                                 else{
                                                     addItem(name, code, image, dir, display_order.toInt)
@@ -150,7 +160,8 @@ object LanguageController {
                     }
                 }
             )
-            Full(OkResponse())
+//            Full(OkResponse())
+            list()
         }
         catch {
             case ex : Exception => {
@@ -165,11 +176,9 @@ object LanguageController {
 //            edit_item.updateInstance( "chinese", "cc", "cn2", "chinese2", edit_item.getDisplayOrder() + 1 )
 //            edit_item.saveInstance()
 //        }
-//        list()
-        
     }
 
-    private def deleteItem(item_id : Int) {
+    private def deleteItem(item_id : Long) {
         if(item_id < 0)
             return
         val del_item = metaModel.findOneInstance(item_id)
