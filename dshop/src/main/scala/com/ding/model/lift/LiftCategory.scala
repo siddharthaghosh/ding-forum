@@ -36,7 +36,6 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
                 this.setDescription(desc_item._1, desc_item._3)
             }
         }
-        this.update_time(new Date())
     }
 
     override def children() : List[LiftCategory] = {
@@ -49,14 +48,14 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
     override def getName(lang_id : Long) : String = {
         val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
         if(desc_item == null)
-            null
+            ""
         else
             desc_item.name.is
     }
     override def getDescription(lang_id : Long) : String = {
         val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
         if(desc_item == null)
-            null
+            ""
         else
             desc_item.description.is
     }
@@ -73,10 +72,23 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
     override def setAddTime(date : Date) {
         this.add_time(date)
     }
-    override def setName(lang_id : Long, name : String) {
+    override def setName(lang_id : Long, name : String, desc : String*) {
         val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
         if(desc_item != null)
             desc_item.name(name)
+        else {
+            val des = LiftCategoryDescription.newInstance
+            des.name(name)
+            if(desc.length > 0)
+            {
+                des.description(desc.head)
+            }
+            else {
+                des.description("")
+            }
+            
+            this.descriptions.append(des)
+        }
     }
     override def setDescription(lang_id : Long, desc : String) {
         val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
@@ -92,8 +104,10 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
     override def setDisplayOrder(order : Int) {
         this.display_order(order)
     }
-    
-    override def saveInstance() : Boolean = this.save
+    override def saveInstance() : Boolean = {
+        this.setUpdateTime(new Date())
+        this.save
+    }
     override def deleteInstance() : Boolean = {
         this.delete_!
     }
@@ -138,5 +152,11 @@ object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with M
                 LiftCategory.getAllAncestor(parentCat.cat_id) ++ (cat :: Nil)
             }
         }
+    }
+
+    override def newInstance() = {
+        val ni = this.create
+        ni.setAddTime(new Date())
+        ni
     }
 }

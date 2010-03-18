@@ -26,7 +26,7 @@ trait Category extends Model {
     def setParentID(id : Long)
     def setUpdateTime(date : Date)
     def setAddTime(date : Date)
-    def setName(lang_id : Long, name : String)
+    def setName(lang_id : Long, name : String, desc : String*)
     def setDescription(lang_id : Long, desc : String)
     def setActive(active : Boolean)
     def setImage(image : String)
