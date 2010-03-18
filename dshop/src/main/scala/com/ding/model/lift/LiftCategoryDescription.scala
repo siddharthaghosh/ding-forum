@@ -6,8 +6,9 @@
 package com.ding.model.lift
 
 import net.liftweb.mapper._
+import com.ding.model._
 
-class LiftCategoryDescription extends LongKeyedMapper[LiftCategoryDescription] with IdPK{
+class LiftCategoryDescription extends LiftModel[LiftCategoryDescription] with IdPK with CategoryDescription{
 
     override def getSingleton = LiftCategoryDescription
 
@@ -18,8 +19,10 @@ class LiftCategoryDescription extends LongKeyedMapper[LiftCategoryDescription] w
     
 }
 
-object LiftCategoryDescription extends LiftCategoryDescription with LongKeyedMetaMapper[LiftCategoryDescription] {
+object LiftCategoryDescription extends LiftCategoryDescription with LiftMetaModel[LiftCategoryDescription] with MetaCategoryDescription{
     
     override def dbTableName = "dshop_category_description"
-    
+    override def findOneInstance(id : Long) = {
+        LiftCategoryDescription.find(By(LiftCategoryDescription.id, id)).openOr(null)
+    }
 }

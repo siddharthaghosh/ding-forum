@@ -17,7 +17,7 @@ import com.ding.util._
 
 object LanguageController {
 
-    def metaModel : MetaLanguage = LiftLanguage
+    def metaModel : MetaLanguage = MetaModels.metaLanguage
 
     def process() : Box[LiftResponse] = {
         ShopLogger.debug("Language Controller works")
