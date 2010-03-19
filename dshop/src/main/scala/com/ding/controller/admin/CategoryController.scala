@@ -27,26 +27,14 @@ object CategoryController {
 
     private def processAction(action : String) : Box[LiftResponse] = {
         action match {
-            case "add" => {
-                    categoryAdd()
-                }
             case "save" => {
                     save()
                 }
             case "delete" => {
-                    Full(OkResponse())
+                    delete()
                 }
-            case "list" => {
-                    val cat = LiftCategory.find(By(LiftCategory.cat_id, 1)).open_!
-                    val desc = cat.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, 24)).openOr(null))
-                    if(desc == null)
-                        ShopLogger.logger.debug("description not found")
-                    else
-                        ShopLogger.logger.debug("%s %s", desc.name.is, desc.description.is)
-                    Full(OkResponse())
-            }
             case "explore" => {
-                    categoryList()
+                    explore()
             }
             case "navigator" => {
                     navigator()
@@ -99,15 +87,39 @@ object CategoryController {
                             throw new Exception
                         }
                 }
-            ShopLogger.logger.debug(cat_id.toString)
-            ShopLogger.logger.debug(parent_id.toString)
-            generals.foreach {
-                gen => {
-                    ShopLogger.logger.debug(gen._1.toString)
-                    ShopLogger.logger.debug(gen._2)
-                    ShopLogger.logger.debug(gen._3)
-                }
+
+
+            val cat_item = if (cat_id  == -1) {
+                metaModel.newInstance
+            } else {
+                metaModel.findOneInstance(cat_id)
             }
+            if (cat_item == null) {
+                Full(NotFoundResponse())
+            } else {
+                cat_item.setParentID(parent_id)
+                cat_item.setActive(true)
+                cat_item.setImage("no_image.png")
+                if (cat_id == -1) {
+                    cat_item.setDisplayOrder(metaModel.findOneInstance(cat_item.getParentID).children.length + 1)
+                }
+                generals.foreach {
+                    general => {
+                        cat_item.setName(general._1, general._2, general._3)
+                    }
+                }
+                cat_item.saveInstance()
+                this.getAllSubCategories(cat_item.getParentID, getDefaultLang)
+            }
+//            ShopLogger.logger.debug(cat_id.toString)
+//            ShopLogger.logger.debug(parent_id.toString)
+//            generals.foreach {
+//                gen => {
+//                    ShopLogger.logger.debug(gen._1.toString)
+//                    ShopLogger.logger.debug(gen._2)
+//                    ShopLogger.logger.debug(gen._3)
+//                }
+//            }
         }
         catch{
             case ex : Exception => {
@@ -129,25 +141,25 @@ object CategoryController {
 //        val cat = LiftCategory.find(By(LiftCategory.cat_id, 1)).open_!
 //        cat.updateInstance(0, "cat", true, 11, (23, "CatChangeAgain", "cat ccccccccc"))
 //        cat.save
-        Full(OkResponse())
+        
     }
 
     private def query() = {
         val reqstr : String = this.getRequestContent()
         try {
-//            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-//            ShopLogger.logger.debug(jsonList.toString)
-//
-//            val cat_id : Long = jsonList match {
-//                case List(JObject(JField("id", JInt(id)) :: Nil)) => {
-//                        id.toLong
-//                }
-//                case _ => {
-//                        throw (new Exception("bad request format"))
-//                }
-//            }
-            val cat_id = -1
-            val parent_id = 0
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            ShopLogger.logger.debug(jsonList.toString)
+
+            val (cat_id : Long, parent_id) = jsonList match {
+                case List(JObject(JField("id", JInt(id)) :: JField("parentId", JInt(pid)) :: Nil)) => {
+                        (id.toLong, pid.toLong)
+                }
+                case _ => {
+                        throw (new Exception("bad request format"))
+                }
+            }
+            //val cat_id = -1
+            //val parent_id = 0
             val item = if(cat_id == -1)
                 metaModel.newInstance()
             else
@@ -221,7 +233,7 @@ object CategoryController {
                 }
         }    
     }
-    private def categoryList() = {
+    private def explore() = {
 
         val reqstr = this.getRequestContent()
 //        val reqstr = "[{\"id\":20}, {\"language\":20}]"
@@ -261,27 +273,7 @@ object CategoryController {
 //            } else {
 //                metaModel.newInstance
 //            }
-
-            val cat_children : List[Category] = metaModel.getChildren(categoryId)
-            val resultList = cat_children.flatMap {
-                case  item : Category => {
-                        val cat_name = item.getName(languageId)
-                        val cat_desc = item.getDescription(languageId)
-                        List(
-                            JsonAST.JField("id", JsonAST.JInt(item.getID()))
-                            ++
-                            JsonAST.JField("name", JsonAST.JString(cat_name))
-                            ++
-                            JsonAST.JField("description", JsonAST.JString(cat_desc))
-                        )
-                    }
-            }
-            ShopLogger.logger.debug("finished")
-            val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(metaModel.findOneInstance(categoryId).getName(languageId)))
-
-            Full(JsonResponse(
-                    JsonAST.JArray(parentCat :: JsonAST.JArray(resultList) :: Nil)
-                ))
+            getAllSubCategories(categoryId, languageId)
         }
         catch {
             case ex : Exception => {
@@ -292,8 +284,13 @@ object CategoryController {
         }
     }
 
-    private def categoryAdd() = {
-        Full(OkResponse())
+    private def delete() = {
+        val cat_id = 9
+        val cat_item = metaModel.findOneInstance(cat_id)
+        val parent_id = cat_item.getParentID()
+
+        cat_item.deleteInstance()
+        this.getAllSubCategories(parent_id, this.getDefaultLang())
     }
 
     private def navigator() = {
@@ -356,4 +353,29 @@ object CategoryController {
         val reqstr = new String(reqbody, "UTF-8")
         reqstr
     }
+
+    private def getAllSubCategories(categoryId : Long, languageId : Long) = {
+        val cat_children : List[Category] = metaModel.getChildren(categoryId)
+        val resultList = cat_children.flatMap {
+            case  item : Category => {
+                    val cat_name = item.getName(languageId)
+                    val cat_desc = item.getDescription(languageId)
+                    List(
+                        JsonAST.JField("id", JsonAST.JInt(item.getID()))
+                        ++
+                        JsonAST.JField("name", JsonAST.JString(cat_name))
+                        ++
+                        JsonAST.JField("description", JsonAST.JString(cat_desc))
+                    )
+                }
+        }
+        ShopLogger.logger.debug("finished")
+        val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(metaModel.findOneInstance(categoryId).getName(languageId)))
+
+        Full(JsonResponse(
+                JsonAST.JArray(parentCat :: JsonAST.JArray(resultList) :: Nil)
+            ))
+    }
+
+    private def getDefaultLang() = 22
 }

@@ -74,10 +74,16 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
     }
     override def setName(lang_id : Long, name : String, desc : String*) {
         val desc_item = this.findDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
-        if(desc_item != null)
+        if(desc_item != null) {
             desc_item.name(name)
+            if(desc.length > 0)
+            {
+                desc_item.description(desc.head)
+            }
+        }
         else {
             val des = LiftCategoryDescription.newInstance
+            des.lang_id(lang_id)
             des.name(name)
             if(desc.length > 0)
             {
@@ -109,6 +115,16 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
         this.save
     }
     override def deleteInstance() : Boolean = {
+        this.children.foreach {
+            child => {
+                child.deleteInstance()
+            }
+        }
+        this.descriptions.all.foreach {
+            desc => {
+                desc.deleteInstance()
+            }
+        }
         this.delete_!
     }
 

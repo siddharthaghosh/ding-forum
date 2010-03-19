@@ -15,6 +15,7 @@
         <action>
             <actionName>rebuild</actionName>
             <goals>
+                <goal>-o</goal>
                 <goal>clean</goal>
                 <goal>install</goal>
                 
