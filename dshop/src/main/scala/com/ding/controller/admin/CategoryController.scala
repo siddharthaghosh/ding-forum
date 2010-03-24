@@ -10,7 +10,7 @@ import net.liftweb.common._
 import net.liftweb.json._
 import net.liftweb.mapper._
 import com.ding.model._
-import com.ding.model.lift._
+//import com.ding.model.lift._
 import com.ding.controller._
 import com.ding.util._
 import net.liftweb.json._
@@ -30,8 +30,8 @@ object CategoryController {
             case "save" => {
                     save()
                 }
-            case "delete" => {
-                    delete()
+            case "remove" => {
+                    remove()
                 }
             case "explore" => {
                     explore()
@@ -284,13 +284,29 @@ object CategoryController {
         }
     }
 
-    private def delete() = {
-        val cat_id = 9
-        val cat_item = metaModel.findOneInstance(cat_id)
-        val parent_id = cat_item.getParentID()
-
-        cat_item.deleteInstance()
-        this.getAllSubCategories(parent_id, this.getDefaultLang())
+    private def remove() = {
+        val reqstr = this.getRequestContent()
+        ShopLogger.logger.debug(reqstr)
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val item = metaModel.findOneInstance(jsonList.head.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong)
+            val parent_id =
+                if (item != null)
+                    item.getParentID
+                else
+                    -1
+            jsonList.foreach(
+                item => {
+                    val cat_id = item.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong
+                    val cat_item = metaModel.findOneInstance(cat_id)
+                    if(cat_item != null) {
+                        cat_item.deleteInstance()
+                    }
+                }
+            )
+            this.getAllSubCategories(parent_id, this.getDefaultLang())
+        }
+        
     }
 
     private def navigator() = {

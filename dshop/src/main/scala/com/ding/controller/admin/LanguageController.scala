@@ -9,13 +9,13 @@ import net.liftweb.http._
 import net.liftweb.common._
 import net.liftweb.json._
 import com.ding.model._
-import com.ding.model.lift._
+//import com.ding.model.lift._
 import com.ding.controller._
 import net.liftweb.util._
 import net.liftweb.json.JsonAST._
 import com.ding.util._
 
-object LanguageController {
+object LanguageController extends Controller[Language]{
 
     def metaModel : MetaLanguage = MetaModels.metaLanguage
 
@@ -27,27 +27,68 @@ object LanguageController {
     def processAction(action : String) : Box[LiftResponse] = {
 
         action match {
-//            case "add" => {
-//                    add()
-//                }
-            case "save" => {
-                    save()
+            case "add" => {
+                    add()
                 }
-//            case "delete" => {
-//                    delete()
-//                    Full(OkResponse())
+//            case "save" => {
+//                    save()
 //                }
+            case "remove" => {
+                    remove()
+            }
             case "list" => {
                     list()
             }
             case "listsupport" => {
                     listSupport()
             }
+            case "changedisplayorder" => {
+                    changeDisplayOrder()
+            }
             case _ => Full(NotFoundResponse())
         }
 
     }
-    
+
+    private def add() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"name\":\"France\"}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            ShopLogger.logger.debug(jsonList.toString)
+            jsonList.foreach(
+                item => {
+                    val lang_obj = item.asInstanceOf[JsonAST.JObject]
+                    val name = lang_obj.values("name").asInstanceOf[String]
+                    val langProp= LangProps.findLangProperty(name)
+                    val dir = langProp.directory
+                    val code = langProp.code
+                    val image = langProp.image
+                    val display_order = metaModel.findAllInstances.length + 1
+                    addItem(name, code, image, dir, display_order)
+                }
+            )
+        }
+        list()
+    }
+
+    private def remove() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": 26}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            ShopLogger.logger.debug(jsonList.toString)
+            jsonList.foreach(
+                item => {
+                    val lang_obj = item.asInstanceOf[JsonAST.JObject]
+                    val id = lang_obj.values("id").asInstanceOf[BigInt].toLong
+                    deleteItem(id)
+                }
+            )
+        }
+        list()
+    }
+
     private def list() : Box[LiftResponse] = {
         val allInsList = metaModel.findAllInstances
         val resultList = allInsList.flatMap {
@@ -80,6 +121,25 @@ object LanguageController {
         Full(JsonResponse(
                 JsonAST.JArray(resultList)
             ))
+    }
+
+    private def changeDisplayOrder() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            ShopLogger.logger.debug(jsonList.toString)
+            jsonList.foreach{
+                item => {
+                    val lang_obj = item.asInstanceOf[JsonAST.JObject]
+                    val id = lang_obj.values("id").asInstanceOf[BigInt].toLong
+                    val order = lang_obj.values("displayOrder").asInstanceOf[BigInt].toInt
+                    val langitem = metaModel.findOneInstance(id)
+                    langitem.setDisplayOrder(order)
+                    langitem.saveInstance()
+                }
+            }
+        }
+        list()
     }
 
     private def addItem(name : String, code : String, image : String, dir : String, display_order : Int) : Boolean = {
