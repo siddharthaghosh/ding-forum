@@ -10,5 +10,7 @@ import com.ding.model.lift._
 object MetaModels {
     lazy val metaLanguage : MetaLanguage = LiftLanguage
     lazy val metaCategory : MetaCategory = LiftCategory
+    lazy val metaOptionGroup : MetaOptionGroup = LiftOptionGroup
+    lazy val metaOptionValue : MetaOptionValue = LiftOptionValue
 }
 

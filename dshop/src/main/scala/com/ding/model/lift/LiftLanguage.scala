@@ -61,4 +61,7 @@ object LiftLanguage extends LiftLanguage with LiftMetaModel[LiftLanguage] with M
     override def isLanguageExist(name : String) : Boolean = {
         !(LiftLanguage.findAll(By(LiftLanguage.name, name)).isEmpty)       
     }
+    override def isLanguageExist(id : Long) : Boolean = {
+        !(LiftLanguage.findAll(By(LiftLanguage.lang_id, id)).isEmpty)
+    }
 }
