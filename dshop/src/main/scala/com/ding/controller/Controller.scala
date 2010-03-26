@@ -14,7 +14,7 @@ import net.liftweb.common._
 abstract class Controller [A <: Model] {
     type T = MetaModel[A]
     def metaModel : T
-    private def getDefaultLang() = 22
+    def getDefaultLang() = 22
     def getRequestContent() : String = {
         /*
          *  从Request对象内读出请求信息

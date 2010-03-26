@@ -15,11 +15,11 @@ import net.liftweb.util._
 import net.liftweb.json.JsonAST._
 import com.ding.util._
 
-object LanguageController extends Controller[Language]{
+object LanguageController extends Controller[Language] {
 
     def metaModel : MetaLanguage = MetaModels.metaLanguage
 
-    def process() : Box[LiftResponse] = {
+    override def process() : Box[LiftResponse] = {
         ShopLogger.debug("Language Controller works")
         processAction(reqInfo.is.action)
     }
