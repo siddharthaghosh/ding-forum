@@ -28,9 +28,15 @@ object OptionController extends Controller[OptionGroup] {
             case "queryvalue" => {
                     queryValue()
             }
+            case "queryvaluesave" => {
+                    queryValueSave()
+            }
+            case "queryvalueremove" => {
+                    queryValueRemove()
+            }
             case "changedisplayorder" => {
                     Full(OkResponse())
-                }
+            }
             case _ => Full(NotFoundResponse())
         }
     }
@@ -113,7 +119,8 @@ object OptionController extends Controller[OptionGroup] {
     }
 
     private def queryValue() : Box[LiftResponse] = {
-        val reqstr = "[{\"id\": 1}]"
+//        val reqstr = "[{\"id\": 1}]"
+        val reqstr = this.getRequestContent()
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
@@ -152,5 +159,76 @@ object OptionController extends Controller[OptionGroup] {
             )
             Full(JsonResponse(JArray(result::Nil)))
         }
+    }
+
+    private def queryValueSave() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent
+//        val reqstr = "[{  \"id\":1,  \"displayOrder\":1,  \"optionValueDetail\":[{    \"langId\":22,    \"header\":\"中国\",    \"code\":\"cn\",    \"name\":\"11米\"  },{    \"langId\":23,    \"header\":\"America\",    \"code\":\"us\",    \"name\":\"11M\"  }]}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+            val ov_id = jsonItem.values("id").asInstanceOf[BigInt].toLong
+            val og_id = jsonItem.values("groupId").asInstanceOf[BigInt].toLong
+            val item = if(ov_id == -1)
+                MetaModels.metaOptionValue.newInstance()
+            else
+                MetaModels.metaOptionValue.findOneInstance(ov_id)
+            if (item != null) {
+                if(ov_id == -1)
+                    item.setGroupID(og_id)
+                val ov_details : List[Map[String, Object]] = jsonItem.values("optionValueDetail").asInstanceOf[List[Map[String, Object]]]
+                ov_details.foreach(
+                    ov_detail => {
+                        val lang_id = ov_detail("langId").asInstanceOf[BigInt].toLong
+                        val name = ov_detail("name").asInstanceOf[String]
+//                        if(name != null && name.length != 0)
+                            item.setName(lang_id, name)
+                    }
+                )
+                item.saveInstance()
+                val gid = item.getGroupID()
+                Full(this.getAllValuesByGroupIdAsJsonResponse(gid))
+            } else {
+                Full(BadResponse())
+            }
+        }
+    }
+
+    private def queryValueRemove() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val item = MetaModels.metaOptionValue.findOneInstance(jsonList.head.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong)
+            val og_id =
+                if (item != null)
+                    item.getGroupID()
+            else
+                -1
+            jsonList.foreach(
+                item => {
+                    val ov_id = item.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong
+                    val ov_item = MetaModels.metaOptionValue.findOneInstance(ov_id)
+                    if(ov_item != null)
+                        ov_item.deleteInstance()
+                }
+            )
+            this.getAllValuesByGroupIdAsJsonResponse(og_id)
+        }
+        Empty
+    }
+
+    private def getAllValuesByGroupIdAsJsonResponse(gid : Long) : LiftResponse = {
+        val og_item = metaModel.findOneInstance(gid)
+        val values = og_item.allValues().flatMap {
+            value_item => {
+                val vid = value_item.getID()
+                val vname = value_item.getName(this.getDefaultLang())
+                List(JsonAST.JField("id", JInt(vid))
+                     ++
+                     JsonAST.JField("name", JString(vname))
+                )
+            }
+        }
+        JsonResponse(JArray(values))
     }
 }
