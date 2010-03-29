@@ -50,6 +50,16 @@ class LiftOptionValue extends LiftModel[LiftOptionValue] with OptionValue with O
     override def setDisplayOrder(order : Int) {
         this.display_order(order)
     }
+
+    override def deleteInstance : Boolean = {
+        this.names.all.foreach {
+            name => {
+                name.deleteInstance()
+            }
+        }
+        this.delete_!
+    }
+
     def findNameByLang(lang : LiftLanguage) : LiftOptionValueName = {
         if(lang == null)
             null
