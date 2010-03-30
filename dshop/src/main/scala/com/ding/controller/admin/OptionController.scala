@@ -42,9 +42,23 @@ object OptionController extends Controller[OptionGroup] {
     }
 
     private def explore() : Box[LiftResponse] = {
+//        val reqstr = this.getRequestContent
+        val reqstr = "[{\"start\":1, \"end\":5}]"
         try{
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val jsonObj = jsonList.head.asInstanceOf[JObject]
+            val start = jsonObj.values("start").asInstanceOf[BigInt]
+            val end = jsonObj.values("end").asInstanceOf[BigInt]
             val langId = this.getDefaultLang()
-            val itemList = metaModel.findAllInstances
+            val allList = metaModel.findAllInstances
+            val total = allList.length
+            val itemList = if(start > end)
+                Nil
+            else if (start > total)
+                Nil
+            else
+                allList.take(end.toInt).takeRight(end.toInt - start.toInt + 1)
+            println(itemList)
             val resultList = itemList.flatMap {
                 item => {
                     val id = item.getID()
@@ -53,17 +67,22 @@ object OptionController extends Controller[OptionGroup] {
                         JsonAST.JField("id", JsonAST.JInt(id))
                         ++
                         JsonAST.JField("name", JsonAST.JString(name))
+                        ++
+                        JsonAST.JField("type", JString("group"))
+                        ++
+                        JsonAST.JField("value", this.getAllValuesByGroupInstanceAsJsonValue(item))
                     )
                 }
             }
-            Full(JsonResponse(JsonAST.JArray(resultList)))
+            Full(JsonResponse(JsonAST.JArray(
+                        JField("total", JInt(total))::JArray(resultList)::Nil
+                    )))
         }
-//        Full(OkResponse())
     }
 
     private def queryGroup() : Box[LiftResponse] = {
 //        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\": 1}]"
+        val reqstr = "[{\"id\": -1}]"
         ShopLogger.logger.debug(reqstr)
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
@@ -75,47 +94,18 @@ object OptionController extends Controller[OptionGroup] {
             else
                 metaModel.findOneInstance(og_id)
             val displayOrder : Int = if(og_id == -1) 0 else item.getDisplayOrder
-
-            val supportLangs : List[Language] = MetaModels.metaLanguage.findAllInstances
-            val optionGroupDetail : List[JsonAST.JValue] = supportLangs.flatMap {
-                lang => {
-                    val langId = lang.getID
-                    val header = lang.getName
-                    val code = lang.getCode
-                    val name = item.getName(langId)
-                    List(JsonAST.JField("langId", JInt(langId))
-                         ++
-                         JField("header", JString(header))
-                         ++
-                         JField("code", JString(code))
-                         ++
-                         JField("name", JString(name))
-                    )
-                }
-            }
-            val value : List[JsonAST.JValue] = item.allValues().flatMap {
-                value_item => {
-                    val vid = value_item.getID()
-                    val vname = value_item.getName(this.getDefaultLang())
-                    List(JsonAST.JField("id", JInt(vid))
-                         ++
-                         JsonAST.JField("name", JString(vname))
-                    )
-                }
-            }
             val result = JObject(JField("id", JInt(og_id))
                                  ::
                                  JField("displayOrder", JInt(displayOrder))
                                  ::
-                                 JField("optionGroupDetail", JArray(optionGroupDetail))
+                                 JField("optionGroupDetail", this.getAllNamesByGroupInstanceAsJsonValue(item))
                                  ::
-                                 JField("value", JArray(value))
+                                 JField("value", this.getAllValuesByGroupInstanceAsJsonValue(item))
                                  ::
                                  Nil
             )
             Full(JsonResponse(JArray(result::Nil)))
         }
-//        Empty
     }
 
     private def queryValue() : Box[LiftResponse] = {
@@ -187,7 +177,7 @@ object OptionController extends Controller[OptionGroup] {
                 )
                 item.saveInstance()
                 val gid = item.getGroupID()
-                Full(this.getAllValuesByGroupIdAsJsonResponse(gid))
+                Full(JsonResponse(this.getAllValuesByGroupIdAsJsonValue(gid)))
             } else {
                 Full(BadResponse())
             }
@@ -212,23 +202,63 @@ object OptionController extends Controller[OptionGroup] {
                         ov_item.deleteInstance()
                 }
             )
-            this.getAllValuesByGroupIdAsJsonResponse(og_id)
+            Full(JsonResponse(this.getAllValuesByGroupIdAsJsonValue(og_id)))
         }
-        Empty
     }
 
-    private def getAllValuesByGroupIdAsJsonResponse(gid : Long) : LiftResponse = {
+    private def getAllValuesByGroupIdAsJsonValue(gid : Long) : JsonAST.JValue = {
         val og_item = metaModel.findOneInstance(gid)
-        val values = og_item.allValues().flatMap {
+        val values = if(og_item != null) og_item.allValues().flatMap {
             value_item => {
                 val vid = value_item.getID()
                 val vname = value_item.getName(this.getDefaultLang())
                 List(JsonAST.JField("id", JInt(vid))
                      ++
                      JsonAST.JField("name", JString(vname))
+                     ++
+                     JField("type", JString("value"))
+                )
+            }
+        } else {
+            Nil
+        }
+        JArray(values)
+    }
+    
+    private def getAllValuesByGroupInstanceAsJsonValue(item : OptionGroup) : JsonAST.JValue = {
+        val values = item.allValues().flatMap {
+            value_item => {
+                val vid = value_item.getID()
+                val vname = value_item.getName(this.getDefaultLang())
+                List(JsonAST.JField("id", JInt(vid))
+                     ++
+                     JsonAST.JField("name", JString(vname))
+                     ++
+                     JField("type", JString("value"))
                 )
             }
         }
-        JsonResponse(JArray(values))
+        JArray(values)
+    }
+
+    private def getAllNamesByGroupInstanceAsJsonValue(item : OptionGroup) : JsonAST.JValue = {
+        val supportLangs : List[Language] = MetaModels.metaLanguage.findAllInstances
+        val optionGroupDetail : List[JsonAST.JValue] = supportLangs.flatMap {
+            lang => {
+                val langId = lang.getID
+                val header = lang.getName
+                val code = lang.getCode
+                val name = item.getName(langId)
+                List(JsonAST.JField("langId", JInt(langId))
+                     ++
+                     JField("header", JString(header))
+                     ++
+                     JField("code", JString(code))
+                     ++
+                     JField("name", JString(name))
+                )
+            }
+        }
+        JArray(optionGroupDetail)
     }
 }
