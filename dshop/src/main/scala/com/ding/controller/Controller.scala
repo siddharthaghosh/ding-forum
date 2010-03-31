@@ -8,6 +8,7 @@ package com.ding.controller
 import net.liftweb.http._
 import com.ding.model._
 import net.liftweb.util._
+import net.liftweb.util.Helpers._
 import net.liftweb.http._
 import net.liftweb.common._
 
@@ -25,9 +26,10 @@ abstract class Controller [A <: Model] {
         val req = S.request.open_!
         val reqbody : Array[Byte] = req.body.openOr(Array())
         val reqstr = new String(reqbody, "UTF-8")
-        reqstr
+        urlDecode(reqstr)
     }
     def process() : Box[LiftResponse] = {
+        println("module is " + reqInfo.is.module + ", controller is " + reqInfo.is.application + ", action is " + reqInfo.is.action)
         processAction(reqInfo.is.action)
     }
     def processAction(action : String) : Box[LiftResponse]

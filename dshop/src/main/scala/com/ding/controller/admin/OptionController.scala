@@ -9,21 +9,31 @@ import com.ding.controller._
 import com.ding.util.ShopLogger
 import net.liftweb.common._
 import net.liftweb.http._
+import net.liftweb.util.Helpers._
 import com.ding.model._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 
-object OptionController extends Controller[OptionGroup] {
+object OptionGroupController extends Controller[OptionGroup] {
     
     override def metaModel = MetaModels.metaOptionGroup
 
     override def processAction(action : String) : Box[LiftResponse] = {
         action match {
+            case "" => {
+                    explore()
+            }
             case "explore" => {
                     explore()
             }
             case "querygroup" => {
                     queryGroup()
+            }
+            case "querygroupsave" => {
+                    queryGroupSave()
+            }
+            case "querygroupremove" => {
+                    queryGroupRemove()
             }
             case "queryvalue" => {
                     queryValue()
@@ -42,13 +52,18 @@ object OptionController extends Controller[OptionGroup] {
     }
 
     private def explore() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent
-        val reqstr = "[{\"start\":1, \"end\":5}]"
+        val reqstr = this.getRequestContent
+//        val reqstr = "[{\"start\":1, \"end\":5}]"
+        val startstr = urlDecode(S.param("offset").openOr("0"))
+        val limitstr = urlDecode(S.param("limit").openOr("50"))
+
         try{
-            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-            val jsonObj = jsonList.head.asInstanceOf[JObject]
-            val start = jsonObj.values("start").asInstanceOf[BigInt]
-            val end = jsonObj.values("end").asInstanceOf[BigInt]
+//            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+//            val jsonObj = jsonList.head.asInstanceOf[JObject]
+//            val start = jsonObj.values("start").asInstanceOf[BigInt]
+//            val end = jsonObj.values("end").asInstanceOf[BigInt]
+            val start = startstr.toInt + 1
+            val end = start + limitstr.toInt - 1
             val langId = this.getDefaultLang()
             val allList = metaModel.findAllInstances
             val total = allList.length
@@ -58,7 +73,6 @@ object OptionController extends Controller[OptionGroup] {
                 Nil
             else
                 allList.take(end.toInt).takeRight(end.toInt - start.toInt + 1)
-            println(itemList)
             val resultList = itemList.flatMap {
                 item => {
                     val id = item.getID()
@@ -67,15 +81,13 @@ object OptionController extends Controller[OptionGroup] {
                         JsonAST.JField("id", JsonAST.JInt(id))
                         ++
                         JsonAST.JField("name", JsonAST.JString(name))
-                        ++
-                        JsonAST.JField("type", JString("group"))
-                        ++
-                        JsonAST.JField("value", this.getAllValuesByGroupInstanceAsJsonValue(item))
+//                        ++
+//                        JsonAST.JField("value", this.getAllValuesByGroupInstanceAsJsonValue(item))
                     )
                 }
             }
-            Full(JsonResponse(JsonAST.JArray(
-                        JField("total", JInt(total))::JArray(resultList)::Nil
+            Full(JsonResponse(JsonAST.JObject(
+                        JField("total", JInt(total))::JField("group", JArray(resultList))::Nil
                     )))
         }
     }
@@ -83,7 +95,6 @@ object OptionController extends Controller[OptionGroup] {
     private def queryGroup() : Box[LiftResponse] = {
 //        val reqstr = this.getRequestContent()
         val reqstr = "[{\"id\": -1}]"
-        ShopLogger.logger.debug(reqstr)
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
@@ -99,12 +110,67 @@ object OptionController extends Controller[OptionGroup] {
                                  JField("displayOrder", JInt(displayOrder))
                                  ::
                                  JField("optionGroupDetail", this.getAllNamesByGroupInstanceAsJsonValue(item))
-                                 ::
-                                 JField("value", this.getAllValuesByGroupInstanceAsJsonValue(item))
+//                                 ::
+//                                 JField("value", this.getAllValuesByGroupInstanceAsJsonValue(item))
                                  ::
                                  Nil
             )
-            Full(JsonResponse(JArray(result::Nil)))
+            Full(JsonResponse(result))
+        }
+    }
+
+    private def queryGroupSave() : Box[LiftResponse] = {
+//        val reqstr = this.getRequestContent()
+        val reqstr = "[{\"id\":-1, \"displayOrder\":100, \"optionGroupDetail\":[{\"langId\":22, \"name\":\"测试选项组1\"}]}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+            val og_id = jsonItem.values("id").asInstanceOf[BigInt].toLong
+            val item = if(og_id == -1)
+                metaModel.newInstance()
+            else
+                metaModel.findOneInstance(og_id)
+            if(item != null) {
+//                item.setDisplayOrder(jsonItem.values("displayOrder").asInstanceOf[BigInt].toInt)
+                val og_details : List[Map[String, Object]] = jsonItem.values("optionGroupDetail").asInstanceOf[List[Map[String, Object]]]
+                og_details.foreach(
+                    og_detail => {
+                        val lang_id = og_detail("langId").asInstanceOf[BigInt].toLong
+                        val name = og_detail("name").asInstanceOf[String]
+                        if(name != null && name.length > 0)
+                            item.setName(lang_id, name)
+                        else {
+                            
+                        }
+                    }
+                )
+                item.saveInstance()
+                explore()
+            } else {
+                Full(BadResponse())
+            }
+        }
+    }
+
+    private def queryGroupRemove() : Box[LiftResponse] = {
+//        val reqstr = this.getRequestContent()
+        val reqstr = "[{\"id\": 6},{\"id\": 5}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            jsonList.foreach(
+                jsonItem => {
+                    val og_id = jsonItem.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong
+                    val item = metaModel.findOneInstance(og_id)
+                    if(item != null)
+                        item.deleteInstance()
+                }
+            )
+//            val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+//            val og_id = jsonItem.values("id").asInstanceOf[BigInt].toLong
+//            val item = metaModel.findOneInstance(og_id)
+//            if(item != null)
+//                item.deleteInstance()
+            explore()
         }
     }
 
@@ -260,5 +326,9 @@ object OptionController extends Controller[OptionGroup] {
             }
         }
         JArray(optionGroupDetail)
+    }
+
+    override def getRequestContent() = {
+        urlDecode(S.param("json").openOr(""))
     }
 }

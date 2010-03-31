@@ -8,6 +8,7 @@ package com.ding.controller
 import net.liftweb.http._
 import net.liftweb.mapper._
 import net.liftweb.common._
+import net.liftweb.util.Helpers._
 import com.ding.model._
 import com.ding.model.lift._
 
@@ -32,10 +33,21 @@ object FrontController {
         val req = S.request.open_!
         val path = req.path
         val partpath = path.partPath
+        if(partpath.length < 2){
+            reqInfo.is.module = ""
+            reqInfo.is.application = ""
+            reqInfo.is.action = ""
+        }
+        else{
+            reqInfo.is.module = partpath(0)
+            reqInfo.is.application = partpath(1)
+            if(partpath.length < 3) {
+                reqInfo.is.action = urlDecode(S.param("action").openOr(""))
 
-        reqInfo.is.module = partpath(0)
-        reqInfo.is.application = partpath(1)
-        reqInfo.is.action = partpath(2)
+            }else {
+                reqInfo.is.action = partpath(2)
+            }
+        }
     }
 
     private def dispathProcess() : Box[LiftResponse] = {
@@ -71,7 +83,8 @@ object FrontController {
         reqInfo.is.application match {
             case "localization" => admin.LanguageController.process()
             case "category" => admin.CategoryController.process()
-            case "option" => admin.OptionController.process()
+            case "optiongroup" => admin.OptionGroupController.process()
+            case "optionvalue" => Full(NotFoundResponse())
             case _ => Full(NotFoundResponse())
         }
     }
