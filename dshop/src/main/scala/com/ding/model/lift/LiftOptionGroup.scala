@@ -67,4 +67,7 @@ object LiftOptionGroup extends LiftOptionGroup with LiftMetaModel[LiftOptionGrou
     override def findOneInstance(id : Long) = {
         LiftOptionGroup.find(By(LiftOptionGroup.option_group_id, id)).openOr(null)
     }
+    override def findAllInstances() = {
+        LiftOptionGroup.findAll(OrderBy(LiftOptionGroup.display_order, Ascending))
+    }
 }
