@@ -38,17 +38,17 @@ object OptionGroupController extends Controller[OptionGroup] {
             case "querygroupremove" => {
                     queryGroupRemove()
             }
-            case "queryvalue" => {
-                    queryValue()
-            }
-            case "queryvaluesave" => {
-                    queryValueSave()
-            }
-            case "queryvalueremove" => {
-                    queryValueRemove()
-            }
-            case "changedisplayorder" => {
-                    Full(OkResponse())
+//            case "queryvalue" => {
+//                    queryValue()
+//            }
+//            case "queryvaluesave" => {
+//                    queryValueSave()
+//            }
+//            case "queryvalueremove" => {
+//                    queryValueRemove()
+//            }
+            case "querygroupchangeorder" => {
+                    queryGroupChangeOrder()
             }
             case _ => Full(NotFoundResponse())
         }
@@ -178,6 +178,81 @@ object OptionGroupController extends Controller[OptionGroup] {
 //                item.deleteInstance()
             explore()
         }
+    }
+
+    private def queryGroupChangeOrder() : Box[LiftResponse] = {
+//        val reqstr = this.getRequestContent()
+        val reqstr = "[{\"beforeId\":57, \"insert\":[{\"id\":1},{\"id\":2},{\"id\":3},{\"id\":4}]}]"
+        try {
+            val jsonList : List[JValue] = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val jsonObj = jsonList.head.asInstanceOf[JObject]
+            /*
+             * 中轴项ID，在此项之前插入
+             */
+            val beforeId = jsonObj.values("beforeId").asInstanceOf[BigInt].toLong
+            /*
+             * 所有要插入项的ID
+             */
+            val insertIdList = jsonObj.values("insert").asInstanceOf[List[Map[String, Object]]].flatMap {
+                jinsert => {
+                    val insertId = jinsert("id").asInstanceOf[BigInt].toLong
+                    List(insertId)
+                }
+            }
+            val otherList = this.metaModel.findAllInstances.filterNot({
+                    item => {
+                        if (insertIdList.contains(item.getID()))
+                            true
+                        else
+                            false
+                    }
+                })
+            val beforePos = otherList.findIndexOf(
+                item => {
+                    item.getID == beforeId
+                }
+            )
+            /*
+             * 插入项之前所有项的列表
+             */
+            val beforeList = otherList.take(beforePos)
+            /*
+             * 插入项之后所有项的列表
+             */
+            val afterList = otherList.takeRight(otherList.length - beforePos -1)
+            /*
+             * 插入项的列表，包括中轴项，在列表最后一位
+             */
+            val insertList = insertIdList.flatMap {
+                id => {
+                    List(this.metaModel.findOneInstance(id))
+                }
+            } ::: List(this.metaModel.findOneInstance(beforeId))
+            object pos extends RequestVar[Int](1)
+            beforeList.foreach {
+                item => {
+                    item.setDisplayOrder(pos.is)
+                    item.saveInstance()
+                    pos(pos.is + 1)
+                }
+            }
+            insertList.foreach {
+                item => {
+                    item.setDisplayOrder(pos.is)
+                    item.saveInstance()
+                    pos(pos.is + 1)
+                }
+            }
+            afterList.foreach {
+                item => {
+                    item.setDisplayOrder(pos.is)
+                    item.saveInstance()
+                    pos(pos.is + 1)
+                }
+            }
+            explore()
+        }
+//        Empty
     }
 
     private def queryValue() : Box[LiftResponse] = {
