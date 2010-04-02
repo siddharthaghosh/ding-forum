@@ -84,7 +84,7 @@ object FrontController {
             case "localization" => admin.LanguageController.process()
             case "category" => admin.CategoryController.process()
             case "optiongroup" => admin.OptionGroupController.process()
-            case "optionvalue" => Full(NotFoundResponse())
+            case "optionvalue" => admin.OptionValueController.process()
             case _ => Full(NotFoundResponse())
         }
     }

@@ -23,6 +23,9 @@ object OptionGroupController extends Controller[OptionGroup] {
             case "" => {
                     explore()
             }
+            case "index" => {
+                    explore()
+            }
             case "explore" => {
                     explore()
             }
@@ -71,8 +74,11 @@ object OptionGroupController extends Controller[OptionGroup] {
                 Nil
             else if (start > total)
                 Nil
-            else
-                allList.take(end.toInt).takeRight(end.toInt - start.toInt + 1)
+            else {
+                val rightPos = if (end > total) total else end
+                val leftPos = start
+                allList.take(rightPos).takeRight(rightPos - leftPos + 1)
+            }
             val resultList = itemList.flatMap {
                 item => {
                     val id = item.getID()
@@ -93,8 +99,8 @@ object OptionGroupController extends Controller[OptionGroup] {
     }
 
     private def queryGroup() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\": -1}]"
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": -1}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
@@ -105,9 +111,9 @@ object OptionGroupController extends Controller[OptionGroup] {
             else
                 metaModel.findOneInstance(og_id)
             val displayOrder : Int = if(og_id == -1) 0 else item.getDisplayOrder
-            val result = JObject(JField("id", JInt(og_id))
+            val result = JObject(JField("id", JArray(JObject(JField("id", JInt(og_id))::Nil)::Nil))
                                  ::
-                                 JField("displayOrder", JInt(displayOrder))
+                                 JField("displayOrder", JArray(JObject(JField("displayOrder", JInt(displayOrder))::Nil)::Nil))
                                  ::
                                  JField("optionGroupDetail", this.getAllNamesByGroupInstanceAsJsonValue(item))
 //                                 ::
@@ -120,8 +126,8 @@ object OptionGroupController extends Controller[OptionGroup] {
     }
 
     private def queryGroupSave() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\":-1, \"displayOrder\":100, \"optionGroupDetail\":[{\"langId\":22, \"name\":\"测试选项组1\"}]}]"
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\":-1, \"displayOrder\":100, \"optionGroupDetail\":[{\"langId\":22, \"name\":\"测试选项组1\"}]}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
@@ -153,8 +159,8 @@ object OptionGroupController extends Controller[OptionGroup] {
     }
 
     private def queryGroupRemove() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\": 6},{\"id\": 5}]"
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": 6},{\"id\": 5}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             jsonList.foreach(
@@ -273,7 +279,7 @@ object OptionGroupController extends Controller[OptionGroup] {
     }
 
     private def getAllValuesByGroupIdAsJsonValue(gid : Long) : JsonAST.JValue = {
-        val og_item = metaModel.findOneInstance(gid)
+        val og_item = MetaModels.metaOptionGroup.findOneInstance(gid)
         val values = if(og_item != null) og_item.allValues().flatMap {
             value_item => {
                 val vid = value_item.getID()
