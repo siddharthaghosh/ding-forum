@@ -57,8 +57,9 @@ object OptionGroupController extends Controller[OptionGroup] {
     private def explore() : Box[LiftResponse] = {
         val reqstr = this.getRequestContent
 //        val reqstr = "[{\"start\":1, \"end\":5}]"
+        val allList = metaModel.findAllInstances
         val startstr = urlDecode(S.param("offset").openOr("0"))
-        val limitstr = urlDecode(S.param("limit").openOr("50"))
+        val limitstr = urlDecode(S.param("limit").openOr(allList.length.toString))
 
         try{
 //            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
@@ -68,7 +69,7 @@ object OptionGroupController extends Controller[OptionGroup] {
             val start = startstr.toInt + 1
             val end = start + limitstr.toInt - 1
             val langId = this.getDefaultLang()
-            val allList = metaModel.findAllInstances
+            
             val total = allList.length
             val itemList = if(start > end)
                 Nil
@@ -181,8 +182,8 @@ object OptionGroupController extends Controller[OptionGroup] {
     }
 
     private def queryGroupChangeOrder() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"beforeId\":57, \"insert\":[{\"id\":1},{\"id\":2},{\"id\":3},{\"id\":4}]}]"
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"beforeId\":57, \"insert\":[{\"id\":1},{\"id\":2},{\"id\":3},{\"id\":4}]}]"
         try {
             val jsonList : List[JValue] = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
