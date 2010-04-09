@@ -13,6 +13,7 @@ import com.ding.model._
 import com.ding.model.lift._
 
 object reqInfo extends RequestVar[RequestInfo]({new RequestInfo})
+object loginInfo extends SessionVar[String]({"notlogin"})
 
 object FrontController {
 
@@ -52,16 +53,21 @@ object FrontController {
 
     private def dispathProcess() : Box[LiftResponse] = {
 
-        requestPathProcess()
+        if(loginInfo.is != "notlogin") {
+            Full(ForbiddenResponse("must login first"))
+        } else {
+            requestPathProcess()
 
-        /*
-         * authorization code here, next step
-         */
+            /*
+             * authorization code here, next step
+             */
 
-        reqInfo.is.module match {
-            case "admin" => adminProcess()
-            case _ => Full(NotFoundResponse())
+            reqInfo.is.module match {
+                case "admin" => adminProcess()
+                case _ => Full(NotFoundResponse())
+            }
         }
+        
         /*
          * authorization code here, next step
          */
@@ -85,6 +91,7 @@ object FrontController {
             case "category" => admin.CategoryController.process()
             case "optiongroup" => admin.OptionGroupController.process()
             case "optionvalue" => admin.OptionValueController.process()
+            case "manufacturer" => admin.ManufacturerController.process()
             case _ => Full(NotFoundResponse())
         }
     }

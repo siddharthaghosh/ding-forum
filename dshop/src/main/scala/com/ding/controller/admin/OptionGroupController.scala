@@ -199,6 +199,10 @@ object OptionGroupController extends Controller[OptionGroup] {
                     val insertId = jinsert("id").asInstanceOf[BigInt].toLong
                     List(insertId)
                 }
+            }.filterNot{
+                item => {
+                    item == beforeId
+                }
             }
             val otherList = this.metaModel.findAllInstances.filterNot({
                     item => {

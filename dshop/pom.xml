@@ -24,6 +24,10 @@
             <url>http://scala-tools.org/repo-snapshots</url>
             <snapshots/>
         </repository>
+        <repository>
+            <id>gwtupload</id>
+            <url>http://gwtupload.googlecode.com/svn/mavenrepo/</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -89,6 +93,16 @@
             <groupId>net.lag</groupId>
             <artifactId>configgy</artifactId>
             <version>1.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>gwtupload</groupId>
+            <artifactId>gwtupload</artifactId>
+            <version>0.5.6</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
         </dependency>
     </dependencies>
 

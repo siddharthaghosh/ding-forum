@@ -12,5 +12,6 @@ object MetaModels {
     lazy val metaCategory : MetaCategory = LiftCategory
     lazy val metaOptionGroup : MetaOptionGroup = LiftOptionGroup
     lazy val metaOptionValue : MetaOptionValue = LiftOptionValue
+    lazy val metaManufacturer : MetaManufacturer = LiftManufacturer
 }
 
