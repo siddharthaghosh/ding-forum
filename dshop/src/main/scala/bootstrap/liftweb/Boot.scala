@@ -24,7 +24,8 @@ class Boot {
         if (!DB.jndiJdbcConnAvailable_?)
             DB.defineConnectionManager(DefaultConnectionIdentifier, DBVendor)
 
-        // where to search snippet
+        LiftRules.passNotFoundToChain = true
+// where to search snippet
         LiftRules.addToPackages("com.ding")
         Schemifier.schemify(true, Log.infoF _, schemify_arr : _*)
 
@@ -33,7 +34,7 @@ class Boot {
 //            })
         FrontController.setupController()
         // Build SiteMap
-        val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("Test", List("test"), "Test")) :: User.sitemap
+        val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("Test", List("test"), "Test")) :: Menu(Loc("Form", List("form"),"Form")):: User.sitemap
         LiftRules.setSiteMap(SiteMap(entries:_*))
 
         /*
@@ -54,11 +55,14 @@ class Boot {
 
         S.addAround(DB.buildLoanWrapper)
 
-        ShopLogger.debug(LangProps.langPropList.toString)
+//        ShopLogger.debug(LangProps.langPropList.toString)
 
     }
 
-    private val schemify_arr : Array[BaseMetaMapper] = Array(User, LiftDocument, LiftLanguage, LiftCategory, LiftCategoryDescription, LiftOptionGroup, LiftOptionGroupName, LiftOptionValue, LiftOptionValueName)
+    private val schemify_arr : Array[BaseMetaMapper] = Array(User, LiftDocument, LiftLanguage,
+                                                             LiftCategory, LiftCategoryDescription, LiftOptionGroup,
+                                                             LiftOptionGroupName, LiftOptionValue, LiftOptionValueName,
+                                                             LiftManufacturer)
     /**
      * Force the request to be UTF-8
      */

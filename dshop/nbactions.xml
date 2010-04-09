@@ -7,6 +7,7 @@
                 <goal>jetty:run</goal>
                 <goal>-o</goal>
                 
+                
             </goals>
             <properties>
                 <maven.test.skip>true</maven.test.skip>
@@ -15,9 +16,10 @@
         <action>
             <actionName>rebuild</actionName>
             <goals>
-                <goal>-o</goal>
                 <goal>clean</goal>
                 <goal>install</goal>
+                
+                
                 
             </goals>
             <properties>
@@ -30,6 +32,16 @@
                 <goal>clean</goal>
                 <goal>jetty:debug</goal>
                 
+            </goals>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </action>
+        <action>
+            <actionName>build</actionName>
+            <goals>
+                <goal>install</goal>
+                <goal>-o</goal>
             </goals>
             <properties>
                 <maven.test.skip>true</maven.test.skip>

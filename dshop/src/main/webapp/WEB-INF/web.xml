@@ -5,17 +5,63 @@ PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
 "http://java.sun.com/dtd/web-app_2_3.dtd">
 
 <web-app>
+
+<context-param>
+    <!-- max size of the upload request -->
+    <param-name>maxSize</param-name>
+    <param-value>3145728</param-value>
+  </context-param>
+  <context-param>
+    <!-- Useful in development mode to slow down the uploads in fast networks.
+         Put the number of milliseconds to sleep in each block received in the server.
+         false or 0, means don't use slow uploads  -->
+    <param-name>slowUploads</param-name>
+    <param-value>0</param-value>
+  </context-param>
+
 <filter>
-  <filter-name>LiftFilter</filter-name>
-  <display-name>Lift Filter</display-name>
-  <description>The Filter that intercepts lift calls</description>
-  <filter-class>net.liftweb.http.LiftFilter</filter-class>
+  <filter-name>DShopFilter</filter-name>
+  <display-name>DShop Filter</display-name>
+  <description>The Filter that intercepts lift calls and other shop app calss</description>
+  <filter-class>net.liftweb.http.DShopFilter</filter-class>
 </filter>
   	
 
 <filter-mapping>
-  <filter-name>LiftFilter</filter-name>
+  <filter-name>DShopFilter</filter-name>
   <url-pattern>/*</url-pattern>
 </filter-mapping>
+	
+<filter>
+	<filter-name>GWTFilter</filter-name>
+  <display-name>GWT Server Filter</display-name>
+  <description>The Filter that intercepts gwt server calls</description>
+  <filter-class>com.ding.filter.GWTFilter</filter-class>
+</filter>	
+
+<filter-mapping>
+  <filter-name>GWTFilter</filter-name>
+  <url-pattern>/gwtcall/*</url-pattern>
+</filter-mapping>
+
+  <servlet>
+    <description>custom servlet</description>
+    <display-name>HelloWorld Servlet</display-name>
+    <servlet-name>HelloWorldServlet</servlet-name>
+    <servlet-class>com.ding.servlet.HelloWorldServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>HelloWorldServlet</servlet-name>
+    <url-pattern>/gwtcall/hello</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>uploadServlet</servlet-name>
+    <servlet-class>com.ding.servlet.BaseUploadServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>uploadServlet</servlet-name>
+    <url-pattern>/gwtcall/servlet.gupld</url-pattern>
+  </servlet-mapping>
 
 </web-app>
