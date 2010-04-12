@@ -12,11 +12,15 @@ import org.apache.commons.fileupload.FileItem;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 
 /**
  *
@@ -45,19 +49,29 @@ public class BaseUploadServlet extends UploadAction {
         if(false) {
             return null;
         }
+        System.out.println("executeAction being called!!!!!!!!!!!!");
         for (FileItem item : sessionFiles) {
             if (false == item.isFormField()) {
                 try {
                     /// Create a new file based on the remote file name in the client
                     // String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
-                    System.out.println("upload files, field name is " + item.getFieldName());
+                    System.out.println("upload files, field name is " + item.getFieldName() + " ,file name is " + item.getName());
                     String originFileName = item.getName();
                     String fileName = new File(originFileName).getName();
-                    File file = new File(uploadDir + fileName);
+                    String filePrefix = request.getSession(true).getId().toString() + System.currentTimeMillis();
+                    File file = new File(uploadDir + filePrefix + fileName);
                     item.write(file);
                     receivedFilesMap.put(item.getFieldName(), file);
                     receivedContentTypesMap.put(item.getFieldName(), item.getContentType());
+
+                    /*
+                     * 将文件名设置如session，方便后面Lift框架处理
+                     */
+                    HttpSession hs = request.getSession(true);
+                    hs.setAttribute("uploadFileName", filePrefix + fileName);
+
                 } catch (Exception e) {
+                    e.printStackTrace();
                     throw new UploadActionException(e.getMessage());
                 }
             }
@@ -93,5 +107,10 @@ public class BaseUploadServlet extends UploadAction {
         if (file != null) {
             file.delete();
         }
+    }
+
+    @Override
+    protected FileItemFactory getFileItemFactory(int requestSize) {
+        return new DiskFileItemFactory(DiskFileItemFactory.DEFAULT_SIZE_THRESHOLD, new File("d:/temp/uploadfiles/"));
     }
 }

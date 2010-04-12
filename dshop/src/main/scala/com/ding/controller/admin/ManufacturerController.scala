@@ -14,6 +14,7 @@ import net.liftweb.http._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 import java.io.File
+import java.io._
 
 object ManufacturerController extends Controller[Manufacturer] {
 
@@ -87,34 +88,70 @@ object ManufacturerController extends Controller[Manufacturer] {
         }
     }
     private def save() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent
         try {
-            val req = S.request.open_!
-            val id = S.param("id").openOr("-1").toLong
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+            val id = jsonItem.values("id").asInstanceOf[BigInt].toLong
+            val name = jsonItem.values("name").asInstanceOf[String]
+            val url = jsonItem.values("url").asInstanceOf[String]
 //            val id = -1
-            val name = S.param("name").openOr("")
-            val url = S.param("url").openOr("")
+//            val name = "test"
+//            val url = "testurl"
+            val req = S.request.open_!
+//            val id = S.param("id").openOr("-1").toLong
+//            val name = S.param("name").openOr("")
+//            val url = S.param("url").openOr("")
             val item = if(id == -1) metaModel.newInstance else metaModel.findOneInstance(id)
             if(item != null) {
                 item.setName(name)
                 item.setURL(url)
-                ShopLogger.logger.debug("upload files num: " + req.uploadedFiles.length)
-                req.uploadedFiles.foreach {
-                    file => {
-                        if(file.mimeType.startsWith("image/")){
-                            val filename = (new File(file.fileName)).getName
-                            val filecontent = file.file
-                            if(filename.length > 0 && filecontent.length > 0) {
-                                val out : java.io.FileOutputStream = new java.io.FileOutputStream("d:/tmp/" + filename)
-                                out.write(filecontent)
-                                out.close
-                                item.setImage(filename)
-                            }
-                        }
-                    }
+//                ShopLogger.logger.debug("upload files num: " + req.uploadedFiles.length)
+//                req.uploadedFiles.foreach {
+//                    file => {
+//                        if(file.mimeType.startsWith("image/")){
+//                            val filename = (new File(file.fileName)).getName
+//                            val filecontent = file.file
+//                            if(filename.length > 0 && filecontent.length > 0) {
+//                                val out : java.io.FileOutputStream = new java.io.FileOutputStream("d:/tmp/" + filename)
+//                                out.write(filecontent)
+//                                out.close
+//                                item.setImage(filename)
+//                            }
+//                        }
+//                    }
+//                }
+                /*
+                 * 通过session获取uploadfile控件所上传文件的文件名
+                 */
+                //保存对象
+                item.saveInstance
+                //将文件由临时目录拷贝到正式图片目录，未实现
+                val oldFileName = req.request.session.attribute("uploadFileName").asInstanceOf[String]
+                //移除session中的上传文件名变量
+                req.request.session.removeAttribute("uploadFileName")
+                //得到扩展名
+                val extpos = oldFileName.lastIndexOf(".")
+                val extName = if(extpos > -1 && extpos < oldFileName.length) oldFileName.substring(extpos + 1) else ""
+                //构建新文件名，ID号-名称.扩展名
+                val newFileName = item.getID.toString + "-" + (if(item.getName.length > 0) item.getName else "noname") + (if(extName.length > 0) "." + extName else "")
+                val absNewFileName = this.getUploadFilePath + newFileName
+                //移动临时文件到正式文件夹
+                val inputFile = new File(this.getTmpFilePath + oldFileName)
+                val oldFile = new File(absNewFileName)
+                if(oldFile.exists) oldFile.delete
+
+//                val success = inputFile.renameTo(new File(newFileName))
+                if(inputFile.exists) {
+                    val outputFile = new File(absNewFileName)
+                    inputFile.renameTo(outputFile)
                 }
+                //将上传文件名设置如数据库
+                item.setImage(newFileName)
                 item.saveInstance
             }
-            Full(OkResponse())
+//            Full(OkResponse())
+            explore()
         }
     }
     private def remove() : Box[LiftResponse] = {
@@ -136,4 +173,8 @@ object ManufacturerController extends Controller[Manufacturer] {
     override def getRequestContent() = {
         urlDecode(S.param("json").openOr(""))
     }
+    private def getUploadFilePath = {
+        getClass.getResource("/image/manufacturer/").getFile
+    }
+    private def getTmpFilePath = "d:/temp/uploadfiles/"
 }
