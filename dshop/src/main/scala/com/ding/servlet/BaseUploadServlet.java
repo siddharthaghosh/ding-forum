@@ -12,10 +12,9 @@ import org.apache.commons.fileupload.FileItem;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -28,17 +27,35 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
  */
 public class BaseUploadServlet extends UploadAction {
 
-    protected static String uploadDir = "d:/temp/uploadfiles/";
+    protected static String uploadDir = "c:/temp/uploadfiles/";
     protected static String uploadContentType = "";
     private static final long serialVersionUID = 1L;
-
-    Hashtable<String, String> receivedContentTypes = new Hashtable<String, String>();
+//    Hashtable<String, String> receivedContentTypes = new Hashtable<String, String>();
     ConcurrentHashMap<String, String> receivedContentTypesMap = new ConcurrentHashMap<String, String>();
     /**
      * Maintain a list with received files and their content types.
      */
-    Hashtable<String, File> receivedFiles = new Hashtable<String, File>();
+//    Hashtable<String, File> receivedFiles = new Hashtable<String, File>();
     ConcurrentHashMap<String, File> receivedFilesMap = new ConcurrentHashMap<String, File>();
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        String parameter = request.getParameter(PARAM_REMOVE);
+        if (parameter != null) {
+            try {
+                removeItem(request, parameter);
+                FileItem item = super.findFileItem(getSessionFileItems(request), parameter);
+                if (item != null) {
+                    removeItem(request, item);
+                }
+            } catch (Exception e) {
+                renderXmlResponse(request, response, "<error>" + e.getMessage() + "<error>");
+                return;
+            }
+        } else {
+            super.doGet(request, response);
+        }
+    }
 
     /**
      * Override executeAction to save the received files in a custom place
@@ -46,15 +63,17 @@ public class BaseUploadServlet extends UploadAction {
      */
     @Override
     public String executeAction(HttpServletRequest request, List<FileItem> sessionFiles) throws UploadActionException {
-        if(false) {
+        if (false) {
             return null;
         }
         System.out.println("executeAction being called!!!!!!!!!!!!");
+        System.out.println("sessionFiles List length is " + sessionFiles.size());
         for (FileItem item : sessionFiles) {
             if (false == item.isFormField()) {
                 try {
                     /// Create a new file based on the remote file name in the client
                     // String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
+                    System.out.println("FileItem is " + item.toString());
                     System.out.println("upload files, field name is " + item.getFieldName() + " ,file name is " + item.getName());
                     String originFileName = item.getName();
                     String fileName = new File(originFileName).getName();
@@ -63,6 +82,7 @@ public class BaseUploadServlet extends UploadAction {
                     item.write(file);
                     receivedFilesMap.put(item.getFieldName(), file);
                     receivedContentTypesMap.put(item.getFieldName(), item.getContentType());
+                    sessionFiles.remove(item);
 
                     /*
                      * 将文件名设置如session，方便后面Lift框架处理
@@ -76,6 +96,11 @@ public class BaseUploadServlet extends UploadAction {
                 }
             }
 //            removeSessionFileItems(request);
+        }
+        if (sessionFiles.isEmpty()) {
+            request.getSession().removeAttribute(this.ATTR_FILES);
+        } else {
+            request.getSession().setAttribute(this.ATTR_FILES, sessionFiles);
         }
         return null;
     }
@@ -111,6 +136,6 @@ public class BaseUploadServlet extends UploadAction {
 
     @Override
     protected FileItemFactory getFileItemFactory(int requestSize) {
-        return new DiskFileItemFactory(DiskFileItemFactory.DEFAULT_SIZE_THRESHOLD, new File("d:/temp/uploadfiles/"));
+        return new DiskFileItemFactory(DiskFileItemFactory.DEFAULT_SIZE_THRESHOLD, new File(uploadDir));
     }
 }
