@@ -30,6 +30,7 @@ abstract class Controller [A <: Model] {
     }
     def process() : Box[LiftResponse] = {
         println("module is " + reqInfo.is.module + ", controller is " + reqInfo.is.application + ", action is " + reqInfo.is.action)
+        
         processAction(reqInfo.is.action)
     }
     def processAction(action : String) : Box[LiftResponse]

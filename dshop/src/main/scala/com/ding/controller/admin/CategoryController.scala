@@ -277,8 +277,8 @@ object CategoryController {
         }
         catch {
             case ex : Exception => {
-                    ShopLogger.error(ex.getMessage)
-                    ShopLogger.error(ex.getStackTraceString)
+                    ShopLogger.logger.error(ex.getMessage)
+                    ShopLogger.logger.error(ex.getStackTraceString)
                     Full(BadResponse())
                 }
         }
@@ -386,7 +386,9 @@ object CategoryController {
                 }
         }
         ShopLogger.logger.debug("finished")
-        val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(metaModel.findOneInstance(categoryId).getName(languageId)))
+        val pitem = metaModel.findOneInstance(categoryId)
+        val pname = if(pitem != null) pitem.getName(languageId) else "root"
+        val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(pname))
 
         Full(JsonResponse(
                 JsonAST.JArray(parentCat :: JsonAST.JArray(resultList) :: Nil)
