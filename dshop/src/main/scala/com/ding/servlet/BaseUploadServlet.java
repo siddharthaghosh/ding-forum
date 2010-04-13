@@ -27,7 +27,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
  */
 public class BaseUploadServlet extends UploadAction {
 
-    protected static String uploadDir = "c:/temp/uploadfiles/";
+    protected static String uploadDir = "d:/temp/uploadfiles/";
     protected static String uploadContentType = "";
     private static final long serialVersionUID = 1L;
 //    Hashtable<String, String> receivedContentTypes = new Hashtable<String, String>();
@@ -132,6 +132,8 @@ public class BaseUploadServlet extends UploadAction {
         if (file != null) {
             file.delete();
         }
+        HttpSession hs = request.getSession(true);
+        hs.removeAttribute("uploadFileName");
     }
 
     @Override

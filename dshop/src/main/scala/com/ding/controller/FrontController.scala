@@ -11,6 +11,7 @@ import net.liftweb.common._
 import net.liftweb.util.Helpers._
 import com.ding.model._
 import com.ding.model.lift._
+import com.ding.util._
 
 object reqInfo extends RequestVar[RequestInfo]({new RequestInfo})
 object loginInfo extends SessionVar[String]({"notlogin"})
@@ -21,6 +22,10 @@ object FrontController {
 
     val controller_func : LiftRules.DispatchPF = {
         case Req(List("admin", _*), _, _) => {
+                () => dispathProcess()
+            }
+
+        case Req(List("image", _*), _, _) => {
                 () => dispathProcess()
             }
     }
@@ -64,6 +69,7 @@ object FrontController {
 
             reqInfo.is.module match {
                 case "admin" => adminProcess()
+                case "image" => imageProcess()
                 case _ => Full(NotFoundResponse())
             }
         }
@@ -94,6 +100,12 @@ object FrontController {
             case "manufacturer" => admin.ManufacturerController.process()
             case _ => Full(NotFoundResponse())
         }
+    }
+
+    private def imageProcess() : Box[LiftResponse] = {
+        ShopLogger.logger.debug("image process controller works!")
+        ImageController.process()
+//        Full(NotFoundResponse())
     }
 
     private def addDocContent() : Box[LiftResponse] = {
