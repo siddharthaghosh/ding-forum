@@ -24,7 +24,7 @@ class Boot {
         if (!DB.jndiJdbcConnAvailable_?)
             DB.defineConnectionManager(DefaultConnectionIdentifier, DBVendor)
 
-        LiftRules.passNotFoundToChain = true
+        LiftRules.passNotFoundToChain = false
 // where to search snippet
         LiftRules.addToPackages("com.ding")
         Schemifier.schemify(true, Log.infoF _, schemify_arr : _*)
