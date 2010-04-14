@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -82,26 +83,29 @@ public class BaseUploadServlet extends UploadAction {
                     item.write(file);
                     receivedFilesMap.put(item.getFieldName(), file);
                     receivedContentTypesMap.put(item.getFieldName(), item.getContentType());
-                    sessionFiles.remove(item);
-
                     /*
                      * 将文件名设置如session，方便后面Lift框架处理
                      */
+
                     HttpSession hs = request.getSession(true);
+                    List<String> fileNames = (List<String>) hs.getAttribute("uploadFileNames");
+                    if(fileNames == null)
+                        fileNames = new Vector<String>();
+                    fileNames.add(filePrefix + fileName);
+                    hs.setAttribute("uploadFileNames", fileNames);
                     hs.setAttribute("uploadFileName", filePrefix + fileName);
 
                 } catch (Exception e) {
-                    e.printStackTrace();
                     throw new UploadActionException(e.getMessage());
                 }
             }
-//            removeSessionFileItems(request);
+            removeSessionFileItems(request);
         }
-        if (sessionFiles.isEmpty()) {
-            request.getSession().removeAttribute(this.ATTR_FILES);
-        } else {
-            request.getSession().setAttribute(this.ATTR_FILES, sessionFiles);
-        }
+//        if (sessionFiles.isEmpty()) {
+//            request.getSession().removeAttribute(this.ATTR_FILES);
+//        } else {
+//            request.getSession().setAttribute(this.ATTR_FILES, sessionFiles);
+//        }
         return null;
     }
 
@@ -133,6 +137,11 @@ public class BaseUploadServlet extends UploadAction {
             file.delete();
         }
         HttpSession hs = request.getSession(true);
+        List<String> fileNames = (List<String>) hs.getAttribute("uploadFileNames");
+        if (fileNames != null) {
+            fileNames.remove(file.getName());
+            hs.setAttribute("uploadFileNames", fileNames);
+        }            
         hs.removeAttribute("uploadFileName");
     }
 
