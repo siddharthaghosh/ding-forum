@@ -51,7 +51,7 @@ object CategoryController {
 //        val reqstr = "[{\"id\":-1,\"parentId\":0,\"general\":[{\"langId\":22,\"name\":\"\",\"description\":\"\"},{\"langId\":23,\"name\":\"\",\"description\":\"\"}]}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-            ShopLogger.logger.debug(jsonList.toString)
+//            ShopLogger.logger.debug(jsonList.toString)
 
             val (cat_id : Long, parent_id : Long, generals : Array[Tuple3[Long, String, String]]) =
                 jsonList match {
@@ -240,11 +240,11 @@ object CategoryController {
 //        val reqstr = "[{\"id\":20}]"
 //        val reqstr = "[{\"language\":20}]"
 //        val reqstr = "[{\"id\":0}]"
-        ShopLogger.logger.debug(reqstr)
+//        ShopLogger.logger.debug(reqstr)
 
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-            ShopLogger.logger.debug(jsonList.toString)
+//            ShopLogger.logger.debug(jsonList.toString)
             /*
              * categoryId 表示要查找该节点下的所有子结点
              * languageId 表示要显示的语言种类
@@ -267,7 +267,7 @@ object CategoryController {
             }
 //            val categoryId : Long = matched._1
 //            val languageId : Long = matched._2
-            ShopLogger.logger.debug("(" + categoryId.toString + ", " + languageId.toString + ")")
+//            ShopLogger.logger.debug("(" + categoryId.toString + ", " + languageId.toString + ")")
 //            val cat_item = if(categoryId > 0) {
 //                metaModel.findOneInstance(categoryId)
 //            } else {
@@ -277,8 +277,8 @@ object CategoryController {
         }
         catch {
             case ex : Exception => {
-                    ShopLogger.logger.error(ex.getMessage)
-                    ShopLogger.logger.error(ex.getStackTraceString)
+//                    ShopLogger.logger.error(ex.getMessage)
+//                    ShopLogger.logger.error(ex.getStackTraceString)
                     Full(BadResponse())
                 }
         }
@@ -385,7 +385,7 @@ object CategoryController {
                     )
                 }
         }
-        ShopLogger.logger.debug("finished")
+//        ShopLogger.logger.debug("finished")
         val pitem = metaModel.findOneInstance(categoryId)
         val pname = if(pitem != null) pitem.getName(languageId) else "root"
         val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(pname))
