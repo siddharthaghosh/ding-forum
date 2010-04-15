@@ -24,7 +24,7 @@ case class LangProperty(val name : String, val code : String, val directory : St
 
 object LangProps {
 
-    private val lang_prop_dir = getClass.getResource("/lang/")
+    private val lang_prop_dir = getClass.getResource("/conf/lang/")
     private val supportLanguages = new File(lang_prop_dir.getPath)
     private val propFileList : List[File] = supportLanguages.listFiles(new LangPropertyFileFilter).toList
 

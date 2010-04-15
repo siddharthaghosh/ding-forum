@@ -10,6 +10,7 @@ import com.ding.model._
 import com.ding.util._
 import net.liftweb.common._
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 import net.liftweb.http._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
@@ -24,19 +25,19 @@ object ManufacturerController extends Controller[Manufacturer] {
         action match {
             case "" => {
                     explore()
-            }
+                }
             case "index" => {
                     explore()
-            }
+                }
             case "explore" => {
                     explore()
-            }
+                }
             case "save" => {
                     save()
-            }
+                }
             case "remove" => {
                     remove()
-            }
+                }
             case _ => Full(NotFoundResponse())
         }
     }
@@ -59,11 +60,11 @@ object ManufacturerController extends Controller[Manufacturer] {
                 val leftPos = start
                 allList.take(rightPos).takeRight(rightPos - leftPos + 1)
             }
-             val resultList = itemList.flatMap {
+            val resultList = itemList.flatMap {
                 item => {
                     val id = item.getID()
                     val name = item.getName()
-                    val image = S.request.open_!.request.contextPath + "/image/manufacturer/image?filename=" + urlEncode(item.getImage())
+                    val image = S.request.open_!.request.contextPath + "/image/manufacturer/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(item.getImage())
                     val addTime = item.getAddTime().toString
                     val updateTime = item.getUpdateTime.toString
                     val url = item.getURL()
@@ -95,88 +96,45 @@ object ManufacturerController extends Controller[Manufacturer] {
             val id = jsonItem.values("id").asInstanceOf[BigInt].toLong
             val name = jsonItem.values("name").asInstanceOf[String]
             val url = jsonItem.values("url").asInstanceOf[String]
-//            val id = -1
-//            val name = "test"
-//            val url = "testurl"
             val req = S.request.open_!
-//            val id = S.param("id").openOr("-1").toLong
-//            val name = S.param("name").openOr("")
-//            val url = S.param("url").openOr("")
             val item = if(id == -1) metaModel.newInstance else metaModel.findOneInstance(id)
             if(item != null) {
                 //更改URL
                 if(item.getURL != url) item.setURL(url)
                 if(item.getName != name) item.setName(name)
                 item.saveInstance()
-//                val fileName = item.getID.toString
-                val tmpFileName = req.request.session.attribute("uploadFileName").asInstanceOf[String]
-                val tmpFileNames = req.request.session.attribute("uploadFileNames").asInstanceOf[java.util.List[String]]
-//                if(tmpFileName != null) {
-//                    /*存在文件上传操作*/
-//                    val oldFile = new File(this.getUploadFilePath + fileName)
-//                    if(oldFile.exists) {
-//                        oldFile.delete()
-//                        item.setImage("")
-//                    }
-//                    val tmpFile = new File(this.getTmpFilePath + tmpFileName)
-//                    if(tmpFile.exists) {
-//                        tmpFile.renameTo(new File(this.getUploadFilePath + fileName))
-//                        item.setImage(fileName)
-//                    }
-//                } else {
-//                    /*不存在文件上传操作*/
-//                    if(id == -1) {
-//                        item.setImage("")
-//                    }
-//                }
+                val tmpFileNames = req.request.session.attribute(Props.get("upload.sessionkey").open_!).asInstanceOf[java.util.List[String]]
                 if(tmpFileNames != null && tmpFileNames.size() > 0) {
-//                    tmpFileNames.foreach {
-//                        tmpFileName => {
-//                            if(id != -1) {
-//                                //如果不是新增操作，必须考虑旧文件的删除
-//                                if(item.getImage.length > 0) {
-//                                    val oldFile = new File(this.getUploadFilePath + item.getImage)
-//                                    if(oldFile.exists) {
-//                                        oldFile.delete()
-//                                        item.setImage("")
-//                                    }
-//                                }
-//                            }
-//                            val tmpFile = new File(this.getTmpFilePath + tmpFileName)
-//                            if(tmpFile.exists) {
-//                                tmpFile.renameTo(new File(this.getUploadFilePath + item.getID.toString + tmpFileName))
-//                                item.setImage(item.getID.toString + tmpFileName)
-//                            }
-//                        }
-//                    }
                     var i = tmpFileNames.iterator()
                     while(i.hasNext()) {
                         val tmpFileName = i.next().asInstanceOf[String]
-                        if(id != -1) {
-                            //如果不是新增操作，必须考虑旧文件的删除
-                            if(item.getImage.length > 0) {
-                                val oldFile = new File(this.getUploadFilePath + item.getImage)
-                                if(oldFile.exists) {
-                                    oldFile.delete()
-                                    item.setImage("")
-                                }
-                            }
-                        }
                         val tmpFile = new File(this.getTmpFilePath + tmpFileName)
                         if(tmpFile.exists) {
-                            tmpFile.renameTo(new File(this.getUploadFilePath + item.getID.toString + "-" + tmpFileName))
-                            item.setImage(item.getID.toString + "-" + tmpFileName)
+                            val newFile = new File(this.getImageFilePath + item.getID.toString + "-" + tmpFileName)
+                            if(tmpFile.renameTo(newFile)) {
+                                if(id != -1) {
+                                    //如果不是新增操作，必须考虑旧文件的删除
+                                    if(item.getImage.length > 0) {
+                                        val oldFile = new File(this.getImageFilePath + item.getImage)
+                                        if(oldFile.isFile && oldFile.exists) {
+                                            oldFile.delete()
+                                            item.setImage("")
+                                        }
+                                    }
+                                }
+                                item.setImage(item.getID.toString + "-" + tmpFileName)
+                            }                           
                         }
                     }
                 } else {
                     /*不存在文件上传操作*/
                     if(id == -1) {
-                        item.setImage("nopic.gif")
+                        item.setImage(Props.get("image.notfound").open_!)
                     }
                 }
                 item.saveInstance
             }
-            req.request.session.removeAttribute("uploadFileNames")
+            req.request.session.removeAttribute(Props.get("upload.sessionkey").open_!)
             explore()
         }
     }
@@ -190,7 +148,7 @@ object ManufacturerController extends Controller[Manufacturer] {
                     val id = jsonItem.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong
                     val item = metaModel.findOneInstance(id)
                     val imageFileName = item.getImage()
-                    val imageFile = new File(this.getUploadFilePath + imageFileName)
+                    val imageFile = new File(this.getImageFilePath + imageFileName)
                     if(imageFile.isFile && imageFile.exists)
                         imageFile.delete
                     if(item != null)
@@ -203,10 +161,10 @@ object ManufacturerController extends Controller[Manufacturer] {
     override def getRequestContent() = {
         urlDecode(S.param("json").openOr(""))
     }
-    private def getUploadFilePath = {
+    private def getImageFilePath = {
 //        S.request.open_!.
 //        getClass.getResource("/image/manufacturer/").getFile
-        "D:/ws-netbeans/dshop/image/manufacturer/"
+        Props.get("image.dir").open_! + reqInfo.is.application + "/"
     }
-    private def getTmpFilePath = "d:/temp/uploadfiles/"
+    private def getTmpFilePath = Props.get("upload.tmpdir").open_!
 }

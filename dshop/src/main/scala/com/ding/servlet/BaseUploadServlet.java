@@ -22,13 +22,18 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 
+import com.ding.util.PropsJavaBridge;
+
 /**
  *
  * @author tiger
  */
 public class BaseUploadServlet extends UploadAction {
 
-    protected static String uploadDir = "d:/temp/uploadfiles/";
+    protected static PropsJavaBridge props = new PropsJavaBridge();
+    protected static String uploadDir = props.getProperty("upload.tmpdir");
+    protected static String keyFileUploadNamesSession = props.getProperty("upload.sessionkey");
+//    protected static String uploadDir = ((net.liftweb.util.Props$)(Class.forName("net.liftweb.util.Props$").newInstance())).get("upload.tmpdir").open_$bang();
     protected static String uploadContentType = "";
     private static final long serialVersionUID = 1L;
 //    Hashtable<String, String> receivedContentTypes = new Hashtable<String, String>();
@@ -67,36 +72,42 @@ public class BaseUploadServlet extends UploadAction {
         if (false) {
             return null;
         }
-        System.out.println("executeAction being called!!!!!!!!!!!!");
-        System.out.println("sessionFiles List length is " + sessionFiles.size());
+//        System.out.println("executeAction being called!!!!!!!!!!!!");
+//        System.out.println("sessionFiles List length is " + sessionFiles.size());
         for (FileItem item : sessionFiles) {
             if (false == item.isFormField()) {
+
+                /// Create a new file based on the remote file name in the client
+                // String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
+//                    System.out.println("FileItem is " + item.toString());
+//                    System.out.println("upload files, field name is " + item.getFieldName() + " ,file name is " + item.getName());
+                String originFileName = item.getName();
+                String fileName = new File(originFileName).getName();
+                String filePrefix = request.getSession(true).getId().toString() + System.currentTimeMillis();
+                File file = new File(uploadDir + filePrefix + fileName);
                 try {
-                    /// Create a new file based on the remote file name in the client
-                    // String saveName = item.getName().replaceAll("[\\\\/><\\|\\s\"'{}()\\[\\]]+", "_");
-                    System.out.println("FileItem is " + item.toString());
-                    System.out.println("upload files, field name is " + item.getFieldName() + " ,file name is " + item.getName());
-                    String originFileName = item.getName();
-                    String fileName = new File(originFileName).getName();
-                    String filePrefix = request.getSession(true).getId().toString() + System.currentTimeMillis();
-                    File file = new File(uploadDir + filePrefix + fileName);
                     item.write(file);
+                    validateFile(file);
                     receivedFilesMap.put(item.getFieldName(), file);
                     receivedContentTypesMap.put(item.getFieldName(), item.getContentType());
                     /*
                      * 将文件名设置如session，方便后面Lift框架处理
                      */
-
                     HttpSession hs = request.getSession(true);
-                    List<String> fileNames = (List<String>) hs.getAttribute("uploadFileNames");
-                    if(fileNames == null)
+                    List<String> fileNames = (List<String>) hs.getAttribute(keyFileUploadNamesSession);
+                    if (fileNames == null) {
                         fileNames = new Vector<String>();
+                    }
                     fileNames.add(filePrefix + fileName);
-                    hs.setAttribute("uploadFileNames", fileNames);
-                    hs.setAttribute("uploadFileName", filePrefix + fileName);
+                    hs.setAttribute(keyFileUploadNamesSession, fileNames);
 
                 } catch (Exception e) {
+                    if (file != null && file.exists()) {
+                        file.delete();
+                    }
+                    removeSessionFileItems(request);
                     throw new UploadActionException(e.getMessage());
+//                    throw e;
                 }
             }
             removeSessionFileItems(request);
@@ -137,16 +148,18 @@ public class BaseUploadServlet extends UploadAction {
             file.delete();
         }
         HttpSession hs = request.getSession(true);
-        List<String> fileNames = (List<String>) hs.getAttribute("uploadFileNames");
+        List<String> fileNames = (List<String>) hs.getAttribute(keyFileUploadNamesSession);
         if (fileNames != null) {
             fileNames.remove(file.getName());
-            hs.setAttribute("uploadFileNames", fileNames);
-        }            
-        hs.removeAttribute("uploadFileName");
+            hs.setAttribute(keyFileUploadNamesSession, fileNames);
+        }
     }
 
     @Override
     protected FileItemFactory getFileItemFactory(int requestSize) {
         return new DiskFileItemFactory(DiskFileItemFactory.DEFAULT_SIZE_THRESHOLD, new File(uploadDir));
+    }
+
+    protected void validateFile(File f) throws UploadActionException{
     }
 }
