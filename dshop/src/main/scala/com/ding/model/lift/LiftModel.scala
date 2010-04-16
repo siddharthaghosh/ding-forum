@@ -16,6 +16,13 @@ trait LiftModel[A<:LiftModel[A]] extends LongKeyedMapper[A] with Model {
     }
 }
 
+trait LiftBaseModel[A<:LiftBaseModel[A]] extends LiftModel[A] with BaseModel {
+    self : A =>
+    def getID() : Long = {
+        this.primaryKeyField.is
+    }
+}
+
 trait LiftMetaModel[A<:LiftModel[A]] extends LongKeyedMetaMapper[A] with MetaModel[A] {
     self : A =>
     def newInstance() = this.create
