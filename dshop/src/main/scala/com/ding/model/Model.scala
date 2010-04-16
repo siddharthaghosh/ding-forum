@@ -10,6 +10,10 @@ trait Model {
     def deleteInstance() : Boolean
 }
 
+trait BaseModel {
+    def getID() : Long
+}
+
 trait MetaModel[+T] {
     def newInstance() : T
     def findOneInstance(id : Long) : T

@@ -24,7 +24,7 @@ class DShopFilter extends ServletFilterProvider {
                     case (httpReq: HttpServletRequest, httpRes: HttpServletResponse) =>
                         val httpRequest = new HTTPRequestServlet(httpReq)
                         val httpResponse = new HTTPResponseServlet(httpRes)
-                        if(httpRequest.uri.startsWith("/gwtcall") || httpRequest.uri.startsWith("/gwtclient")) {
+                        if(httpRequest.uri.startsWith(httpRequest.contextPath + "/gwtcall") || httpRequest.uri.startsWith(httpRequest.contextPath + "/gwtclient")) {
                             chain.doFilter(req, res)
                         }else {
                             service(httpRequest, httpResponse) {
