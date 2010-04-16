@@ -25,8 +25,7 @@ object LiftProduct extends LiftProduct with LiftMetaModel[LiftProduct] with Meta
 
     override def dbTableName = "dshop_product"
     override def findOneInstance(id : Long) = {
-//        LiftProduct.find(By(LiftProduct.product_id, id)).openOr(null)
-        null
+        LiftProduct.find(By(LiftProduct.product_id, id)).openOr(null)
     }
 
 }

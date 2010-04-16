@@ -5,7 +5,7 @@
 
 package com.ding.model
 
-trait Product extends BaseModel /* with MultiLanguageName with MultiLanguageDescription */ {
+trait Product extends BaseModel with MultiLanguageName with MultiLanguageDescription  {
     
 }
 
