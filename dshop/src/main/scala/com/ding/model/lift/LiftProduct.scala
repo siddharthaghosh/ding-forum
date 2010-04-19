@@ -10,14 +10,14 @@ import net.liftweb.mapper._
 
 class LiftProduct extends LiftBaseModel[LiftProduct]
                      with Product
-                     with LiftMultiLanguageNameDescription[LiftProduct, LiftProductNameDescription]{
+                     with LiftMultiLanguageNameDescription[LiftProduct, LiftProductNameDescription]
+                     with LiftDisplayOrder[LiftProduct]
+with LiftImage[LiftProduct]{
 
     override def getSingleton = LiftProduct
     override def primaryKeyField = product_id
     override def multiLangNameDescriptionObject() = LiftProductNameDescription
     object product_id extends MappedLongIndex(this)
-
-
 
 }
 
