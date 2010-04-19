@@ -13,19 +13,20 @@ import com.ding.model._
 //import com.ding.model.lift._
 import com.ding.controller._
 import com.ding.util._
+import net.liftweb.util.Helpers._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 
-object CategoryController {
+object CategoryController extends Controller[Category]{
 
     def metaModel : MetaCategory = MetaModels.metaCategory
 
-    def process() : Box[LiftResponse] = {
-        ShopLogger.debug("category controller works")
-        processAction(reqInfo.is.action)
-    }
+//    def process() : Box[LiftResponse] = {
+//        ShopLogger.debug("category controller works")
+//        processAction(reqInfo.is.action)
+//    }
 
-    private def processAction(action : String) : Box[LiftResponse] = {
+    override def processAction(action : String) : Box[LiftResponse] = {
         action match {
             case "save" => {
                     save()
@@ -35,13 +36,19 @@ object CategoryController {
                 }
             case "explore" => {
                     explore()
-            }
+                }
             case "navigator" => {
                     navigator()
-            }
+                }
             case "query" => {
                     query()
-            }
+                }
+            case "category" => {
+                    categoryExplore()
+                }
+            case "product" => {
+                    productExplore()
+                }
             case _ => Full(NotFoundResponse())
         }
     }
@@ -153,10 +160,10 @@ object CategoryController {
             val (cat_id : Long, parent_id) = jsonList match {
                 case List(JObject(JField("id", JInt(id)) :: JField("parentId", JInt(pid)) :: Nil)) => {
                         (id.toLong, pid.toLong)
-                }
+                    }
                 case _ => {
                         throw (new Exception("bad request format"))
-                }
+                    }
             }
             //val cat_id = -1
             //val parent_id = 0
@@ -254,16 +261,16 @@ object CategoryController {
             val (categoryId : Long, languageId : Long) = jsonList match {
                 case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
                         (id.toLong, lang_id.toLong)
-                }
+                    }
                 case List(JObject(JField("id", JInt(id)) :: Nil)) => {
                         (id.toLong, defaultLang)
-                }
+                    }
                 case List(JObject(JField("language", JInt(lang_id)) :: Nil)) => {
                         (defaultParent, lang_id.toLong)
-                }
+                    }
                 case _ => {
                         (defaultParent, defaultLang)
-                }
+                    }
             }
 //            val categoryId : Long = matched._1
 //            val languageId : Long = matched._2
@@ -284,6 +291,57 @@ object CategoryController {
         }
     }
 
+    private def categoryExplore() = {
+        val reqstr = if(this.getRequestContent().length > 0) this.getRequestContent() else "[{\"id\":0}]"
+//        val reqstr = "[{\"id\":0}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val defaultLang : Long = this.getDefaultLang()
+            val defaultParent : Long= 0
+            val (categoryId : Long, languageId : Long) = jsonList match {
+                case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
+                        (id.toLong, lang_id.toLong)
+                    }
+                case List(JObject(JField("id", JInt(id)) :: Nil)) => {
+                        (id.toLong, defaultLang)
+                    }
+                case List(JObject(JField("language", JInt(lang_id)) :: Nil)) => {
+                        (defaultParent, lang_id.toLong)
+                    }
+                case _ => {
+                        (defaultParent, defaultLang)
+                    }
+            }
+            getAllSubCategories(categoryId, languageId)
+        }
+//        Full(NotFoundResponse())
+    }
+
+    private def productExplore() = {
+        val reqstr = if(this.getRequestContent().length > 0) this.getRequestContent() else "[{\"id\":0}]"
+//        val reqstr = "[{\"id\":0}]"
+        try {
+            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+            val defaultLang : Long = this.getDefaultLang()
+            val defaultParent : Long= 0
+            val (categoryId : Long, languageId : Long) = jsonList match {
+                case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
+                        (id.toLong, lang_id.toLong)
+                    }
+                case List(JObject(JField("id", JInt(id)) :: Nil)) => {
+                        (id.toLong, defaultLang)
+                    }
+                case List(JObject(JField("language", JInt(lang_id)) :: Nil)) => {
+                        (defaultParent, lang_id.toLong)
+                    }
+                case _ => {
+                        (defaultParent, defaultLang)
+                    }
+            }
+            getAllSubProducts(categoryId, languageId)
+        }
+    }
+
     private def remove() = {
         val reqstr = this.getRequestContent()
         ShopLogger.logger.debug(reqstr)
@@ -293,8 +351,8 @@ object CategoryController {
             val parent_id =
                 if (item != null)
                     item.getParentID
-                else
-                    -1
+            else
+                -1
             jsonList.foreach(
                 item => {
                     val cat_id = item.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong
@@ -323,16 +381,16 @@ object CategoryController {
             val (categoryId : Long, languageId : Long) = jsonList match {
                 case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
                         (id, lang_id)
-                }
+                    }
                 case List(JObject(JField("id", JInt(id)) :: Nil)) => {
                         (id, defaultLang)
-                }
+                    }
                 case List(JObject(JField("language", JInt(lang_id)) :: Nil)) => {
                         (defaultCat, lang_id)
-                }
+                    }
                 case _ => {
                         (defaultCat, defaultLang)
-                }
+                    }
             }
             val ancestors = metaModel.getAllAncestor(categoryId)
             val resultList = ancestors.flatMap {
@@ -357,43 +415,62 @@ object CategoryController {
         }
     }
     
-    def getRequestContent() : String = {
-        /*
-         *  从Request对象内读出请求信息
-         *  [{cat_id : id_value}, {lang_id : id_value}]
-         *  如果没有cat_id，表示请求所有顶层的category
-         *  如果美欧lang_id， 表示使用默认语言
-         */
-        val req = S.request.open_!
-        val reqbody : Array[Byte] = req.body.openOr(Array())
-        val reqstr = new String(reqbody, "UTF-8")
-        reqstr
-    }
+//    def getRequestContent() : String = {
+//        /*
+//         *  从Request对象内读出请求信息
+//         *  [{cat_id : id_value}, {lang_id : id_value}]
+//         *  如果没有cat_id，表示请求所有顶层的category
+//         *  如果美欧lang_id， 表示使用默认语言
+//         */
+//        val req = S.request.open_!
+//        val reqbody : Array[Byte] = req.body.openOr(Array())
+//        val reqstr = new String(reqbody, "UTF-8")
+//        reqstr
+//    }
 
     private def getAllSubCategories(categoryId : Long, languageId : Long) = {
         val cat_children : List[Category] = metaModel.getChildren(categoryId)
         val resultList = cat_children.flatMap {
             case  item : Category => {
                     val cat_name = item.getName(languageId)
-                    val cat_desc = item.getDescription(languageId)
+//                    val cat_desc = item.getDescription(languageId)
                     List(
                         JsonAST.JField("id", JsonAST.JInt(item.getID()))
                         ++
                         JsonAST.JField("name", JsonAST.JString(cat_name))
                         ++
-                        JsonAST.JField("description", JsonAST.JString(cat_desc))
+                        JsonAST.JField("leaf", JsonAST.JBool(item.children().isEmpty))
                     )
                 }
         }
 //        ShopLogger.logger.debug("finished")
-        val pitem = metaModel.findOneInstance(categoryId)
-        val pname = if(pitem != null) pitem.getName(languageId) else "root"
-        val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(pname))
+//        val pitem = metaModel.findOneInstance(categoryId)
+//        val pname = if(pitem != null) pitem.getName(languageId) else "root"
+//        val parentCat = JsonAST.JField("id", JsonAST.JInt(categoryId)) ++ JsonAST.JField("name", JsonAST.JString(pname))
 
         Full(JsonResponse(
-                JsonAST.JArray(parentCat :: JsonAST.JArray(resultList) :: Nil)
+                JsonAST.JObject(JsonAST.JField("category", JsonAST.JArray(resultList)) :: Nil)
             ))
     }
 
-    private def getDefaultLang() = 22
+    private def getAllSubProducts(categoryId : Long, languageId : Long) = {
+        val products : List[Product] = metaModel.getProducts(categoryId)
+        val resultList = products.flatMap {
+            product => {
+                val product_name = product.getName(languageId)
+                List(
+                    JsonAST.JField("id", JsonAST.JInt(product.getID()))
+                    ++
+                    JsonAST.JField("name", JsonAST.JString(product_name))
+                )
+            }
+        }
+        Full(JsonResponse(
+                JsonAST.JObject(JsonAST.JField("product", JsonAST.JArray(resultList)) :: Nil)
+            ))
+    }
+
+    override def getRequestContent() = {
+        urlDecode(S.param("json").openOr(""))
+    }
 }

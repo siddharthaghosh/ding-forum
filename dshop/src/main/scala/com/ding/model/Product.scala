@@ -10,7 +10,9 @@ extends BaseModel
    with MultiLanguageName
    with MultiLanguageDescription
    with DisplayOrder{
-    
+
+    def categories() : List[Category]
+
 }
 
 trait MetaProduct extends MetaModel[Product] {
