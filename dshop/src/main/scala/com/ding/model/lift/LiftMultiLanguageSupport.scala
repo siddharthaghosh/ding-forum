@@ -72,7 +72,16 @@ extends LiftBaseModel[A]
             item.name.is
     }
     def setName(lang_id : Long, name : String) {
-
+        val item = this.findNameAndDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(item != null) {
+            item.name(name)
+        } else if(LiftLanguage.isLanguageExist(lang_id)){
+            val n = multiLangNameDescriptionObject().newInstance
+            n.lang_id(lang_id)
+            n.name(name)
+            this.names.append(n)
+        }
+        
     }
     def getDescription(lang_id : Long) : String = {
         val item = this.findNameAndDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
@@ -82,6 +91,9 @@ extends LiftBaseModel[A]
             item.description.is
     }
     def setDescription(lang_id : Long, description : String) {
-        
+        val item = this.findNameAndDescriptionByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(item != null) {
+            item.description(description)
+        }
     }
 }
