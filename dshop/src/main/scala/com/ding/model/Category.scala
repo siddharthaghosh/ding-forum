@@ -13,6 +13,8 @@ trait Category extends Model {
 
     def children() : List[Category]
 
+    def products() : List[Product]
+
     def getID() : Long
     def getParentID() : Long
     def getUpdateTime() : Date
@@ -35,5 +37,6 @@ trait Category extends Model {
 
 trait MetaCategory extends MetaModel[Category] {
     def getChildren(parentId : Long) : List[Category]
+    def getProducts(parentId : Long) : List[Product]
     def getAllAncestor(categoryId : Long) : List[Category]
 }

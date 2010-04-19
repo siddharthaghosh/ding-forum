@@ -12,12 +12,23 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                      with Product
                      with LiftMultiLanguageNameDescription[LiftProduct, LiftProductNameDescription]
                      with LiftDisplayOrder[LiftProduct]
-with LiftImage[LiftProduct]{
+                     with LiftImage[LiftProduct]
+                     with ManyToMany {
 
     override def getSingleton = LiftProduct
     override def primaryKeyField = product_id
     override def multiLangNameDescriptionObject() = LiftProductNameDescription
+
     object product_id extends MappedLongIndex(this)
+    object category extends MappedManyToMany(LiftProductCategory,
+                                               LiftProductCategory.product_id,
+                                               LiftProductCategory.category_id,
+                                               LiftCategory)
+
+
+    override def categories() : List[Category] = {
+        category.all
+    }
 
 }
 

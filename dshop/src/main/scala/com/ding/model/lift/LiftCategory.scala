@@ -11,7 +11,11 @@ import net.liftweb.mapper._
 import com.ding.model._
 import java.util.Date
 
-class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[Long, LiftCategory] {
+class LiftCategory
+extends LiftModel[LiftCategory]
+   with Category
+   with OneToMany[Long, LiftCategory]
+   with ManyToMany {
 
     override def getSingleton = LiftCategory
     override def primaryKeyField = cat_id
@@ -27,6 +31,10 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
     object update_time extends MappedDateTime(this)
 
     object descriptions extends MappedOneToMany(LiftCategoryDescription, LiftCategoryDescription.category_id)
+    object product extends MappedManyToMany(LiftProductCategory,
+                                            LiftProductCategory.category_id,
+                                            LiftProductCategory.product_id,
+                                            LiftProduct)
 
     override def updateInstance(parent_id : Long, image : String, active : Boolean, display_order : Int, descriptions : Tuple3[Long, String, String]*) {
         this.parent_id(parent_id).image(image).active(active).display_order(display_order)
@@ -37,6 +45,8 @@ class LiftCategory extends LiftModel[LiftCategory] with Category with OneToMany[
             }
         }
     }
+
+    override def products : List[Product] = this.product.all
 
     override def children() : List[LiftCategory] = {
         LiftCategory.findAll(By(LiftCategory.parent_id, this.cat_id), OrderBy(LiftCategory.display_order, Ascending))
@@ -155,6 +165,14 @@ object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with M
     }
     override def getChildren(parentId : Long) : List[LiftCategory] = {
         LiftCategory.findAll(By(LiftCategory.parent_id, parentId), OrderBy(LiftCategory.display_order, Ascending))
+    }
+    override def getProducts(parentId : Long) : List[Product] = {
+        val cat = LiftCategory.findOneInstance(parentId)
+        if(cat != null) {
+            cat.products()
+        } else {
+            Nil
+        }
     }
     override def getAllAncestor(categoryId : Long) : List[Category] = {
         val cat = LiftCategory.findOneInstance(categoryId)
