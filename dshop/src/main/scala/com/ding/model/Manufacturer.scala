@@ -7,7 +7,7 @@ package com.ding.model
 
 import java.util.Date
 
-trait Manufacturer extends Model {
+trait Manufacturer extends ImageBaseModel {
 
     def getID() : Long
     def getName() : String

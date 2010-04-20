@@ -98,6 +98,7 @@ object FrontController {
             case "optiongroup" => admin.OptionGroupController.process()
             case "optionvalue" => admin.OptionValueController.process()
             case "manufacturer" => admin.ManufacturerController.process()
+            case "filemanager" => admin.FileManagerController.process()
             case _ => Full(NotFoundResponse())
         }
     }

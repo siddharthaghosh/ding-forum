@@ -17,8 +17,10 @@ import net.liftweb.json.JsonAST._
 import java.io.File
 import java.io._
 
-object ManufacturerController extends Controller[Manufacturer] {
-
+object ManufacturerController
+extends ModelController[Manufacturer]
+   with ImageSingleUpload {
+    override type A = Manufacturer
     override def metaModel = MetaModels.metaManufacturer
 
     override def processAction(action : String) : Box[LiftResponse] = {
@@ -64,7 +66,7 @@ object ManufacturerController extends Controller[Manufacturer] {
                 item => {
                     val id = item.getID()
                     val name = item.getName()
-                    val image = S.request.open_!.request.contextPath + "/image/manufacturer/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(item.getImage())
+                    val image = S.request.open_!.request.contextPath + "/image/manufacturer/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(this.getFirstUploadFile(item))
                     val addTime = item.getAddTime().toString
                     val updateTime = item.getUpdateTime.toString
                     val url = item.getURL()
@@ -103,38 +105,39 @@ object ManufacturerController extends Controller[Manufacturer] {
                 if(item.getURL != url) item.setURL(url)
                 if(item.getName != name) item.setName(name)
                 item.saveInstance()
-                val tmpFileNames = req.request.session.attribute(Props.get("upload.sessionkey").open_!).asInstanceOf[java.util.List[String]]
-                if(tmpFileNames != null && tmpFileNames.size() > 0) {
-                    var i = tmpFileNames.iterator()
-                    while(i.hasNext()) {
-                        val tmpFileName = i.next().asInstanceOf[String]
-                        val tmpFile = new File(this.getTmpFilePath + tmpFileName)
-                        if(tmpFile.exists) {
-                            val newFile = new File(this.getImageFilePath + item.getID.toString + "-" + tmpFileName)
-                            if(tmpFile.renameTo(newFile)) {
-                                if(id != -1) {
-                                    //如果不是新增操作，必须考虑旧文件的删除
-                                    if(item.getImage.length > 0) {
-                                        val oldFile = new File(this.getImageFilePath + item.getImage)
-                                        if(oldFile.isFile && oldFile.exists) {
-                                            oldFile.delete()
-                                            item.setImage("")
-                                        }
-                                    }
-                                }
-                                item.setImage(item.getID.toString + "-" + tmpFileName)
-                            }                           
-                        }
-                    }
-                } else {
-                    /*不存在文件上传操作*/
-                    if(id == -1) {
-                        item.setImage(Props.get("image.notfound").open_!)
-                    }
-                }
+                this.storeUploadFiles(item)
+//                val tmpFileNames = req.request.session.attribute(Props.get("upload.sessionkey").open_!).asInstanceOf[java.util.List[String]]
+//                if(tmpFileNames != null && tmpFileNames.size() > 0) {
+//                    var i = tmpFileNames.iterator()
+//                    while(i.hasNext()) {
+//                        val tmpFileName = i.next().asInstanceOf[String]
+//                        val tmpFile = new File(this.getTmpFilePath + tmpFileName)
+//                        if(tmpFile.exists) {
+//                            val newFile = new File(this.getImageFilePath + item.getID.toString + "-" + tmpFileName)
+//                            if(tmpFile.renameTo(newFile)) {
+//                                if(id != -1) {
+//                                    //如果不是新增操作，必须考虑旧文件的删除
+//                                    if(item.getImage.length > 0) {
+//                                        val oldFile = new File(this.getImageFilePath + item.getImage)
+//                                        if(oldFile.isFile && oldFile.exists) {
+//                                            oldFile.delete()
+//                                            item.setImage("")
+//                                        }
+//                                    }
+//                                }
+//                                item.setImage(item.getID.toString + "-" + tmpFileName)
+//                            }
+//                        }
+//                    }
+//                } else {
+//                    /*不存在文件上传操作*/
+//                    if(id == -1) {
+//                        item.setImage(Props.get("image.notfound").open_!)
+//                    }
+//                }
                 item.saveInstance
             }
-            req.request.session.removeAttribute(Props.get("upload.sessionkey").open_!)
+//            req.request.session.removeAttribute(Props.get("upload.sessionkey").open_!)
             explore()
         }
     }

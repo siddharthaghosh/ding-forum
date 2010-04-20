@@ -13,7 +13,7 @@ import net.liftweb.util.Helpers._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 
-object OptionValueController extends Controller[OptionValue]{
+object OptionValueController extends ModelController[OptionValue]{
 
     override def metaModel = MetaModels.metaOptionValue
 
