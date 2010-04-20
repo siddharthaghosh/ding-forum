@@ -5,7 +5,14 @@
 
 package com.ding.model
 
-trait Image {
+trait Image extends UploadFilesBaseModel {
     def getImage() : String
     def setImage(image : String)
+
+    def getFiles() : String = this.getImage()
+    def setFiles(files : String) {
+        this.setImage(files)
+    }
 }
+
+trait ImageBaseModel extends BaseModel with Image

@@ -12,9 +12,14 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http._
 import net.liftweb.common._
 
-abstract class Controller [A <: Model] {
-    type T = MetaModel[A]
-    def metaModel : T
+trait Controller {
+    def getDefaultLang() : Long
+    def getRequestContent() : String
+    def process() : Box[LiftResponse]
+    def processAction(action : String) : Box[LiftResponse]
+}
+
+trait BaseController extends Controller {
     def getDefaultLang() = 22
     def getRequestContent() : String = {
         /*
@@ -30,8 +35,12 @@ abstract class Controller [A <: Model] {
     }
     def process() : Box[LiftResponse] = {
         println("module is " + reqInfo.is.module + ", controller is " + reqInfo.is.application + ", action is " + reqInfo.is.action)
-        
+
         processAction(reqInfo.is.action)
     }
-    def processAction(action : String) : Box[LiftResponse]
+}
+
+abstract class ModelController [A <: Model] extends BaseController {
+    type T = MetaModel[A]
+    def metaModel : T
 }

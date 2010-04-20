@@ -17,7 +17,7 @@ import net.liftweb.util.Helpers._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 
-object CategoryController extends Controller[Category]{
+object CategoryController extends ModelController[Category]{
 
     def metaModel : MetaCategory = MetaModels.metaCategory
 

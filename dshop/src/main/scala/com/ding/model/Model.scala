@@ -10,7 +10,7 @@ trait Model {
     def deleteInstance() : Boolean
 }
 
-trait BaseModel {
+trait BaseModel extends Model {
     def getID() : Long
 }
 

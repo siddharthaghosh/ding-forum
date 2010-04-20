@@ -14,7 +14,7 @@ import com.ding.model._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 
-object OptionGroupController extends Controller[OptionGroup] {
+object OptionGroupController extends ModelController[OptionGroup] {
     
     override def metaModel = MetaModels.metaOptionGroup
 
