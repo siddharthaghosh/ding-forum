@@ -82,24 +82,31 @@ public class BaseUploadServlet extends UploadAction {
 //                    System.out.println("FileItem is " + item.toString());
 //                    System.out.println("upload files, field name is " + item.getFieldName() + " ,file name is " + item.getName());
                 String originFileName = item.getName();
-                String fileName = new File(originFileName).getName();
-                String filePrefix = request.getSession(true).getId().toString() + System.currentTimeMillis();
-                File file = new File(uploadDir + filePrefix + fileName);
+                String displayName = new File(originFileName).getName();
+                String realName = request.getSession(true).getId().toString() + System.currentTimeMillis();
+                File file = new File(uploadDir + realName);
                 try {
                     item.write(file);
                     validateFile(file);
                     receivedFilesMap.put(item.getFieldName(), file);
                     receivedContentTypesMap.put(item.getFieldName(), item.getContentType());
+                    
                     /*
                      * 将文件名设置如session，方便后面Lift框架处理
                      */
                     HttpSession hs = request.getSession(true);
-                    List<String> fileNames = (List<String>) hs.getAttribute(keyFileUploadNamesSession);
-                    if (fileNames == null) {
-                        fileNames = new Vector<String>();
+//                    List<String> fileNames = (List<String>) hs.getAttribute(keyFileUploadNamesSession);
+                    ConcurrentHashMap<String, String> uploadFileMap = (ConcurrentHashMap<String, String>) hs.getAttribute(keyFileUploadNamesSession);
+//                    if (fileNames == null) {
+//                        fileNames = new Vector<String>();
+//                    }
+                    if(uploadFileMap == null) {
+                        uploadFileMap = new ConcurrentHashMap<String, String>();
                     }
-                    fileNames.add(filePrefix + fileName);
-                    hs.setAttribute(keyFileUploadNamesSession, fileNames);
+//                    fileNames.add(realName);
+                    uploadFileMap.put(realName, displayName);
+//                    hs.setAttribute(keyFileUploadNamesSession, fileNames);
+                    hs.setAttribute(keyFileUploadNamesSession, uploadFileMap);
 
                 } catch (Exception e) {
                     if (file != null && file.exists()) {
@@ -148,10 +155,15 @@ public class BaseUploadServlet extends UploadAction {
             file.delete();
         }
         HttpSession hs = request.getSession(true);
-        List<String> fileNames = (List<String>) hs.getAttribute(keyFileUploadNamesSession);
-        if (fileNames != null) {
-            fileNames.remove(file.getName());
-            hs.setAttribute(keyFileUploadNamesSession, fileNames);
+//        List<String> fileNames = (List<String>) hs.getAttribute(keyFileUploadNamesSession);
+        ConcurrentHashMap<String, String> uploadFileMap = (ConcurrentHashMap<String, String>) hs.getAttribute(keyFileUploadNamesSession);
+//        if (fileNames != null) {
+//            fileNames.remove(file.getName());
+//            hs.setAttribute(keyFileUploadNamesSession, fileNames);
+//        }
+        if(uploadFileMap != null) {
+            uploadFileMap.remove(file.getName());
+            hs.setAttribute(keyFileUploadNamesSession, uploadFileMap);
         }
     }
 
