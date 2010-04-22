@@ -18,7 +18,10 @@ import net.liftweb.json.JsonAST._
 
 object FileManagerController
 extends BaseController
-   with UploadAction[MetaUploadFile]{
+   with UploadImageAndGenerateThumb[MetaUploadFile]{
+
+    val originDir = Props.get("image.origin.dir").open_!
+    val thumbDir = Props.get("image.thumbnail.dir").open_!
 
     override def processAction(action : String) : Box[LiftResponse] = {
         action match {
@@ -27,9 +30,12 @@ extends BaseController
                 }
             case "file" => {
                     fileExplore()
-            }
+                }
             case "upload" => {
                     upload()
+                }
+            case "fileremove" => {
+                    fileRemove()
                 }
             case _ => Full(NotFoundResponse())
         }
@@ -39,7 +45,7 @@ extends BaseController
         urlDecode(S.param("json").openOr(""))
     }
 
-    override def getUploadDir : String =  Props.get("image.dir").open_! + "/"
+    override def getUploadDir : String =  Props.get("image.origin.dir").open_! + "/"
 
     override def uploadFileModel = MetaModels.metaUploadFile
 
@@ -74,13 +80,102 @@ extends BaseController
     }
 
     private def upload() = {
-        val relativePath : String = S.param("path").openOr("")
-        this.storeUploadFiles(relativePath)
-        fileExplore()
+        val reqstr = this.getRequestContent
+        try{
+            val jsonObj = JsonParser.parse(reqstr).asInstanceOf[JArray].arr.head.asInstanceOf[JObject]
+//            val relativePath : String = S.param("path").openOr("")
+            val relativePath : String = jsonObj.values("path").asInstanceOf[String]
+            this.storeUploadFiles(relativePath)
+            fileExplore()
+        }
     }
 
     private def fileExplore() = {
-        Full(NotFoundResponse())
+        val reqstr = this.getRequestContent()
+//        println(reqstr)
+//        val reqstr = "[{\"path\": \"manufacturer\"}]"
+        try {
+            val jsonObj = JsonParser.parse(reqstr).asInstanceOf[JArray].arr.head.asInstanceOf[JObject]
+            val relativePath : String = jsonObj.values("path").asInstanceOf[String]
+            val baseDir = this.getUploadDir
+            val requestFolder = new File(baseDir + relativePath + "/")
+            val resultList : List[JValue] = if (requestFolder.exists && requestFolder.isDirectory) {
+                val children = requestFolder.list()
+                children.flatMap {
+                    child => {
+                        val fileStr = baseDir + relativePath +"/" + child
+                        val file = new File(fileStr)
+                        if(file.exists && file.isFile) {
+                            val fitem = MetaModels.metaUploadFile.findByRealName(child)
+                            val name = if(fitem != null) fitem.getDisplayName else child
+                            val filePath = relativePath + "/" + child
+                            val baseUrl = S.request.open_!.request.contextPath + "/image"
+                            val fileUrl = Props.get("urlparam.filename").open_! + "=" + urlEncode(filePath)
+                            val url : String = baseUrl + "/origin/image?" + fileUrl
+                            val thumbUrl : String = baseUrl + "/thumbnail/image?" + fileUrl
+                            JObject(JField("name",JString(name))::
+                                    JField("url",JString(url))::
+                                    JField("thumbUrl",JString(thumbUrl))::Nil)::Nil
+                            
+                        } else {
+                            Nil
+                        }
+                    }
+                }.toList
+            } else {
+                Nil
+            }
+            Full(JsonResponse(JObject(JField("file", JArray(resultList))::Nil)))
+        }
+//        Full(NotFoundResponse())
+    }
+
+    private def fileRemove() = {
+        val reqstr = this.getRequestContent()
+        println(reqstr)
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val tail = jsonList.tail
+            val removeList = tail.head.asInstanceOf[JArray].arr
+            val originDir = Props.get("image.origin.dir").open_!
+            val thumbDir = Props.get("image.thumbnail.dir").open_!
+            removeList.foreach {
+                removeItem => {
+                    val url = removeItem.asInstanceOf[JString].values
+                    val params = Props.get("urlparam.filename").open_! + "="
+                    val sindex = url.indexOf(params)
+                    val path = url.substring(sindex + params.length)
+                    val eindex = if(path.indexOf("&") < 0) path.length else path.indexOf("&")
+                    removeFile(path.substring(0, eindex))
+                }
+            }
+        }
+        fileExplore()
+    }
+
+    private def removeFile(relativePath : String) {
+        removeOriginFile(relativePath)
+        val file = new File(relativePath)
+        val filename = file.getName()
+        removeThumbnailFile(filename)
+        val fileitem = MetaModels.metaUploadFile.findByRealName(filename)
+        if(fileitem != null) {
+            fileitem.deleteInstance
+        }
+    }
+
+    private def removeOriginFile(relativePath : String) {
+        val of = new File(this.originDir + "/" + relativePath)
+        if(of != null && of.exists) {
+            of.delete
+        }
+    }
+
+    private def removeThumbnailFile(name : String) {
+        val tf = new File(this.thumbDir + "/" + name)
+        if(tf != null && tf.exists) {
+            tf.delete
+        }
     }
 
     private def isContainSubFolder(folder : File) : Boolean = {

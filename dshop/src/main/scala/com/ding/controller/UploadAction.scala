@@ -8,6 +8,7 @@ package com.ding.controller
 import net.liftweb.http._
 import net.liftweb.util._
 import com.ding.model._
+import com.ding.util._
 import java.util.concurrent.ConcurrentHashMap
 import java.io.File
 
@@ -37,13 +38,8 @@ trait UploadAction[A <: MetaUploadFile] {
 
                     val relativeDir = if(relative_dir.endsWith("/")) relative_dir else relative_dir + "/"
                     val newFile = new File(getUploadDir + relativeDir + realName)
-                    if(tmpFile.renameTo(newFile)) {
-
-                        val fileItem = uploadFileModel.newInstance
-                        fileItem.setRealName(realName)
-                        fileItem.setDisplayName(displayName)
-                        fileItem.saveInstance()
-
+                    if(this.storeFile(tmpFile, newFile, realName, displayName)) {
+                        processFile(newFile)
                     }
 
                 }
@@ -54,4 +50,30 @@ trait UploadAction[A <: MetaUploadFile] {
         
     }
 
+    def storeFile(tmpFile : File, newFile : File, realName : String, displayName : String) : Boolean = {
+        if(tmpFile.renameTo(newFile)) {
+
+            val fileItem = uploadFileModel.newInstance
+            fileItem.setRealName(realName)
+            fileItem.setDisplayName(displayName)
+            fileItem.saveInstance()
+        } else {
+            false
+        }
+    }
+
+    def processFile(file : File) {
+        
+    }
+}
+
+trait UploadImageAndGenerateThumb[A <: MetaUploadFile]
+extends UploadAction[A] {
+
+    override def processFile(file : File) {
+        val location = new File(this.getThumbNailDir + "/" + file.getName)
+        ImageUtils.writeThumbNail(file, Props.getInt("image.thumbnail.width").open_!, Props.getInt("image.thumbnail.height").open_!, location)
+    }
+
+    private def getThumbNailDir : String = Props.get("image.thumbnail.dir").open_!
 }
