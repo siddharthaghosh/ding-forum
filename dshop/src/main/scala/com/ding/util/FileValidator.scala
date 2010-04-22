@@ -12,7 +12,7 @@ import javax.imageio.stream.ImageInputStream
 
 object FileValidator {
     def isImageFile(file : File) : Boolean = {
-        val fileType = this.getImageType(file)
+        val fileType = this.getImageType(file).toUpperCase
         fileType match {
             case "JPEG" => {
                  true
@@ -39,7 +39,7 @@ object FileValidator {
         imageTypes
     }
     def getMIMEType(file : File) : String = {
-        val imageTypes = this.getImageType(file)
+        val imageTypes = this.getImageType(file).toUpperCase
         val mimeType = imageTypes match {
             case "JPEG" => {
                  "image/jpeg"

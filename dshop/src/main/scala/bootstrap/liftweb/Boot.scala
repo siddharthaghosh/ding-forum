@@ -63,7 +63,7 @@ class Boot {
                                                              LiftCategory, LiftCategoryDescription, LiftOptionGroup,
                                                              LiftOptionGroupName, LiftOptionValue, LiftOptionValueName,
                                                              LiftManufacturer, LiftProduct, LiftProductNameDescription,
-                                                             LiftProductCategory)
+                                                             LiftProductCategory, LiftUploadFile)
     /**
      * Force the request to be UTF-8
      */

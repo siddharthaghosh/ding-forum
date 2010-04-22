@@ -105,8 +105,11 @@ object FrontController {
 
     private def imageProcess() : Box[LiftResponse] = {
         ShopLogger.logger.debug("image process controller works!")
-        ImageController.process()
-//        Full(NotFoundResponse())
+        reqInfo.is.application match {
+            case "origin" => ImageController.process()
+            case "thumbnail" => ThumbNailController.process()
+            case _ => Full(NotFoundResponse())
+        }
     }
 
     private def addDocContent() : Box[LiftResponse] = {

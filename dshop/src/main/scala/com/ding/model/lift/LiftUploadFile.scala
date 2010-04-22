@@ -36,6 +36,8 @@ extends LiftUploadFile
    with LiftMetaModel[LiftUploadFile]
    with MetaUploadFile {
 
+    override def dbTableName = "dshop_upload_file"
+
     override def findOneInstance(id : Long) = {
         LiftUploadFile.find(By(LiftUploadFile.id, id)).openOr(null)
     }
