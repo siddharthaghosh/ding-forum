@@ -28,6 +28,12 @@ extends BaseController
             case "folder" => {
                     folderExplore()
                 }
+            case "addfolder" => {
+                    folderAdd()
+                }
+            case "removefolder" => {
+                    folderRemove()
+                }
             case "file" => {
                     fileExplore()
                 }
@@ -37,12 +43,12 @@ extends BaseController
             case "fileremove" => {
                     fileRemove()
                 }
-            case _ => Full(NotFoundResponse())
+            case _ => folderExplore()
         }
     }
 
     override def getRequestContent() = {
-        urlDecode(S.param("json").openOr(""))
+        urlDecode(S.param("json").open_!)
     }
 
     override def getUploadDir : String =  Props.get("image.origin.dir").open_! + "/"
@@ -63,9 +69,9 @@ extends BaseController
                         val dir = new File(dirstr)
                         if(dir.exists && dir.isDirectory) {
                             val name = child
-                            val leaf = !this.isContainSubFolder(dir)
+//                            val leaf = /* !this.isContainSubFolder(dir) */ false
                             val path = relativePath + "/" + child
-                            JObject(JField("name",JString(name))::JField("leaf", JBool(leaf))::JField("path", JString(path))::Nil)::Nil
+                            JObject(JField("name",JString(name))::/* JField("leaf", JBool(leaf)):: */JField("path", JString(path))::Nil)::Nil
                         } else {
                             Nil
                         }
@@ -77,6 +83,31 @@ extends BaseController
             Full(JsonResponse(JObject(JField("folder", JArray(resultList))::Nil)))
         }
 //        Full(NotFoundResponse())
+    }
+
+    private def folderAdd() = {
+        val reqstr = this.getRequestContent()
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val folderName = jsonList.head.asInstanceOf[JObject].values("name").asInstanceOf[String]
+            val relativePath = S.param("path").open_!
+            val relativeFolderPath = relativePath + "/" + folderName
+            addFolder(relativeFolderPath)
+            folderExplore()
+        }
+//        Full(NotFoundResponse())
+    }
+
+    private def folderRemove() = {
+        val reqstr = this.getRequestContent()
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val relativePath = jsonList.head.asInstanceOf[JObject].values("path").asInstanceOf[String]
+            removeFolder(relativePath)
+            folderExplore()
+        }
+//        removeFolder("root/manufacturer/d1")
+//        Full(OkResponse())
     }
 
     private def upload() = {
@@ -178,6 +209,33 @@ extends BaseController
         }
     }
 
+    private def addFolder(folder : String) {
+        val absFolderName = this.originDir + folder
+        val newFolder = new File(absFolderName)
+        if(newFolder != null && !newFolder.exists) {
+            newFolder.mkdir()
+        }
+    }
+
+    private def removeFolder(relativePath : String) {
+        if(relativePath == "" || relativePath == "root" || relativePath == "/root" || relativePath == "/root/" || relativePath == "root/")
+            return
+        val item = new File(this.originDir + relativePath)
+        if(item != null && item.exists) {
+            if(item.isFile) {
+                removeFile(relativePath)
+            } else if (item.isDirectory) {
+                val children = item.list()
+                children.foreach {
+                    child => {
+                        removeFolder(relativePath + "/" + child)                        
+                    }
+                }
+                item.delete()
+            }
+        }
+    }
+
     private def isContainSubFolder(folder : File) : Boolean = {
         if(folder.exists && folder.isDirectory) {
             val children = folder.list()
@@ -194,5 +252,7 @@ extends BaseController
         }
     }
 
-   
+    private def secureRelativePath(path : String) : String = {
+        ""
+    }
 }
