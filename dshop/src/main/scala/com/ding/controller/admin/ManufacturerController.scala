@@ -19,8 +19,8 @@ import java.io._
 
 object ManufacturerController
 extends ModelController[Manufacturer]
-   with ImageSingleUpload {
-    override type A = Manufacturer
+   /*with ImageSingleUpload*/ {
+//    override type A = Manufacturer
     override def metaModel = MetaModels.metaManufacturer
 
     override def processAction(action : String) : Box[LiftResponse] = {
@@ -66,7 +66,7 @@ extends ModelController[Manufacturer]
                 item => {
                     val id = item.getID()
                     val name = item.getName()
-                    val image = S.request.open_!.request.contextPath + "/image/manufacturer/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(this.getFirstUploadFile(item))
+                    val image = S.request.open_!.request.contextPath + "/image/origin/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(/* this.getFirstUploadFile(item) */item.getFirstImageFileLocation)
                     val addTime = item.getAddTime().toString
                     val updateTime = item.getUpdateTime.toString
                     val url = item.getURL()
@@ -91,51 +91,31 @@ extends ModelController[Manufacturer]
         }
     }
     private def save() : Box[LiftResponse] = {
-        val reqstr = this.getRequestContent
+//        val reqstr = this.getRequestContent
+        val reqstr = "[{\"id\":1,\"name\":\"m1\",\"url\":\"url1\",\"filename\":[\"root/manufacturer/106ijenf6qmro1271916703873\"]}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
             val id = jsonItem.values("id").asInstanceOf[BigInt].toLong
             val name = jsonItem.values("name").asInstanceOf[String]
             val url = jsonItem.values("url").asInstanceOf[String]
+            val filenameList = jsonItem.values("filename").asInstanceOf[List[String]]
+            val jsonFileNameArr = JArray(filenameList.flatMap {
+                    filename => {
+                        JString(filename)::Nil
+                    }
+                })
+            val jsonStr = Printer.pretty(JsonAST.render(jsonFileNameArr))
             val req = S.request.open_!
             val item = if(id == -1) metaModel.newInstance else metaModel.findOneInstance(id)
             if(item != null) {
                 //更改URL
                 if(item.getURL != url) item.setURL(url)
                 if(item.getName != name) item.setName(name)
+                if(item.getImage != jsonStr) item.setImage(jsonStr)
                 item.saveInstance()
-                this.storeUploadFiles(item)
-//                val tmpFileNames = req.request.session.attribute(Props.get("upload.sessionkey").open_!).asInstanceOf[java.util.List[String]]
-//                if(tmpFileNames != null && tmpFileNames.size() > 0) {
-//                    var i = tmpFileNames.iterator()
-//                    while(i.hasNext()) {
-//                        val tmpFileName = i.next().asInstanceOf[String]
-//                        val tmpFile = new File(this.getTmpFilePath + tmpFileName)
-//                        if(tmpFile.exists) {
-//                            val newFile = new File(this.getImageFilePath + item.getID.toString + "-" + tmpFileName)
-//                            if(tmpFile.renameTo(newFile)) {
-//                                if(id != -1) {
-//                                    //如果不是新增操作，必须考虑旧文件的删除
-//                                    if(item.getImage.length > 0) {
-//                                        val oldFile = new File(this.getImageFilePath + item.getImage)
-//                                        if(oldFile.isFile && oldFile.exists) {
-//                                            oldFile.delete()
-//                                            item.setImage("")
-//                                        }
-//                                    }
-//                                }
-//                                item.setImage(item.getID.toString + "-" + tmpFileName)
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    /*不存在文件上传操作*/
-//                    if(id == -1) {
-//                        item.setImage(Props.get("image.notfound").open_!)
-//                    }
-//                }
-                item.saveInstance
+//                this.storeUploadFiles(item)
+//                item.saveInstance
             }
 //            req.request.session.removeAttribute(Props.get("upload.sessionkey").open_!)
             explore()
@@ -150,10 +130,10 @@ extends ModelController[Manufacturer]
                 jsonItem => {
                     val id = jsonItem.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong
                     val item = metaModel.findOneInstance(id)
-                    val imageFileName = item.getImage()
-                    val imageFile = new File(this.getImageFilePath + imageFileName)
-                    if(imageFile.isFile && imageFile.exists)
-                        imageFile.delete
+//                    val imageFileName = item.getImage()
+//                    val imageFile = new File(this.getImageFilePath + imageFileName)
+//                    if(imageFile.isFile && imageFile.exists)
+//                        imageFile.delete
                     if(item != null)
                         item.deleteInstance()
                 }
@@ -164,10 +144,10 @@ extends ModelController[Manufacturer]
     override def getRequestContent() = {
         urlDecode(S.param("json").openOr(""))
     }
-    private def getImageFilePath = {
-//        S.request.open_!.
-//        getClass.getResource("/image/manufacturer/").getFile
-        Props.get("image.dir").open_! + reqInfo.is.application + "/"
-    }
-    private def getTmpFilePath = Props.get("upload.tmpdir").open_!
+//    private def getImageFilePath = {
+////        S.request.open_!.
+////        getClass.getResource("/image/manufacturer/").getFile
+//        Props.get("image.dir").open_! + reqInfo.is.application + "/"
+//    }
+//    private def getTmpFilePath = Props.get("upload.tmpdir").open_!
 }

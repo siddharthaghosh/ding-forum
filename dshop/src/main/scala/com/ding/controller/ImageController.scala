@@ -32,7 +32,8 @@ object ImageController extends BaseController{
         val filename = urlDecode(if(S.param(fileNameParam).openOr(notFoundFileName).length > 0) S.param(fileNameParam).openOr(notFoundFileName) else notFoundFileName)
         val absFileName = originDir + filename
         ShopLogger.logger.debug(absFileName)
-        val imageFile = new File(absFileName)
+        val f = new File(absFileName)
+        val imageFile = if(f != null && f.exists &&f.isFile) f else new File(imageDir + notFoundFileName)
 
         val mimeType = FileValidator.getMIMEType(imageFile)
         val imageFileInput = new FileImageInputStream(if(imageFile.exists) imageFile else new File(imageDir + notFoundFileName))
