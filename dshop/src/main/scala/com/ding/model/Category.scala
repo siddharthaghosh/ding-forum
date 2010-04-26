@@ -7,7 +7,11 @@ package com.ding.model
 
 import java.util.Date
 
-trait Category extends Model {
+trait Category
+extends ImageBaseModel 
+   with DisplayOrder
+   with MultiLanguageName
+   with MultiLanguageDescription{
     
     def updateInstance(parent_id : Long, image : String, active : Boolean, display_order : Int, descriptions : Tuple3[Long, String, String]*)
 
@@ -19,20 +23,20 @@ trait Category extends Model {
     def getParentID() : Long
     def getUpdateTime() : Date
     def getAddTime() : Date
-    def getName(lang_id : Long) : String
-    def getDescription(lang_id : Long) : String
+//    def getName(lang_id : Long) : String
+//    def getDescription(lang_id : Long) : String
     def getActive() : Boolean
-    def getImage() : String
-    def getDisplayOrder() : Int
+//    def getImage() : String
+//    def getDisplayOrder() : Int
 
     def setParentID(id : Long)
     def setUpdateTime(date : Date)
     def setAddTime(date : Date)
-    def setName(lang_id : Long, name : String, desc : String*)
-    def setDescription(lang_id : Long, desc : String)
+//    def setName(lang_id : Long, name : String, desc : String*)
+//    def setDescription(lang_id : Long, desc : String)
     def setActive(active : Boolean)
-    def setImage(image : String)
-    def setDisplayOrder(order : Int)
+//    def setImage(image : String)
+//    def setDisplayOrder(order : Int)
 }
 
 trait MetaCategory extends MetaModel[Category] {
