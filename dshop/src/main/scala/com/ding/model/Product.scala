@@ -6,7 +6,7 @@
 package com.ding.model
 
 trait Product
-extends BaseModel
+extends ImageBaseModel
    with MultiLanguageName
    with MultiLanguageDescription
    with DisplayOrder{

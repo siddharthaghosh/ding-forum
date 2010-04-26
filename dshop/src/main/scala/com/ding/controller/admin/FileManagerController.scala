@@ -141,12 +141,12 @@ extends BaseController
                             val name = if(fitem != null) fitem.getDisplayName else child
                             val filePath = relativePath + "/" + child
                             val baseUrl = S.request.open_!.request.contextPath + "/image"
-                            val fileUrl = Props.get("urlparam.filename").open_! + "=" + urlEncode(filePath)
-                            val url : String = baseUrl + "/origin/image?" + fileUrl
-                            val thumbUrl : String = baseUrl + "/thumbnail/image?" + fileUrl
+                            val fileUrl = /* Props.get("urlparam.filename").open_! + "=" +  */urlEncode(filePath)
+//                            val url : String = baseUrl + "/origin/image?" + fileUrl
+//                            val thumbUrl : String = baseUrl + "/thumbnail/image?" + fileUrl
                             JObject(JField("name",JString(name))::
-                                    JField("url",JString(url))::
-                                    JField("thumbUrl",JString(thumbUrl))::Nil)::Nil
+                                    JField("image",JString(fileUrl))::
+                                    /* JField("thumbUrl",JString(thumbUrl)):: */Nil)::Nil
                             
                         } else {
                             Nil
@@ -173,11 +173,11 @@ extends BaseController
             removeList.foreach {
                 removeItem => {
                     val url = removeItem.asInstanceOf[JString].values
-                    val params = Props.get("urlparam.filename").open_! + "="
-                    val sindex = url.indexOf(params)
-                    val path = url.substring(sindex + params.length)
-                    val eindex = if(path.indexOf("&") < 0) path.length else path.indexOf("&")
-                    removeFile(path.substring(0, eindex))
+//                    val params = Props.get("urlparam.filename").open_! + "="
+//                    val sindex = url.indexOf(params)
+//                    val path = url.substring(sindex + params.length)
+//                    val eindex = if(path.indexOf("&") < 0) path.length else path.indexOf("&")
+                    removeFile(url)
                 }
             }
         }

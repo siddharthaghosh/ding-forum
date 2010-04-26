@@ -19,7 +19,7 @@ import java.io._
 
 object ManufacturerController
 extends ModelController[Manufacturer]
-   /*with ImageSingleUpload*/ {
+/*with ImageSingleUpload*/ {
 //    override type A = Manufacturer
     override def metaModel = MetaModels.metaManufacturer
 
@@ -66,7 +66,8 @@ extends ModelController[Manufacturer]
                 item => {
                     val id = item.getID()
                     val name = item.getName()
-                    val image = S.request.open_!.request.contextPath + "/image/origin/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(/* this.getFirstUploadFile(item) */item.getFirstImageFileLocation)
+                    val image = /* S.request.open_!.request.contextPath + "/image/origin/image?" + Props.get("urlparam.filename").open_! + "=" +  */urlEncode(/* this.getFirstUploadFile(item) */item.getFirstImageFileLocation)
+//                    val thumbnail = S.request.open_!.request.contextPath + "/image/thumbnail/image?" + Props.get("urlparam.filename").open_! + "=" + urlEncode(/* this.getFirstUploadFile(item) */item.getFirstImageFileLocation)
                     val addTime = item.getAddTime().toString
                     val updateTime = item.getUpdateTime.toString
                     val url = item.getURL()
@@ -91,8 +92,8 @@ extends ModelController[Manufacturer]
         }
     }
     private def save() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent
-        val reqstr = "[{\"id\":1,\"name\":\"m1\",\"url\":\"url1\",\"filename\":[\"root/manufacturer/106ijenf6qmro1271916703873\"]}]"
+        val reqstr = this.getRequestContent
+//        val reqstr = "[{\"id\":1,\"name\":\"m1\",\"url\":\"url1\",\"filename\":[\"root/manufacturer/106ijenf6qmro1271916703873\"]}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
@@ -100,13 +101,7 @@ extends ModelController[Manufacturer]
             val name = jsonItem.values("name").asInstanceOf[String]
             val url = jsonItem.values("url").asInstanceOf[String]
             val filenameList = jsonItem.values("filename").asInstanceOf[List[String]]
-            val jsonFileNameArr = JArray(filenameList.flatMap {
-                    filename => {
-                        JString(filename)::Nil
-                    }
-                })
-            val jsonStr = Printer.pretty(JsonAST.render(jsonFileNameArr))
-            val req = S.request.open_!
+            val jsonStr = JsonUtils.StringListToJsonStringArrayStr(filenameList)
             val item = if(id == -1) metaModel.newInstance else metaModel.findOneInstance(id)
             if(item != null) {
                 //更改URL

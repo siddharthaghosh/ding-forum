@@ -49,6 +49,9 @@ object CategoryController extends ModelController[Category]{
             case "product" => {
                     productExplore()
                 }
+            case "categorynames" => {
+                    queryCategoryNames()
+            }
             case _ => Full(NotFoundResponse())
         }
     }
@@ -112,7 +115,7 @@ object CategoryController extends ModelController[Category]{
                 }
                 generals.foreach {
                     general => {
-                        cat_item.setName(general._1, general._2, general._3)
+                        cat_item.setName(general._1, general._2/* , general._3 */)
                     }
                 }
                 cat_item.saveInstance()
@@ -257,7 +260,7 @@ object CategoryController extends ModelController[Category]{
              * languageId 表示要显示的语言种类
              */
             val defaultLang : Long = 22
-            val defaultParent : Long= 0
+            val defaultParent : Long= -1
             val (categoryId : Long, languageId : Long) = jsonList match {
                 case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
                         (id.toLong, lang_id.toLong)
@@ -292,12 +295,12 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def categoryExplore() = {
-        val reqstr = if(this.getRequestContent().length > 0) this.getRequestContent() else "[{\"id\":0}]"
+        val reqstr = if(this.getRequestContent().length > 0) this.getRequestContent() else "[{\"id\":-1}]"
 //        val reqstr = "[{\"id\":0}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val defaultLang : Long = this.getDefaultLang()
-            val defaultParent : Long= 0
+            val defaultParent : Long= -1
             val (categoryId : Long, languageId : Long) = jsonList match {
                 case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
                         (id.toLong, lang_id.toLong)
@@ -340,6 +343,46 @@ object CategoryController extends ModelController[Category]{
             }
             getAllSubProducts(categoryId, languageId)
         }
+    }
+
+    private def queryCategoryNames() = {
+//        val reqstr = this.getRequestContent()
+        val reqstr = "[{\"id\":1}]"
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val jsonObj = jsonList.head.asInstanceOf[JObject]
+            val id = jsonObj.values("id").asInstanceOf[BigInt].toLong
+            val item = if(id == -1)
+                metaModel.newInstance()
+            else
+                metaModel.findOneInstance(id)
+            if(item != null) {
+                val supportedLangs : List[Language] = MetaModels.metaLanguage.findAllInstances
+                val name : List[JObject] = supportedLangs.flatMap {
+                    lang => {
+                        val langId = lang.getID
+                        val header = lang.getName
+                        val code = lang.getCode
+                        val name = item.getName(langId)
+//                        val desc = item.getDescription(langId)
+                        JObject(JField("langId", JInt(langId))
+                             ::
+                             JField("header", JString(header))
+                             ::
+                             JField("code", JString(code))
+                             ::
+                             JField("name", JString(name))::Nil
+//                             ++
+//                             JField("description", JString(desc))
+                        )::Nil
+                    }
+                }
+                Full(JsonResponse(JField("name", JArray(name))))
+            }else {
+                Full(NotFoundResponse())
+            }
+        }
+//        Full(NotFoundResponse())
     }
 
     private def remove() = {
@@ -432,14 +475,16 @@ object CategoryController extends ModelController[Category]{
         val cat_children : List[Category] = metaModel.getChildren(categoryId)
         val resultList = cat_children.flatMap {
             case  item : Category => {
-                    val cat_name = item.getName(languageId)
+                    val id = item.getID
+                    val name = item.getName(languageId)
+                    val active = item.getActive()
 //                    val cat_desc = item.getDescription(languageId)
                     List(
-                        JsonAST.JField("id", JsonAST.JInt(item.getID()))
+                        JsonAST.JField("id", JsonAST.JInt(id))
                         ++
-                        JsonAST.JField("name", JsonAST.JString(cat_name))
+                        JsonAST.JField("name", JsonAST.JString(name))
                         ++
-                        JsonAST.JField("leaf", JsonAST.JBool(item.children().isEmpty))
+                        JsonAST.JField("active", JsonAST.JBool(active))
                     )
                 }
         }
@@ -457,9 +502,10 @@ object CategoryController extends ModelController[Category]{
         val products : List[Product] = metaModel.getProducts(categoryId)
         val resultList = products.flatMap {
             product => {
+                val product_id = product.getID()
                 val product_name = product.getName(languageId)
                 List(
-                    JsonAST.JField("id", JsonAST.JInt(product.getID()))
+                    JsonAST.JField("id", JsonAST.JInt(product_id))
                     ++
                     JsonAST.JField("name", JsonAST.JString(product_name))
                 )

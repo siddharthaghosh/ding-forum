@@ -8,21 +8,24 @@ package com.ding.model.lift
 import net.liftweb.mapper._
 import com.ding.model._
 
-class LiftCategoryDescription extends LiftModel[LiftCategoryDescription] with IdPK with CategoryDescription{
+class LiftCategoryNameDescription
+extends LiftMultiLanguageNameDescriptionBase[LiftCategoryNameDescription, LiftCategory]
+   with IdPK
+   with CategoryNameDescription {
 
-    override def getSingleton = LiftCategoryDescription
-
-    object category_id extends MappedLongForeignKey(this, LiftCategory)
-    object lang_id extends MappedLongForeignKey(this, LiftLanguage)
-    object name extends MappedString(this, 128)
-    object description extends MappedString(this, 255)
+    override def getSingleton = LiftCategoryNameDescription
+    override def getReferenceObject() = LiftCategory
+    override def getReferenceObjectIDName = "category_id"
     
 }
 
-object LiftCategoryDescription extends LiftCategoryDescription with LiftMetaModel[LiftCategoryDescription] with MetaCategoryDescription{
+object LiftCategoryNameDescription
+extends LiftCategoryNameDescription 
+   with MetaLiftMultiLanguageNameDescriptionBase[LiftCategoryNameDescription, LiftCategory]
+   with MetaCategoryNameDescription{
     
-    override def dbTableName = "dshop_category_description"
+    override def dbTableName = "dshop_category_name_description"
     override def findOneInstance(id : Long) = {
-        LiftCategoryDescription.find(By(LiftCategoryDescription.id, id)).openOr(null)
+        LiftCategoryNameDescription.find(By(LiftCategoryNameDescription.id, id)).openOr(null)
     }
 }
