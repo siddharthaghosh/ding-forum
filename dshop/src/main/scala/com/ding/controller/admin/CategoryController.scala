@@ -29,7 +29,7 @@ object CategoryController extends ModelController[Category]{
     override def processAction(action : String) : Box[LiftResponse] = {
         action match {
             case "save" => {
-                    save()
+                    categorySave()
                 }
             case "remove" => {
                     remove()
@@ -49,10 +49,22 @@ object CategoryController extends ModelController[Category]{
             case "product" => {
                     productExplore()
                 }
-            case "categorynames" => {
-                    queryCategoryNames()
+            case "categoryname" => {
+                    queryCategoryName()
+                }
+            case "categoryimage" => {
+                    queryCategoryImage()
+                }
+            case "subcategory" => {
+                    categoryExplore()
+                }
+            case "savecategory" => {
+                    categorySave()
+                }
+            case "removecategory" => {
+                    categoryRemove()
             }
-            case _ => Full(NotFoundResponse())
+            case _ => categoryExplore()
         }
     }
 
@@ -243,6 +255,7 @@ object CategoryController extends ModelController[Category]{
                 }
         }    
     }
+
     private def explore() = {
 
         val reqstr = this.getRequestContent()
@@ -295,29 +308,14 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def categoryExplore() = {
-        val reqstr = if(this.getRequestContent().length > 0) this.getRequestContent() else "[{\"id\":-1}]"
-//        val reqstr = "[{\"id\":0}]"
         try {
-            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
             val defaultLang : Long = this.getDefaultLang()
             val defaultParent : Long= -1
-            val (categoryId : Long, languageId : Long) = jsonList match {
-                case List(JObject(JField("id", JInt(id)) :: Nil), JObject(JField("language", JInt(lang_id)) :: Nil)) => {
-                        (id.toLong, lang_id.toLong)
-                    }
-                case List(JObject(JField("id", JInt(id)) :: Nil)) => {
-                        (id.toLong, defaultLang)
-                    }
-                case List(JObject(JField("language", JInt(lang_id)) :: Nil)) => {
-                        (defaultParent, lang_id.toLong)
-                    }
-                case _ => {
-                        (defaultParent, defaultLang)
-                    }
-            }
-            getAllSubCategories(categoryId, languageId)
+            val jobj = this.getJsonObjectFromRequest()
+            val catId = if(jobj.values.keySet.contains("id")) jobj.values("id").asInstanceOf[BigInt].toLong else defaultParent
+            val langId = if(jobj.values.keySet.contains("langId")) jobj.values("langId").asInstanceOf[BigInt].toLong else defaultLang
+            getAllSubCategories(catId, langId)
         }
-//        Full(NotFoundResponse())
     }
 
     private def productExplore() = {
@@ -345,9 +343,9 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
-    private def queryCategoryNames() = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\":1}]"
+    private def queryCategoryName() = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\":1}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
@@ -366,23 +364,141 @@ object CategoryController extends ModelController[Category]{
                         val name = item.getName(langId)
 //                        val desc = item.getDescription(langId)
                         JObject(JField("langId", JInt(langId))
-                             ::
-                             JField("header", JString(header))
-                             ::
-                             JField("code", JString(code))
-                             ::
-                             JField("name", JString(name))::Nil
+                                ::
+                                JField("header", JString(header))
+                                ::
+                                JField("code", JString(code))
+                                ::
+                                JField("name", JString(name))::Nil
 //                             ++
 //                             JField("description", JString(desc))
                         )::Nil
                     }
                 }
-                Full(JsonResponse(JField("name", JArray(name))))
+                Full(JsonResponse(JObject(JField("name", JArray(name)) :: Nil)))
             }else {
                 Full(NotFoundResponse())
             }
         }
 //        Full(NotFoundResponse())
+    }
+
+    private def queryCategoryImage() = {
+        try{
+            val id = this.getIdFromResquest()
+//            val id = 1
+            val item = if(id == -1)
+                metaModel.newInstance()
+            else
+                metaModel.findOneInstance(id)
+            if(item != null){
+                val jsonStr = item.getImage
+                val imageArr = JsonParser.parse(jsonStr).asInstanceOf[JArray]
+                val result = JObject(JField("image", imageArr) :: Nil)
+                Full(JsonResponse(result))
+            } else {
+                Full(NotFoundResponse())
+            }
+        }
+//        Full(NotFoundResponse())
+    }
+
+    private def categorySave() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = if(id == -1)
+                metaModel.newInstance()
+            else
+                metaModel.findOneInstance(id)
+            if(item != null) {
+                if(item.getID == -1) {
+                    this.saveCategoryParent(item, jobj)
+                }
+                this.saveCategoryActive(item, jobj)
+                this.saveCategoryName(item, jobj)
+                this.saveCategoryImage(item, jobj)
+                this.saveCategoryDisplayOrder(item, jobj)
+                item.saveInstance
+            }
+            val pid = if(item.getParentID >= 0) item.getParentID else 0
+
+            this.getAllSubCategories(pid, this.getDefaultLang)
+        }
+    }
+
+    private def categoryRemove() = {
+        try {
+            val id = 9
+            val item = if(id == -1)
+                metaModel.newInstance()
+            else
+                metaModel.findOneInstance(id)
+            if(item != null) {
+                item.deleteInstance()
+            }
+            Full(NotFoundResponse())
+        }
+    }
+
+    private def saveCategoryParent(item : Category, jobj : JObject) {
+        if(jobj.values.keySet.contains("parentId")) {
+            val parentId = jobj.values("parentId").asInstanceOf[BigInt].toLong
+            if(item.getParentID != parentId)
+                item.setParentID(parentId)
+        }
+    }
+
+    private def saveCategoryActive(item : Category, jobj : JObject) {
+        if(jobj.values.keySet.contains("active")) {
+            val active = jobj.values("active").asInstanceOf[Boolean]
+            if(item.getActive != active) {
+                item.setActive(active)
+            }
+        }
+    }
+
+    private def saveCategoryName(item : Category, jobj : JObject) {
+        if (jobj.values.keySet.contains("name")) {
+            val nameArr = jobj.values("name").asInstanceOf[List[Map[String, _]]]
+            nameArr foreach {
+                nameItem => {
+                    val langId = nameItem("langId").asInstanceOf[BigInt].toLong
+                    val name = nameItem("name").asInstanceOf[String]
+                    if(item.getName(langId) != name) {
+                        item.setName(langId, name)
+                    }
+                }
+            }
+        }
+    }
+
+    private def saveCategoryImage(item : Category, jobj : JObject) {
+        if(jobj.values.keySet.contains("image")) {
+            val imageArr = jobj.values("image").asInstanceOf[List[String]]
+            val jsonStr = JsonUtils.StringListToJsonStringArrayStr(imageArr)
+            if(item.getImage != jsonStr) {
+                item.setImage(jsonStr)
+            }
+        }
+    }
+
+    private def saveCategoryDisplayOrder(item : Category, jobj : JObject) {
+        if(jobj.values.keySet.contains("displayOrder")){
+            val displayArr = jobj.values("displayOrder").asInstanceOf[List[Map[String, _]]]
+            displayArr.foreach {
+                displayItem => {
+                    val id : Long = displayItem("id").asInstanceOf[BigInt].toLong
+                    val displayOrder : Int = displayItem("displayOrder").asInstanceOf[BigInt].toInt
+                    val sub = metaModel.findOneInstance(id)
+                    if( sub != null ){
+                        sub.setDisplayOrder(displayOrder)
+                        sub.saveInstance()
+                    }
+                }
+            }
+        }
+//        println(displayArr)
     }
 
     private def remove() = {
@@ -457,19 +573,6 @@ object CategoryController extends ModelController[Category]{
                 }
         }
     }
-    
-//    def getRequestContent() : String = {
-//        /*
-//         *  从Request对象内读出请求信息
-//         *  [{cat_id : id_value}, {lang_id : id_value}]
-//         *  如果没有cat_id，表示请求所有顶层的category
-//         *  如果美欧lang_id， 表示使用默认语言
-//         */
-//        val req = S.request.open_!
-//        val reqbody : Array[Byte] = req.body.openOr(Array())
-//        val reqstr = new String(reqbody, "UTF-8")
-//        reqstr
-//    }
 
     private def getAllSubCategories(categoryId : Long, languageId : Long) = {
         val cat_children : List[Category] = metaModel.getChildren(categoryId)
@@ -478,11 +581,20 @@ object CategoryController extends ModelController[Category]{
                     val id = item.getID
                     val name = item.getName(languageId)
                     val active = item.getActive()
+                    val addTime = item.getAddTime().toString
+                    val updateTime = item.getUpdateTime().toString
+                    val parentId = item.getParentID
 //                    val cat_desc = item.getDescription(languageId)
                     List(
                         JsonAST.JField("id", JsonAST.JInt(id))
                         ++
+                        JsonAST.JField("parentId", JsonAST.JInt(parentId))
+                        ++
                         JsonAST.JField("name", JsonAST.JString(name))
+                        ++
+                        JsonAST.JField("addTime", JsonAST.JString(addTime))
+                        ++
+                        JsonAST.JField("updateTime", JsonAST.JString(updateTime))
                         ++
                         JsonAST.JField("active", JsonAST.JBool(active))
                     )
@@ -516,6 +628,30 @@ object CategoryController extends ModelController[Category]{
             ))
     }
 
+    private def getJsonObjectFromRequest() : JObject = {
+        val reqstr = this.getRequestContent
+//        val reqstr = "[{\"id\":1, \"displayOrder\":[{\"id\":1, \"displayOrder\":2},{\"id\":3, \"displayOrder\":1}]}]"
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val jsonObj = jsonList.head.asInstanceOf[JObject]
+            jsonObj
+        } catch {
+            case _ => {
+                    JObject(Nil)
+            }
+        }
+    }
+
+    private def getIdFromResquest() : Long = {
+        val reqstr = this.getRequestContent()
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val jsonObj = jsonList.head.asInstanceOf[JObject]
+            val id = jsonObj.values("id").asInstanceOf[BigInt].toLong
+            id
+        }
+    }
+    
     override def getRequestContent() = {
         urlDecode(S.param("json").openOr(""))
     }
