@@ -52,17 +52,20 @@ object CategoryController extends ModelController[Category]{
             case "categoryname" => {
                     queryCategoryName()
                 }
-            case "categoryimage" => {
-                    queryCategoryImage()
-                }
-            case "subcategory" => {
-                    categoryExplore()
-                }
+//            case "categoryimage" => {
+//                    queryCategoryImage()
+//                }
+//            case "subcategory" => {
+//                    categoryExplore()
+//                }
             case "savecategory" => {
                     categorySave()
                 }
             case "removecategory" => {
                     categoryRemove()
+            }
+            case "temp" => {
+                    tempProc()
             }
             case _ => categoryExplore()
         }
@@ -403,6 +406,19 @@ object CategoryController extends ModelController[Category]{
 //        Full(NotFoundResponse())
     }
 
+    private def tempProc() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = metaModel.findOneInstance(id)
+            if(item != null) {
+                item.addProduct(2)
+                item.saveInstance
+            }
+            Full(OkResponse())
+        }
+    }
+
     private def categorySave() = {
         try {
             val jobj = this.getJsonObjectFromRequest()
@@ -429,15 +445,17 @@ object CategoryController extends ModelController[Category]{
 
     private def categoryRemove() = {
         try {
-            val id = 9
-            val item = if(id == -1)
-                metaModel.newInstance()
-            else
-                metaModel.findOneInstance(id)
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = metaModel.findOneInstance(id)
             if(item != null) {
+                val pid = item.getParentID
                 item.deleteInstance()
+                this.getAllSubCategories(pid, this.getDefaultLang)
+            } else {
+                Full(NotFoundResponse())
             }
-            Full(NotFoundResponse())
+//            Full(NotFoundResponse())
         }
     }
 
@@ -584,6 +602,7 @@ object CategoryController extends ModelController[Category]{
                     val addTime = item.getAddTime().toString
                     val updateTime = item.getUpdateTime().toString
                     val parentId = item.getParentID
+                    val image = urlEncode(item.getFirstImageFileLocation)
 //                    val cat_desc = item.getDescription(languageId)
                     List(
                         JsonAST.JField("id", JsonAST.JInt(id))
@@ -591,6 +610,8 @@ object CategoryController extends ModelController[Category]{
                         JsonAST.JField("parentId", JsonAST.JInt(parentId))
                         ++
                         JsonAST.JField("name", JsonAST.JString(name))
+                        ++
+                        JsonAST.JField("image", JsonAST.JString(image))
                         ++
                         JsonAST.JField("addTime", JsonAST.JString(addTime))
                         ++

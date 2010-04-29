@@ -34,7 +34,96 @@ extends LiftBaseModel[LiftCategory]
     object product extends MappedManyToMany(LiftProductCategory,
                                             LiftProductCategory.category_id,
                                             LiftProductCategory.product_id,
-                                            LiftProduct)
+                                            LiftProduct) {
+
+        override def indexOf(e : LiftProduct) = children.findIndexOf(e equals)
+
+//        override protected def unown(e: LiftProduct) = {
+//            joinForChild(e) match {
+//                case Some(join) =>
+//                    println("unown")
+//                    println("cat id is "+ join.category_id.is +" and product id is " + join.product_id.is)
+//                    removedJoins = join :: removedJoins
+////                    val o = otherField.actualField(join)
+////                    o.set(o.defaultValue)
+////                    val f = field(join)
+////                    f.set(f.defaultValue)
+//                    println("unown end")
+//                    println("cat id is "+ join.category_id.is +" and product id is " + join.product_id.is)
+//                    Some(join)
+//                case None =>
+//                    None
+//            }
+//        }
+
+        override def delete_! = {
+            println("ManyToMany delete_! called! begin!")
+            val ret = super.delete_!
+            this.clear
+            this.removedJoins = Nil
+            println("ManyToMany delete_! called! end!")
+            ret
+        }
+
+        override protected def own(e: LiftProduct): LiftProductCategory = {
+            joinForChild(e) match {
+                case None =>
+                    removedJoins.find { // first check if we can recycle a removed join
+                        otherField.actualField(_).is == e.primaryKeyField.is
+                    } match {
+                        case Some(removedJoin) =>
+                            println("from rj")
+                            removedJoins = removedJoins filter removedJoin.ne
+                            removedJoin // well, noLongerRemovedJoin...
+                        case None =>
+                            println("new join")
+                            val newJoin = joinMeta.create
+                            field(newJoin).set(LiftCategory.this.primaryKeyField.is)
+                            otherField.actualField(newJoin).set(e.primaryKeyField.is)
+                            newJoin
+                    }
+                case Some(join) =>{
+                        println("from jion")
+                        join
+                    }
+            }
+        }
+
+//        override def remove(n: Int) = {
+//            val child = childAt(n)
+//
+//            println("1 joins length:" + _joins.length)
+//            println("child")
+//            println("product id is " + child.product_id.is)
+//            unown(child) match {
+//                case Some(join) =>{
+//                        println("some")
+//                        println("cat id is "+ join.category_id.is +" and product id is " + join.product_id.is)
+//                        _joins = joins filterNot join.eq
+//                    }
+//                case None => {
+//                        println("none")
+//                    }
+//            }
+//            println("2 joins length:" + _joins.length)
+//            child
+//        }
+
+//        override def save = {
+//            println("ManyToMany Product field save begin")
+//            val rl = this.removedJoins
+//            rl.foreach{
+//                item => {
+//                    val pid = item.product_id.is
+//                    val cid = item.category_id.is
+//                    println("cat id is "+ cid.toString +" and product id is " +  pid.toString)
+//                }
+//            }
+//            val ret = super.save
+//            println("ManyToMany Product field save end")
+//            ret
+//        }
+    }
 
     override def updateInstance(parent_id : Long, image : String, active : Boolean, display_order : Int, descriptions : Tuple3[Long, String, String]*) {
         this.parent_id(parent_id).image(image).active(active).display_order(display_order)
@@ -46,7 +135,27 @@ extends LiftBaseModel[LiftCategory]
         }
     }
 
-    override def products : List[Product] = this.product.all
+    override def products() : List[Product] = this.product.all
+
+    override def addProduct(pid : Long) {
+        val rootcat = LiftCategory.findOneInstance(0)
+        val p = LiftProduct.findOneInstance(pid)
+        if(rootcat != null) {
+            val n = rootcat.product.indexOf(p)
+            if(n >= 0){
+                rootcat.product.remove(n)
+                rootcat.save
+            }        
+        }
+        this.product += p
+        this.product.save
+        this.product.all.foreach {
+            pro => {
+                println(this.cat_id.is)
+                println(pro.product_id.is)
+            }
+        }
+    }
 
     override def children() : List[LiftCategory] = {
         LiftCategory.findAll(By(LiftCategory.parent_id, this.cat_id), OrderBy(LiftCategory.display_order, Ascending))
@@ -72,20 +181,25 @@ extends LiftBaseModel[LiftCategory]
         this.setUpdateTime(new Date())
         this.save
     }
+    
+    override def delete_! = {
+        println("LiftCategory deleting")
+        super.delete_!
+    }
+
     override def deleteInstance() : Boolean = {
-        this.children.foreach {
-            child => {
-                child.deleteInstance()
-            }
-        }
-        this.names.all.foreach {
-            desc => {
-                desc.deleteInstance()
-            }
-        }
+//        this.children.foreach {
+//            child => {
+//                child.deleteInstance()
+//            }
+//        }
         this.product.delete_!
-//        true
-        this.delete_!
+//        this.names.all.foreach {
+//            desc => {
+//                desc.deleteInstance()
+//            }
+//        }
+//        this.delete_!
     }
 }
 
