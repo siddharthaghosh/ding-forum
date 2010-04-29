@@ -15,8 +15,36 @@ extends LiftModel[LiftProductCategory]
 
     object product_id extends MappedLongForeignKey(this, LiftProduct)
     object category_id extends MappedLongForeignKey(this, LiftCategory)
-}
 
+//    override def save = {
+//        println("call PCRelation save cat_ID: " + this.category_id.is + ", prod_id: " + this.product_id.is)
+//        val result = super.save
+//        println("call PCRelation save end!")
+//        result
+//    }
+
+    override def delete_! = {
+        println("call PCRelation delete cat_ID: " + this.category_id.is + ", prod_id: " + this.product_id.is)
+//        val result = super.delete_!
+//        result
+        val otherRef = !(LiftProductCategory.find(By(LiftProductCategory.product_id, this.product_id),
+                                                  NotBy(LiftProductCategory.category_id, this.category_id)
+            ).isEmpty)
+        if(otherRef || this.category_id.is == 0) {
+            println("has other ref or cat id is 0")
+            val ret = super.delete_!
+            println("call PCRelation delete end!")
+            ret
+        } else {
+            val ret = super.delete_!
+            val rootcat = LiftCategory.findOneInstance(0)
+            rootcat.addProduct(this.product_id.is)
+            val ret2 = rootcat.save
+            println("call PCRelation delete end!")
+            ret && ret2
+        }
+    }
+}
 object LiftProductCategory
 extends LiftProductCategory
    with LiftMetaModel[LiftProductCategory] {
