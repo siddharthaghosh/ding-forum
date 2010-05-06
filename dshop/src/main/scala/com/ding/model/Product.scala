@@ -9,9 +9,12 @@ trait Product
 extends ImageBaseModel
    with MultiLanguageName
    with MultiLanguageDescription
-   with DisplayOrder{
+//   with DisplayOrder
+   with Active {
 
     def categories() : List[Category]
+    def getDisplayOrder(categoryId : Int) : Int
+    def setDisplayOrder(categoryId : Int, order : Int)
 
 }
 

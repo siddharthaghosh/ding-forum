@@ -14,7 +14,7 @@ extends LiftBaseModel[A]
     self : A =>
 
     object image extends MappedString(this, 128) {
-        override def defaultValue = "[\"\\nopic.gif\"]"
+        override def defaultValue = "[\"/nopic.gif\"]"
     }
 
     def getImage() : String = {

@@ -15,13 +15,7 @@ extends LiftModel[LiftProductCategory]
 
     object product_id extends MappedLongForeignKey(this, LiftProduct)
     object category_id extends MappedLongForeignKey(this, LiftCategory)
-
-//    override def save = {
-//        println("call PCRelation save cat_ID: " + this.category_id.is + ", prod_id: " + this.product_id.is)
-//        val result = super.save
-//        println("call PCRelation save end!")
-//        result
-//    }
+    object display_order extends MappedInt(this)
 
     override def delete_! = {
         println("call PCRelation delete cat_ID: " + this.category_id.is + ", prod_id: " + this.product_id.is)
