@@ -38,24 +38,6 @@ extends LiftBaseModel[LiftCategory]
 
         override def indexOf(e : LiftProduct) = children.findIndexOf(e equals)
 
-//        override protected def unown(e: LiftProduct) = {
-//            joinForChild(e) match {
-//                case Some(join) =>
-//                    println("unown")
-//                    println("cat id is "+ join.category_id.is +" and product id is " + join.product_id.is)
-//                    removedJoins = join :: removedJoins
-////                    val o = otherField.actualField(join)
-////                    o.set(o.defaultValue)
-////                    val f = field(join)
-////                    f.set(f.defaultValue)
-//                    println("unown end")
-//                    println("cat id is "+ join.category_id.is +" and product id is " + join.product_id.is)
-//                    Some(join)
-//                case None =>
-//                    None
-//            }
-//        }
-
         override def delete_! = {
             println("ManyToMany delete_! called! begin!")
             val ret = super.delete_!
@@ -88,41 +70,6 @@ extends LiftBaseModel[LiftCategory]
                     }
             }
         }
-
-//        override def remove(n: Int) = {
-//            val child = childAt(n)
-//
-//            println("1 joins length:" + _joins.length)
-//            println("child")
-//            println("product id is " + child.product_id.is)
-//            unown(child) match {
-//                case Some(join) =>{
-//                        println("some")
-//                        println("cat id is "+ join.category_id.is +" and product id is " + join.product_id.is)
-//                        _joins = joins filterNot join.eq
-//                    }
-//                case None => {
-//                        println("none")
-//                    }
-//            }
-//            println("2 joins length:" + _joins.length)
-//            child
-//        }
-
-//        override def save = {
-//            println("ManyToMany Product field save begin")
-//            val rl = this.removedJoins
-//            rl.foreach{
-//                item => {
-//                    val pid = item.product_id.is
-//                    val cid = item.category_id.is
-//                    println("cat id is "+ cid.toString +" and product id is " +  pid.toString)
-//                }
-//            }
-//            val ret = super.save
-//            println("ManyToMany Product field save end")
-//            ret
-//        }
     }
 
     override def updateInstance(parent_id : Long, image : String, active : Boolean, display_order : Int, descriptions : Tuple3[Long, String, String]*) {
@@ -135,7 +82,10 @@ extends LiftBaseModel[LiftCategory]
         }
     }
 
-    override def products() : List[Product] = this.product.all
+    override def products() : List[Product] = {
+//        LiftCategory.find()
+        this.product.all
+    }
 
     override def addProduct(pid : Long) {
         val rootcat = LiftCategory.findOneInstance(0)
@@ -147,6 +97,12 @@ extends LiftBaseModel[LiftCategory]
                 rootcat.save
             }        
         }
+        val nullProducts = LiftProductCategory.findAll(By(LiftProductCategory.product_id, pid), NullRef(LiftProductCategory.category_id))
+        nullProducts.foreach(
+            np => {
+                np.delete_!
+            }
+        )
         this.product += p
         this.product.save
         this.product.all.foreach {
@@ -188,18 +144,18 @@ extends LiftBaseModel[LiftCategory]
     }
 
     override def deleteInstance() : Boolean = {
-//        this.children.foreach {
-//            child => {
-//                child.deleteInstance()
-//            }
-//        }
+        this.children.foreach {
+            child => {
+                child.deleteInstance()
+            }
+        }
         this.product.delete_!
-//        this.names.all.foreach {
-//            desc => {
-//                desc.deleteInstance()
-//            }
-//        }
-//        this.delete_!
+        this.names.all.foreach {
+            desc => {
+                desc.deleteInstance()
+            }
+        }
+        this.delete_!
     }
 }
 
@@ -213,11 +169,25 @@ object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with M
     }
     override def getProducts(parentId : Long) : List[Product] = {
         val cat = LiftCategory.findOneInstance(parentId)
-        if(cat != null) {
+        val nullProducts = if(parentId == 0) {
+            val pc = LiftProductCategory.findAll(NullRef(LiftProductCategory.category_id))
+            pc.flatMap {
+                pcitem => {
+                    val pid = pcitem.product_id
+                    LiftProduct.find(By(LiftProduct.product_id, pid)).openOr(null) :: Nil
+//                    Nil
+                }
+            }
+//            Nil
+        } else {
+            Nil
+        }
+        val products = if(cat != null) {
             cat.products()
         } else {
             Nil
         }
+         nullProducts ::: products
     }
     override def getAllAncestor(categoryId : Long) : List[Category] = {
         val cat = LiftCategory.findOneInstance(categoryId)

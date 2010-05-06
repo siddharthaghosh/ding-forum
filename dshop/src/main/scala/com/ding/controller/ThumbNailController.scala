@@ -42,12 +42,12 @@ object ThumbNailController extends BaseController {
                                              thumbFile)){
                     thumbFile
                 }else{
-                    new File(imageDir + notFoundFileName)
+                    new File(thumbDir + notFoundFileName)
                 }
                 
             }
         }else{
-            new File(imageDir + notFoundFileName)
+            new File(thumbDir + notFoundFileName)
         }
         val imageFileInput = new FileImageInputStream(outFile)
         Full(StreamingResponse(imageFileInput, ()=>imageFileInput.close, imageFileInput.length, ("Content-Type" -> "image/jpeg")::Nil, Nil, 200))

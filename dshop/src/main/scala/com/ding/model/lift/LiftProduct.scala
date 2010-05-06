@@ -11,8 +11,9 @@ import net.liftweb.mapper._
 class LiftProduct extends LiftBaseModel[LiftProduct]
                      with Product
                      with LiftMultiLanguageNameDescription[LiftProduct, LiftProductNameDescription]
-                     with LiftDisplayOrder[LiftProduct]
+//                     with LiftDisplayOrder[LiftProduct]
                      with LiftImage[LiftProduct]
+                     with LiftActive[LiftProduct]
                      with ManyToMany {
 
     override def getSingleton = LiftProduct
@@ -21,14 +22,22 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
 
     object product_id extends MappedLongIndex(this)
     object category extends MappedManyToMany(LiftProductCategory,
-                                               LiftProductCategory.product_id,
-                                               LiftProductCategory.category_id,
-                                               LiftCategory)
+                                             LiftProductCategory.product_id,
+                                             LiftProductCategory.category_id,
+                                             LiftCategory)
 
+    override def getDisplayOrder(categoryId : Int) : Int = {
+        0
+    }
+
+    override def setDisplayOrder(categoryId : Int, order : Int) {
+
+    }
 
     override def categories() : List[Category] = {
         category.all
     }
+
 
 }
 

@@ -17,6 +17,8 @@ import net.liftweb.util.Helpers._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
 
+import java.io.File
+
 object CategoryController extends ModelController[Category]{
 
     def metaModel : MetaCategory = MetaModels.metaCategory
@@ -52,9 +54,9 @@ object CategoryController extends ModelController[Category]{
             case "categoryname" => {
                     queryCategoryName()
                 }
-//            case "categoryimage" => {
-//                    queryCategoryImage()
-//                }
+            case "productimage" => {
+                    queryProductImage()
+                }
 //            case "subcategory" => {
 //                    categoryExplore()
 //                }
@@ -63,10 +65,10 @@ object CategoryController extends ModelController[Category]{
                 }
             case "removecategory" => {
                     categoryRemove()
-            }
+                }
             case "temp" => {
                     tempProc()
-            }
+                }
             case _ => categoryExplore()
         }
     }
@@ -386,18 +388,38 @@ object CategoryController extends ModelController[Category]{
 //        Full(NotFoundResponse())
     }
 
-    private def queryCategoryImage() = {
+    private def queryProductImage() = {
         try{
             val id = this.getIdFromResquest()
-//            val id = 1
+//            val id = 2
             val item = if(id == -1)
-                metaModel.newInstance()
+                MetaModels.metaProduct.newInstance()
             else
-                metaModel.findOneInstance(id)
+                MetaModels.metaProduct.findOneInstance(id)
             if(item != null){
                 val jsonStr = item.getImage
-                val imageArr = JsonParser.parse(jsonStr).asInstanceOf[JArray]
-                val result = JObject(JField("image", imageArr) :: Nil)
+                val imageArr = try {
+                    JsonParser.parse(jsonStr).asInstanceOf[JArray]
+                } catch {
+                    case ex : Exception => {
+                            JsonParser.parse("[\"/nopic.gif\"]").asInstanceOf[JArray]
+                        }
+                }
+                val resultArr = JArray(imageArr.arr.flatMap {
+                        imageItem => {
+                            val fn = imageItem.values.asInstanceOf[String]
+                            val f = new File(fn)
+                            val realName = f.getName
+                            val uf = MetaModels.metaUploadFile.findByRealName(realName)
+                            val displayName = if(uf!=null) {
+                                uf.getDisplayName
+                            } else {
+                                "nopic.gif"
+                            }
+                            JObject(JField("name", JString(displayName))::JField("image", imageItem)::Nil) :: Nil
+                        }
+                    })
+                val result = JObject(JField("image", resultArr) :: Nil)
                 Full(JsonResponse(result))
             } else {
                 Full(NotFoundResponse())
@@ -443,6 +465,31 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
+    private def productSave() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val item = if(id == -1)
+                MetaModels.metaProduct.newInstance()
+            else
+                MetaModels.metaProduct.findOneInstance(id)
+            if(item != null) {
+//                if(item.getID == -1) {
+//                    this.saveCategoryParent(item, jobj)
+//                }
+                this.saveProductActive(item, jobj)
+//                this.saveCategoryName(item, jobj)
+                this.saveProductImage(item, jobj)
+//                this.saveCategoryDisplayOrder(item, jobj)
+                item.saveInstance
+            }
+//            val pid = if(item.getParentID >= 0) item.getParentID else 0
+
+            getAllSubProducts(cid, this.getDefaultLang)
+        }
+    }
+
     private def categoryRemove() = {
         try {
             val jobj = this.getJsonObjectFromRequest()
@@ -476,6 +523,15 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
+    private def saveProductActive(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("active")) {
+            val active = jobj.values("active").asInstanceOf[Boolean]
+            if(item.getActive != active) {
+                item.setActive(active)
+            }
+        }
+    }
+
     private def saveCategoryName(item : Category, jobj : JObject) {
         if (jobj.values.keySet.contains("name")) {
             val nameArr = jobj.values("name").asInstanceOf[List[Map[String, _]]]
@@ -491,7 +547,32 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
+    private def saveProductName(item : Product, jobj : JObject) {
+        if (jobj.values.keySet.contains("name")) {
+            val nameArr = jobj.values("name").asInstanceOf[List[Map[String, _]]]
+            nameArr foreach {
+                nameItem => {
+                    val langId = nameItem("langId").asInstanceOf[BigInt].toLong
+                    val name = nameItem("name").asInstanceOf[String]
+                    if(item.getName(langId) != name) {
+                        item.setName(langId, name)
+                    }
+                }
+            }
+        }
+    }
+
     private def saveCategoryImage(item : Category, jobj : JObject) {
+        if(jobj.values.keySet.contains("image")) {
+            val imageArr = jobj.values("image").asInstanceOf[List[String]]
+            val jsonStr = JsonUtils.StringListToJsonStringArrayStr(imageArr)
+            if(item.getImage != jsonStr) {
+                item.setImage(jsonStr)
+            }
+        }
+    }
+
+    private def saveProductImage(item : Product, jobj : JObject) {
         if(jobj.values.keySet.contains("image")) {
             val imageArr = jobj.values("image").asInstanceOf[List[String]]
             val jsonStr = JsonUtils.StringListToJsonStringArrayStr(imageArr)
@@ -637,6 +718,14 @@ object CategoryController extends ModelController[Category]{
             product => {
                 val product_id = product.getID()
                 val product_name = product.getName(languageId)
+                val image = product.getImage
+                val imageArr = try {
+                    JsonParser.parse(image).asInstanceOf[JArray]
+                } catch {
+                    case ex : Exception => {
+                            JsonParser.parse("[\"/nopic.gif\"]").asInstanceOf[JArray]
+                        }
+                }
                 List(
                     JsonAST.JField("id", JsonAST.JInt(product_id))
                     ++
@@ -659,7 +748,7 @@ object CategoryController extends ModelController[Category]{
         } catch {
             case _ => {
                     JObject(Nil)
-            }
+                }
         }
     }
 

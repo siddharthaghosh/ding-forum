@@ -107,6 +107,8 @@ extends ModelController[Manufacturer]
                 //更改URL
                 if(item.getURL != url) item.setURL(url)
                 if(item.getName != name) item.setName(name)
+                val oldstr = item.getImage
+                val isne = (oldstr != jsonStr)
                 if(item.getImage != jsonStr) item.setImage(jsonStr)
                 item.saveInstance()
 //                this.storeUploadFiles(item)
