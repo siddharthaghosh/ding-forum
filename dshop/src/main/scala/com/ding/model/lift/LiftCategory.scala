@@ -47,28 +47,31 @@ extends LiftBaseModel[LiftCategory]
             ret
         }
 
-        override protected def own(e: LiftProduct): LiftProductCategory = {
-            joinForChild(e) match {
-                case None =>
-                    removedJoins.find { // first check if we can recycle a removed join
-                        otherField.actualField(_).is == e.primaryKeyField.is
-                    } match {
-                        case Some(removedJoin) =>
-                            println("from rj")
-                            removedJoins = removedJoins filter removedJoin.ne
-                            removedJoin // well, noLongerRemovedJoin...
-                        case None =>
-                            println("new join")
-                            val newJoin = joinMeta.create
-                            field(newJoin).set(LiftCategory.this.primaryKeyField.is)
-                            otherField.actualField(newJoin).set(e.primaryKeyField.is)
-                            newJoin
+        override def joins = {
+            _joins.sortWith(
+                (a, b) => {
+                    a.display_order.is > b.display_order.is
+                }
+            )
+        }
+
+        def allSortByDisplayOrder = {
+
+            def joinsSortByDisplayOrder = {
+                _joins.sortWith(
+                    (a, b) => {
+                        a.display_order.is < b.display_order.is
                     }
-                case Some(join) =>{
-                        println("from jion")
-                        join
-                    }
+                )
             }
+
+            def childrenSortByDisplayOrder = {
+                joinsSortByDisplayOrder.flatMap {
+                    otherField.actualField(_).asInstanceOf[MappedForeignKey[Long, LiftProductCategory, LiftProduct]].obj
+                }
+            }
+
+            childrenSortByDisplayOrder
         }
     }
 
@@ -84,7 +87,8 @@ extends LiftBaseModel[LiftCategory]
 
     override def products() : List[Product] = {
 //        LiftCategory.find()
-        this.product.all
+        this.product.allSortByDisplayOrder
+//        this.product.all
     }
 
     override def addProduct(pid : Long) {
@@ -105,12 +109,6 @@ extends LiftBaseModel[LiftCategory]
         )
         this.product += p
         this.product.save
-        this.product.all.foreach {
-            pro => {
-                println(this.cat_id.is)
-                println(pro.product_id.is)
-            }
-        }
     }
 
     override def children() : List[LiftCategory] = {
@@ -175,10 +173,8 @@ object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with M
                 pcitem => {
                     val pid = pcitem.product_id
                     LiftProduct.find(By(LiftProduct.product_id, pid)).openOr(null) :: Nil
-//                    Nil
                 }
             }
-//            Nil
         } else {
             Nil
         }
@@ -187,7 +183,7 @@ object LiftCategory extends LiftCategory with LiftMetaModel[LiftCategory] with M
         } else {
             Nil
         }
-         nullProducts ::: products
+        nullProducts ::: products
     }
     override def getAllAncestor(categoryId : Long) : List[Category] = {
         val cat = LiftCategory.findOneInstance(categoryId)

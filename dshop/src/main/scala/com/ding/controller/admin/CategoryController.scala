@@ -63,6 +63,12 @@ object CategoryController extends ModelController[Category]{
             case "savecategory" => {
                     categorySave()
                 }
+            case "saveproduct" => {
+                    productSave()
+                }
+            case "saveproductdisplayorder" => {
+                    productSaveDisplayOrder()
+                }
             case "removecategory" => {
                     categoryRemove()
                 }
@@ -470,16 +476,20 @@ object CategoryController extends ModelController[Category]{
             val jobj = this.getJsonObjectFromRequest()
             val id = jobj.values("id").asInstanceOf[BigInt].toLong
             val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
-            val item = if(id == -1)
-                MetaModels.metaProduct.newInstance()
+            val item = if(id == -1){
+                val i = MetaModels.metaProduct.newInstance()
+                i.saveInstance
+                i
+            }
             else
                 MetaModels.metaProduct.findOneInstance(id)
             if(item != null) {
 //                if(item.getID == -1) {
 //                    this.saveCategoryParent(item, jobj)
 //                }
+                this.saveProductCategory(item, jobj)
                 this.saveProductActive(item, jobj)
-//                this.saveCategoryName(item, jobj)
+                this.saveProductName(item, jobj)
                 this.saveProductImage(item, jobj)
 //                this.saveCategoryDisplayOrder(item, jobj)
                 item.saveInstance
@@ -488,6 +498,30 @@ object CategoryController extends ModelController[Category]{
 
             getAllSubProducts(cid, this.getDefaultLang)
         }
+    }
+
+    private def productSaveDisplayOrder() = {
+        val jobj = this.getJsonObjectFromRequest()
+        val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+        if(jobj.values.keySet.contains("displayOrder")){
+            val products : List[Product] = metaModel.getProducts(cid)
+            val displayArr = jobj.values("displayOrder").asInstanceOf[List[Map[String, _]]]
+            products.foreach {
+                product => {
+                    val displayitem = displayArr.find(
+                        item => {
+                            item("id").asInstanceOf[BigInt].toLong == product.getID
+                        }
+                    )
+                    if(!displayitem.isEmpty){
+                        val order = (displayitem.get)("displayOrder").asInstanceOf[BigInt].toInt
+                        product.setDisplayOrder(cid, order)
+                    }
+//               product.setDisplayOrder(cid, order)
+                }
+            }
+        }
+        getAllSubProducts(cid, this.getDefaultLang)
     }
 
     private def categoryRemove() = {
@@ -511,6 +545,16 @@ object CategoryController extends ModelController[Category]{
             val parentId = jobj.values("parentId").asInstanceOf[BigInt].toLong
             if(item.getParentID != parentId)
                 item.setParentID(parentId)
+        }
+    }
+
+    private def saveProductCategory(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("categoryId")) {
+            val categoryId = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val catItem = metaModel.findOneInstance(categoryId)
+            if(catItem != null) {
+                catItem.addProduct(item.getID)
+            }
         }
     }
 
