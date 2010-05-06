@@ -26,12 +26,16 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                                              LiftProductCategory.category_id,
                                              LiftCategory)
 
-    override def getDisplayOrder(categoryId : Int) : Int = {
+    override def getDisplayOrder(categoryId : Long) : Int = {
         0
     }
 
-    override def setDisplayOrder(categoryId : Int, order : Int) {
+    override def setDisplayOrder(categoryId : Long, order : Int) {
 
+    }
+
+    override def addToCategory(categoryId : Long) {
+        
     }
 
     override def categories() : List[Category] = {

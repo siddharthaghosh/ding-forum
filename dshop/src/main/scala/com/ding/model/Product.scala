@@ -13,8 +13,9 @@ extends ImageBaseModel
    with Active {
 
     def categories() : List[Category]
-    def getDisplayOrder(categoryId : Int) : Int
-    def setDisplayOrder(categoryId : Int, order : Int)
+    def addToCategory(categoryId : Long)
+    def getDisplayOrder(categoryId : Long) : Int
+    def setDisplayOrder(categoryId : Long, order : Int)
 
 }
 
