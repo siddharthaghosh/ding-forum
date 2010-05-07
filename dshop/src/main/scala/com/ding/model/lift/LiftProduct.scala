@@ -27,11 +27,21 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                                              LiftCategory)
 
     override def getDisplayOrder(categoryId : Long) : Int = {
-        0
+        val join = category.joins.find(
+            join => {
+                join.category_id.is == categoryId
+            }
+        )
+        join.map(_.display_order.is).getOrElse(-1)
     }
 
     override def setDisplayOrder(categoryId : Long, order : Int) {
-
+        val join = category.joins.find(
+            join => {
+                join.category_id.is == categoryId
+            }
+        )
+        join.map(_.display_order(order))
     }
 
     override def addToCategory(categoryId : Long) {
