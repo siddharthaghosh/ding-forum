@@ -54,6 +54,9 @@ object CategoryController extends ModelController[Category]{
             case "categoryname" => {
                     queryCategoryName()
                 }
+            case "productname" => {
+                    queryProductName()
+                }
             case "productimage" => {
                     queryProductImage()
                 }
@@ -394,6 +397,46 @@ object CategoryController extends ModelController[Category]{
 //        Full(NotFoundResponse())
     }
 
+    private def queryProductName() = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\":1}]"
+        try {
+            val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
+            val jsonObj = jsonList.head.asInstanceOf[JObject]
+            val id = jsonObj.values("id").asInstanceOf[BigInt].toLong
+            val item = if(id == -1)
+                MetaModels.metaProduct.newInstance()
+            else
+                MetaModels.metaProduct.findOneInstance(id)
+            if(item != null) {
+                val supportedLangs : List[Language] = MetaModels.metaLanguage.findAllInstances
+                val name : List[JObject] = supportedLangs.flatMap {
+                    lang => {
+                        val langId = lang.getID
+                        val header = lang.getName
+                        val code = lang.getCode
+                        val name = item.getName(langId)
+//                        val desc = item.getDescription(langId)
+                        JObject(JField("langId", JInt(langId))
+                                ::
+                                JField("header", JString(header))
+                                ::
+                                JField("code", JString(code))
+                                ::
+                                JField("name", JString(name))::Nil
+//                             ++
+//                             JField("description", JString(desc))
+                        )::Nil
+                    }
+                }
+                Full(JsonResponse(JObject(JField("name", JArray(name)) :: Nil)))
+            }else {
+                Full(NotFoundResponse())
+            }
+        }
+//        Full(NotFoundResponse())
+    }
+
     private def queryProductImage() = {
         try{
             val id = this.getIdFromResquest()
@@ -516,7 +559,9 @@ object CategoryController extends ModelController[Category]{
                     if(!displayitem.isEmpty){
                         val order = (displayitem.get)("displayOrder").asInstanceOf[BigInt].toInt
                         product.setDisplayOrder(cid, order)
+                        product.saveInstance
                     }
+                    
 //               product.setDisplayOrder(cid, order)
                 }
             }
@@ -763,6 +808,7 @@ object CategoryController extends ModelController[Category]{
                 val product_id = product.getID()
                 val product_name = product.getName(languageId)
                 val image = product.getImage
+                val active = product.getActive
                 val imageArr = try {
                     JsonParser.parse(image).asInstanceOf[JArray]
                 } catch {
@@ -774,6 +820,8 @@ object CategoryController extends ModelController[Category]{
                     JsonAST.JField("id", JsonAST.JInt(product_id))
                     ++
                     JsonAST.JField("name", JsonAST.JString(product_name))
+                    ++
+                    JsonAST.JField("active", JsonAST.JBool(active))
                 )
             }
         }
@@ -784,7 +832,7 @@ object CategoryController extends ModelController[Category]{
 
     private def getJsonObjectFromRequest() : JObject = {
         val reqstr = this.getRequestContent
-//        val reqstr = "[{\"id\":1, \"displayOrder\":[{\"id\":1, \"displayOrder\":2},{\"id\":3, \"displayOrder\":1}]}]"
+//        val reqstr = "[{\"categoryId\":56, \"displayOrder\":[{\"id\":2, \"displayOrder\":10},{\"id\":3, \"displayOrder\":15}]}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]

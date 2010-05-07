@@ -13,7 +13,9 @@ extends LiftBaseModel[A]
    with Active {
     self : A=>
 
-    object active extends MappedBoolean(this)
+    object active extends MappedBoolean(this) {
+        override def defaultValue = true
+    }
 
     def getActive() : Boolean = {
         this.active.is
