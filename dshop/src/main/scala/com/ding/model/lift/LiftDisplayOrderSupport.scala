@@ -13,7 +13,9 @@ extends LiftBaseModel[A]
    with DisplayOrder {
     self : A =>
 
-    object display_order extends MappedInt(this)
+    object display_order extends MappedInt(this) {
+        override def defaultValue = Int.MaxValue
+    }
 
     def getDisplayOrder() : Int = {
         this.display_order.is
