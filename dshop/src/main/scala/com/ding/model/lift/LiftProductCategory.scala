@@ -15,7 +15,9 @@ extends LiftModel[LiftProductCategory]
 
     object product_id extends MappedLongForeignKey(this, LiftProduct)
     object category_id extends MappedLongForeignKey(this, LiftCategory)
-    object display_order extends MappedInt(this)
+    object display_order extends MappedInt(this){
+        override def defaultValue = Int.MaxValue
+    }
 
     override def delete_! = {
         println("call PCRelation delete cat_ID: " + this.category_id.is + ", prod_id: " + this.product_id.is)

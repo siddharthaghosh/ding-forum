@@ -9,6 +9,8 @@ import net.liftweb.http._
 import net.liftweb.mapper._
 import net.liftweb.common._
 import net.liftweb.util.Helpers._
+import net.liftweb.json._
+import net.liftweb.json.JsonAST._
 import com.ding.model._
 import com.ding.model.lift._
 import com.ding.util._
@@ -28,6 +30,10 @@ object FrontController {
         case Req(List("image", _*), _, _) => {
                 () => dispathProcess()
             }
+
+        case Req(List("module", _*), _, _) => {
+                () => dispathProcess()
+            }
     }
 
     def setupController() {
@@ -39,8 +45,13 @@ object FrontController {
         val req = S.request.open_!
         val path = req.path
         val partpath = path.partPath
-        if(partpath.length < 2){
+        if(partpath.length < 1) {
             reqInfo.is.module = ""
+            reqInfo.is.application = ""
+            reqInfo.is.action = ""
+        }
+        else if(partpath.length < 2){
+            reqInfo.is.module = partpath(0)
             reqInfo.is.application = ""
             reqInfo.is.action = ""
         }
@@ -70,6 +81,7 @@ object FrontController {
             reqInfo.is.module match {
                 case "admin" => adminProcess()
                 case "image" => imageProcess()
+//                case "module" => moduleProcess()
                 case _ => Full(NotFoundResponse())
             }
         }
@@ -110,6 +122,20 @@ object FrontController {
             case "thumbnail" => ThumbNailController.process()
             case _ => Full(NotFoundResponse())
         }
+    }
+
+    private def moduleProcess() : Box[LiftResponse] = {
+        ShopLogger.logger.debug("module process controller works!")
+//        reqInfo.is.application match {
+//            case "origin" => ImageController.process()
+//            case "thumbnail" => ThumbNailController.process()
+//            case _ => Full(NotFoundResponse())
+//        }
+        val jsonArr = JArray(JObject(JField("name", JString("localization")) :: Nil) ::
+                             JObject(JField("name", JString("product")) :: Nil) ::
+                             Nil)
+        val result = JObject(JField("module", jsonArr) :: Nil)
+        Full(JsonResponse(result))
     }
 
     private def addDocContent() : Box[LiftResponse] = {
