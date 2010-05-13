@@ -111,6 +111,7 @@ object FrontController {
             case "optionvalue" => admin.OptionValueController.process()
             case "manufacturer" => admin.ManufacturerController.process()
             case "filemanager" => admin.FileManagerController.process()
+            case "module" => admin.ClientModuleController.process()
             case _ => Full(NotFoundResponse())
         }
     }
@@ -122,20 +123,6 @@ object FrontController {
             case "thumbnail" => ThumbNailController.process()
             case _ => Full(NotFoundResponse())
         }
-    }
-
-    private def moduleProcess() : Box[LiftResponse] = {
-        ShopLogger.logger.debug("module process controller works!")
-//        reqInfo.is.application match {
-//            case "origin" => ImageController.process()
-//            case "thumbnail" => ThumbNailController.process()
-//            case _ => Full(NotFoundResponse())
-//        }
-        val jsonArr = JArray(JObject(JField("name", JString("localization")) :: Nil) ::
-                             JObject(JField("name", JString("product")) :: Nil) ::
-                             Nil)
-        val result = JObject(JField("module", jsonArr) :: Nil)
-        Full(JsonResponse(result))
     }
 
     private def addDocContent() : Box[LiftResponse] = {
