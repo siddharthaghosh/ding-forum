@@ -94,8 +94,17 @@ object DBVendor extends ConnectionManager {
         Class.forName(driverName)
 
         val dm = (Props.get("db.user"), Props.get("db.password")) match {
-            case (Full(user), Full(pwd)) =>
-                DriverManager.getConnection(dbUrl, user, pwd)
+            case (Full(user), Full(pwd)) =>{
+//                    val url = dbUrl + "?user=" + user + "&password=" + pwd + "&characterEncoding=utf-8"
+                    val url = dbUrl + "?characterEncoding=utf-8"
+                    println(url)
+//                  val conn = DriverManager.getConnection(url)
+                  val conn = DriverManager.getConnection(url, user, pwd)
+//                    val conn = DriverManager.getConnection(dbUrl, user, pwd)
+                    conn.getClientInfo.list(System.out)
+                    conn
+//                    DriverManager.getConnection(url)
+                }
 
             case _ => DriverManager.getConnection(dbUrl)
         }
