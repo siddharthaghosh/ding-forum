@@ -12,6 +12,7 @@ import com.ding.model._
 //import com.ding.model.lift._
 import com.ding.controller._
 import net.liftweb.util._
+import net.liftweb.util.Helpers._
 import net.liftweb.json.JsonAST._
 import com.ding.util._
 
@@ -19,10 +20,10 @@ object LanguageController extends ModelController[Language] {
 
     def metaModel : MetaLanguage = MetaModels.metaLanguage
 
-    override def process() : Box[LiftResponse] = {
-        ShopLogger.debug("Language Controller works")
-        processAction(reqInfo.is.action)
-    }
+//    override def process() : Box[LiftResponse] = {
+//        ShopLogger.logger.debug("Language Controller works")
+//        processAction(reqInfo.is.action)
+//    }
 
     def processAction(action : String) : Box[LiftResponse] = {
 
@@ -35,16 +36,16 @@ object LanguageController extends ModelController[Language] {
 //                }
             case "remove" => {
                     remove()
-            }
+                }
             case "list" => {
                     list()
-            }
+                }
             case "listsupport" => {
                     listSupport()
-            }
+                }
             case "changedisplayorder" => {
                     changeDisplayOrder()
-            }
+                }
             case _ => Full(NotFoundResponse())
         }
 
@@ -105,7 +106,7 @@ object LanguageController extends ModelController[Language] {
         }
 
         Full(JsonResponse(
-                JsonAST.JArray(resultList)
+                JObject(JField("language",JsonAST.JArray(resultList)) :: Nil)
             ))
     }
     
@@ -119,7 +120,7 @@ object LanguageController extends ModelController[Language] {
                 }
         }
         Full(JsonResponse(
-                JsonAST.JArray(resultList)
+                JObject(JField("language", JsonAST.JArray(resultList)) :: Nil)
             ))
     }
 
@@ -228,7 +229,7 @@ object LanguageController extends ModelController[Language] {
                     ShopLogger.error(ex.getMessage)
                     ShopLogger.error(ex.getStackTraceString)
                     Full(BadResponse())
-            }
+                }
         }
 //        val item_id : Int = 5
 //        val edit_item = metaModel.findOneInstance(item_id)
@@ -245,5 +246,9 @@ object LanguageController extends ModelController[Language] {
         if(del_item != null) {
             del_item.deleteInstance()
         }
+    }
+
+    override def getRequestContent() = {
+        urlDecode(S.param("json").openOr(""))
     }
 }

@@ -100,7 +100,12 @@ object OptionValueController extends ModelController[OptionValue]{
 //        val reqstr = "[{\"id\": 4},{\"id\": 5}]"
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-            val og_id = metaModel.findOneInstance(jsonList.head.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong).getGroupID
+            
+            val og_id = if(jsonList.length > 0){
+                metaModel.findOneInstance(jsonList.head.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong).getGroupID
+            } else {
+                -1
+            }
             
             jsonList.foreach(
                 jsonItem => {
@@ -119,7 +124,12 @@ object OptionValueController extends ModelController[OptionValue]{
 //        val reqstr = ""
         try {
             val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-            val og_id = metaModel.findOneInstance(jsonList.head.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong).getGroupID
+            val og_id = if(jsonList.length > 0){
+                metaModel.findOneInstance(jsonList.head.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong).getGroupID
+            } else {
+                -1
+            }
+
             jsonList.foreach(
                 jsonItem => {
                     val ov_id = jsonItem.asInstanceOf[JsonAST.JObject].values("id").asInstanceOf[BigInt].toLong
