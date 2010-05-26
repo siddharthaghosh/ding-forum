@@ -16,14 +16,43 @@ extends LiftBaseModel[A]
 
     def multiLangNameObject() : MetaLiftMultiLanguageNameBase[R, A]
 
+    object names extends MappedOneToMany(multiLangNameObject(), multiLangNameObject().ref_id) with Cascade[R]
 
-    object names extends MappedOneToMany(multiLangNameObject(), multiLangNameObject().ref_id)
+    def findNameByLang(lang : LiftLanguage) : LiftMultiLanguageNameBase[R, A] = {
+        if(lang == null)
+            null
+        else
+            names.all.find(
+                name => {
+                    if(name.lang_id.is == lang.lang_id.is)
+                        true
+                    else
+                        false
+                }
+            ).orNull
+    }
 
     def getName(lang_id : Long) : String = {
-        ""
+        val item = this.findNameByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(item == null)
+            ""
+        else
+            item.name.is
     }
     def setName(lang_id : Long, name : String) {
+        val item = this.findNameByLang(LiftLanguage.find(By(LiftLanguage.lang_id, lang_id)).openOr(null))
+        if(item != null) {
+            item.name(name)
+        } else if(LiftLanguage.isLanguageExist(lang_id)){
+            val n = multiLangNameObject().newInstance
+            n.lang_id(lang_id)
+            n.name(name)
+            this.names.append(n)
+        }
+    }
 
+    override def deleteInstance() : Boolean = {
+        this.delete_!
     }
 }
 
