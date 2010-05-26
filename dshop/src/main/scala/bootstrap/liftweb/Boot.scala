@@ -63,7 +63,7 @@ class Boot {
                                                              LiftCategory, LiftCategoryNameDescription, LiftOptionGroup,
                                                              LiftOptionGroupName, LiftOptionValue, LiftOptionValueName,
                                                              LiftManufacturer, LiftProduct, LiftProductNameDescription,
-                                                             LiftProductCategory, LiftUploadFile)
+                                                             LiftProductCategory, LiftUploadFile, LiftType, LiftTypeName, LiftTypeOptionGroup)
     /**
      * Force the request to be UTF-8
      */
@@ -96,12 +96,11 @@ object DBVendor extends ConnectionManager {
         val dm = (Props.get("db.user"), Props.get("db.password")) match {
             case (Full(user), Full(pwd)) =>{
 //                    val url = dbUrl + "?user=" + user + "&password=" + pwd + "&characterEncoding=utf-8"
-                    val url = dbUrl + "?characterEncoding=utf-8"
-                    println(url)
+//                    val url = dbUrl + "?characterEncoding=utf-8"
+//                    println(url)
 //                  val conn = DriverManager.getConnection(url)
-                  val conn = DriverManager.getConnection(url, user, pwd)
-//                    val conn = DriverManager.getConnection(dbUrl, user, pwd)
-                    conn.getClientInfo.list(System.out)
+//                  val conn = DriverManager.getConnection(url, user, pwd)
+                    val conn = DriverManager.getConnection(dbUrl, user, pwd)
                     conn
 //                    DriverManager.getConnection(url)
                 }

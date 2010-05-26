@@ -112,6 +112,7 @@ object FrontController {
             case "manufacturer" => admin.ManufacturerController.process()
             case "filemanager" => admin.FileManagerController.process()
             case "module" => admin.ClientModuleController.process()
+            case "type" => admin.TypeController.process()
             case _ => Full(NotFoundResponse())
         }
     }

@@ -15,7 +15,7 @@ import net.liftweb.util.Helpers._
 object ClientModuleController extends BaseController {
     
     private val modules = Array("localization", "product", "fileManager")
-    private val apps = Array(Array("language"), Array("product", "option", "manufacturer"), Array("fileManager"))
+    private val apps = Array(Array("language"), Array("product", "option", "manufacturer", "productType"), Array("fileManager"))
 
     override def processAction(action : String) : Box[LiftResponse] = {
         action match {
@@ -29,10 +29,24 @@ object ClientModuleController extends BaseController {
     }
 
     private def moduleExplore() = {
-        val jsonArr = JArray(JObject(JField("id", JInt(0)) :: JField("name", JString("localization")) :: Nil) ::
-                             JObject(JField("id", JInt(1)) :: JField("name", JString("product")) :: Nil) ::
-                             JObject(JField("id", JInt(2)) :: JField("name", JString("fileManager")) :: Nil) ::
-                             Nil)
+        var i : Int = 0
+        val moduleList = this.modules.flatMap {
+            module => {
+                val entry = apps(i).flatMap {
+                    app => {
+                        JObject(JField("name", JString(app)) :: Nil) :: Nil
+                    }
+                }
+                JField("entry", JArray(entry.toList))
+                i = i + 1
+                JObject(JField("id", JInt(i - 1)) :: JField("name", JString(module)) :: JField("entry", JArray(entry.toList)) :: Nil) :: Nil
+            }
+        }
+//        val jsonArr = JArray(JObject(JField("id", JInt(0)) :: JField("name", JString("localization")) :: Nil) ::
+//                             JObject(JField("id", JInt(1)) :: JField("name", JString("product")) :: Nil) ::
+//                             JObject(JField("id", JInt(2)) :: JField("name", JString("fileManager")) :: Nil) ::
+//                             Nil)
+        val jsonArr = JArray(moduleList.toList)
         val result = JObject(JField("module", jsonArr) :: Nil)
         Full(JsonResponse(result))
     }

@@ -15,5 +15,6 @@ object MetaModels {
     lazy val metaManufacturer : MetaManufacturer = LiftManufacturer
     lazy val metaProduct : MetaProduct = LiftProduct
     lazy val metaUploadFile : MetaUploadFile = LiftUploadFile
+    lazy val metaType : MetaType = LiftType
 }
 
