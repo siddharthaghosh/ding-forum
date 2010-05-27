@@ -35,6 +35,12 @@ object TypeController extends ModelController[Type]{
             case "optiongroup" => {
                     optionGroup()
                 }
+            case "addoptiongroup" => {
+                    addOptionGroup()
+                }
+            case "removeoptiongroup" => {
+                    removeOptionGroup()
+                }
             case _ => explore()
         }
     }
@@ -182,13 +188,60 @@ object TypeController extends ModelController[Type]{
     }
 
     private def optionGroup() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\": 2}]"
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": 9}]"
         val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
         val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
         val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
         val item = metaModel.findOneInstance(tid)
         if(item != null) {
+            val result = JObject(JField("optionGroup", this.getAllOptionGroupsByModelInstanceAsJsonValue(item))
+                                 ::
+                                 Nil
+            )
+            Full(JsonResponse(result))
+        } else {
+            Full(NotFoundResponse())
+        }
+    }
+
+    private def addOptionGroup() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"typeId\": 9, \"optionGroupId\": 2}]"
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("typeId").asInstanceOf[BigInt].toLong
+        val oid = jsonItem.values("optionGroupId").asInstanceOf[BigInt].toLong
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+            item.addSupportOptionGroup(oid)
+            val result = JObject(JField("optionGroup", this.getAllOptionGroupsByModelInstanceAsJsonValue(item))
+                                 ::
+                                 Nil
+            )
+            Full(JsonResponse(result))
+        } else {
+            Full(NotFoundResponse())
+        }
+//        Full(OkResponse())
+    }
+
+    private def removeOptionGroup() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"typeId\": 9, \"optionGroupId\": 2}]"
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("typeId").asInstanceOf[BigInt].toLong
+        val oids = jsonItem.values("optionGroup").asInstanceOf[List[Map[String, _]]]
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+//            item.removeSupportOptionGroup(oids)
+            oids.foreach {
+                oid => {
+                    val id = oid("id").asInstanceOf[BigInt].toLong
+                    item.removeSupportOptionGroup(id)
+                }
+            }
             val result = JObject(JField("optionGroup", this.getAllOptionGroupsByModelInstanceAsJsonValue(item))
                                  ::
                                  Nil

@@ -7,8 +7,8 @@ package com.ding.model
 
 trait Type extends BaseModel with MultiLanguageName{
     def getAllSupportOptionGroup() : List[OptionGroup]
-    def removeSupportOptionGroup(og_id : Int)
-    def addSupportOptionGroup(og_id : Int)
+    def removeSupportOptionGroup(og_id : Long)
+    def addSupportOptionGroup(og_id : Long)
 }
 
 trait MetaType extends MetaModel[Type]
