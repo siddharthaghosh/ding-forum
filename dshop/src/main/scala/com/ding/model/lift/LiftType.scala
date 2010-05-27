@@ -17,11 +17,23 @@ class LiftType extends LiftBaseModel[LiftType] with Type with LiftMultiLanguageN
     override def getAllSupportOptionGroup() : List[OptionGroup] = {
         option_groups.all
     }
-    def removeSupportOptionGroup(og_id : Int) {
-
+    def removeSupportOptionGroup(og_id : Long) {
+        val type_og_objs = LiftTypeOptionGroup.findAll(By(LiftTypeOptionGroup.type_id, this.type_id), By(LiftTypeOptionGroup.option_group_id, og_id))
+        type_og_objs.foreach {
+            type_og_obj => {
+                type_og_obj.delete_!
+            }
+        }
     }
-    def addSupportOptionGroup(og_id : Int) {
-        
+    def addSupportOptionGroup(og_id : Long) {
+        val og = LiftOptionGroup.findOneInstance(og_id)
+        if(og != null) {
+            val exists = this.option_groups.contains(og)
+            if(!exists) {
+                this.option_groups += og
+                this.option_groups.save
+            }
+        }
     }
 }
 
