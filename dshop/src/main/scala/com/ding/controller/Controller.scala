@@ -20,7 +20,15 @@ trait Controller {
 }
 
 trait BaseController extends Controller {
-    def getDefaultLang() = 22
+    def getDefaultLang() = {
+        MetaModels.metaLanguage.findAllInstances.head.getID
+//        22
+    }
+//    def getDefaultLangCode() = "cn"
+    def getDefaultLangCode() = {
+        MetaModels.metaLanguage.findAllInstances.head.getCode
+//        "cn"
+    }
     def getRequestContent() : String = {
         /*
          *  从Request对象内读出请求信息

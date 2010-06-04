@@ -41,6 +41,12 @@ object TypeController extends ModelController[Type]{
             case "removeoptiongroup" => {
                     removeOptionGroup()
                 }
+            case "parameter" => {
+                    parameter()
+                }
+            case "saveparameter" => {
+                    saveParameter()
+                }
             case _ => explore()
         }
     }
@@ -247,6 +253,52 @@ object TypeController extends ModelController[Type]{
                                  Nil
             )
             Full(JsonResponse(result))
+        } else {
+            Full(NotFoundResponse())
+        }
+    }
+
+    private def parameter() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": 1}]"
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+            val code = this.getDefaultLangCode
+            val result = JsonParser.parse(item.getParameters)
+            val resultj = JArray(JString(code) :: result :: Nil)
+            Full(JsonResponse(resultj))
+        } else {
+            Full(NotFoundResponse())
+        }
+    }
+
+    private def saveParameter() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val pastr = "[{\"id\": 1}]"
+//        val pj = JField("parameter", JString(pastr))
+//        val idj = JField("id", JInt(1))
+//        val reqj = JArray(JObject(idj :: pj :: Nil) :: Nil)
+//        val jstr = Printer.pretty(JsonAST.render(reqj))
+//        println(jstr)
+//        val reqstr = jstr
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
+        val paramstr = jsonItem.values("parameter").asInstanceOf[String]
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+            val pvalue = if(paramstr.length > 0) {
+                paramstr
+            } else
+            {
+                "[]"
+            }
+            item.setParameters(pvalue)
+            item.saveInstance
+            parameter()
         } else {
             Full(NotFoundResponse())
         }

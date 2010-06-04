@@ -47,6 +47,12 @@ class LiftLanguage extends LiftModel[LiftLanguage] with Language {
         this.display_order(order)
     }
 
+    override def deleteInstance() : Boolean = {
+        if(LiftLanguage.findAllInstances.length <= 1)
+            false
+        else
+            this.delete_!
+    }
 }
 
 object LiftLanguage extends LiftLanguage with LiftMetaModel[LiftLanguage] with MetaLanguage {
