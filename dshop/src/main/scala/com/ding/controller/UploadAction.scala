@@ -11,6 +11,9 @@ import com.ding.model._
 import com.ding.util._
 import java.util.concurrent.ConcurrentHashMap
 import java.io.File
+import org.mozilla.intl.chardet.nsDetector
+import org.mozilla.intl.chardet.nsICharsetDetectionObserver
+import org.mozilla.intl.chardet.nsPSMDetector
 
 trait UploadAction[A <: MetaUploadFile] {
 
@@ -55,6 +58,36 @@ trait UploadAction[A <: MetaUploadFile] {
 
             val fileItem = uploadFileModel.newInstance
             fileItem.setRealName(realName)
+            var result_charset : String = "UTF-8"
+            var result_found : Boolean = false
+            val lang = nsPSMDetector.ALL
+            val det = new nsDetector(lang)
+            println("beging charset detect")
+            det.Init(new nsICharsetDetectionObserver() {
+                    def Notify(charset : String) {
+                        result_found = true
+                        println(charset)
+                        result_charset = charset
+                    }
+                })
+            println(displayName)
+            val displayBytes = displayName.getBytes
+            val isAscii = det.isAscii(displayBytes, displayBytes.length)
+            if(isAscii) {
+                result_found = true
+                result_charset = "ASCII"
+            }
+            det.DoIt(displayBytes, displayBytes.length, true)
+            det.DataEnd
+            if(!result_found) {
+                val charsets = det.getProbableCharsets
+                println("probable chasets :")
+                charsets.foreach {
+                    cs => {
+                        println(cs)
+                    }
+                }
+            }
             fileItem.setDisplayName(displayName)
             fileItem.saveInstance()
         } else {

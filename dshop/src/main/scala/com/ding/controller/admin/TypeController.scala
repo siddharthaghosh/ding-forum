@@ -47,6 +47,12 @@ object TypeController extends ModelController[Type]{
             case "saveparameter" => {
                     saveParameter()
                 }
+            case "property" => {
+                    property()
+                }
+            case "saveproperty" => {
+                    saveProperty()
+                }
             case _ => explore()
         }
     }
@@ -299,6 +305,45 @@ object TypeController extends ModelController[Type]{
             item.setParameters(pvalue)
             item.saveInstance
             parameter()
+        } else {
+            Full(NotFoundResponse())
+        }
+    }
+
+    private def property() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": 1}]"
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+            val code = this.getDefaultLangCode
+            val result = JsonParser.parse(item.getProperties)
+            val resultj = JArray(JString(code) :: result :: Nil)
+            Full(JsonResponse(resultj))
+        } else {
+            Full(NotFoundResponse())
+        }
+    }
+
+    private def saveProperty() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
+        val propstr = jsonItem.values("property").asInstanceOf[String]
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+            val pvalue = if(propstr.length > 0) {
+                propstr
+            } else
+            {
+                "[]"
+            }
+            item.setProperties(pvalue)
+            item.saveInstance
+            property()
         } else {
             Full(NotFoundResponse())
         }
