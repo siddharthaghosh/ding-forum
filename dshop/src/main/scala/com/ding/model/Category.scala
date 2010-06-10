@@ -28,6 +28,7 @@ extends ImageBaseModel
 //    def getName(lang_id : Long) : String
 //    def getDescription(lang_id : Long) : String
     def getActive() : Boolean
+    def getType() : Long
 //    def getImage() : String
 //    def getDisplayOrder() : Int
 
@@ -39,6 +40,7 @@ extends ImageBaseModel
     def setActive(active : Boolean)
 //    def setImage(image : String)
 //    def setDisplayOrder(order : Int)
+    def setType(t : Long)
 }
 
 trait MetaCategory extends MetaModel[Category] {

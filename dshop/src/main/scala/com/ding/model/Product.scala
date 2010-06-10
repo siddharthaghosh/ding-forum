@@ -16,6 +16,12 @@ extends ImageBaseModel
     def addToCategory(categoryId : Long)
     def getDisplayOrder(categoryId : Long) : Int
     def setDisplayOrder(categoryId : Long, order : Int)
+    def setParameter(param : String)
+    def getParameter() : String
+    def getExtensionProperties() : Array[Int]
+    def setExtensionProperties(resultArr : Array[Int])
+    def setExtensionProperty(index : Int, value : Int)
+    val ExtensionPropertyNum : Int
 
 }
 
