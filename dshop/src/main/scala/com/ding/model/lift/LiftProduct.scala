@@ -16,6 +16,8 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                      with LiftActive[LiftProduct]
                      with ManyToMany {
 
+    val ExtensionPropertyNum = 5
+
     override def getSingleton = LiftProduct
     override def primaryKeyField = product_id
     override def multiLangNameDescriptionObject() = LiftProductNameDescription
@@ -25,6 +27,14 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                                              LiftProductCategory.product_id,
                                              LiftProductCategory.category_id,
                                              LiftCategory)
+
+    object ep1 extends MappedInt(this)
+    object ep2 extends MappedInt(this)
+    object ep3 extends MappedInt(this)
+    object ep4 extends MappedInt(this)
+    object ep5 extends MappedInt(this)
+
+    object parameter extends MappedText(this)
 
     override def getDisplayOrder(categoryId : Long) : Int = {
         val join = category.joins.find(
@@ -52,7 +62,38 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         category.all
     }
 
+    def getExtensionProperties() : Array[Int] = {
 
+        val resultarr = new Array[Int](this.ExtensionPropertyNum)
+
+        for( i <- (1 to this.ExtensionPropertyNum)) {
+            val oep = this.getClass.getMethod("ep" + i.toString).invoke(this).asInstanceOf[MappedInt[LiftProduct]]
+            resultarr(i-1) = oep.is
+        }
+        resultarr
+    }
+
+    def setExtensionProperties(resultArr : Array[Int]) {
+        val leng = if(resultArr.length > this.ExtensionPropertyNum) this.ExtensionPropertyNum else resultArr.length
+        for(i <- (1 to leng)) {
+            val oep = this.getClass.getMethod("ep" + i.toString).invoke(this).asInstanceOf[MappedInt[LiftProduct]]
+            oep(resultArr(i - 1))
+        }
+    }
+
+    def setExtensionProperty(index : Int, value : Int) {
+        if(index <= this.ExtensionPropertyNum) {
+            val oep = this.getClass.getMethod("ep" + index.toString).invoke(this).asInstanceOf[MappedInt[LiftProduct]]
+            oep(value)
+        }
+    }
+
+    def setParameter(param : String) {
+        this.parameter(param)
+    }
+    def getParameter() : String = {
+        this.parameter.is
+    }
 }
 
 object LiftProduct extends LiftProduct with LiftMetaModel[LiftProduct] with MetaProduct {

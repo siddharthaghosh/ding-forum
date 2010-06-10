@@ -15,7 +15,7 @@ import net.liftweb.util.Helpers._
 object ClientModuleController extends BaseController {
     
     private val modules = Array("localization", "product", "fileManager")
-    private val apps = Array(Array("language"), Array("product", "option", "manufacturer", "productType"), Array("fileManager"))
+    private val apps = Array(Array("language"), Array("product", "option", "manufacturer", "productType", "measurement"), Array("fileManager"))
 
     override def processAction(action : String) : Box[LiftResponse] = {
         action match {

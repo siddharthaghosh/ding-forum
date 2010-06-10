@@ -399,7 +399,7 @@ object CategoryController extends ModelController[Category]{
 
     private def queryProductName() = {
         val reqstr = this.getRequestContent()
-//        val reqstr = "[{\"id\":1}]"
+//        val reqstr = "[{\"id\":-1}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
@@ -506,6 +506,7 @@ object CategoryController extends ModelController[Category]{
                 this.saveCategoryName(item, jobj)
                 this.saveCategoryImage(item, jobj)
                 this.saveCategoryDisplayOrder(item, jobj)
+                this.saveCategoryType(item, jobj)
                 item.saveInstance
             }
             val pid = if(item.getParentID >= 0) item.getParentID else 0
@@ -534,6 +535,9 @@ object CategoryController extends ModelController[Category]{
                 this.saveProductActive(item, jobj)
                 this.saveProductName(item, jobj)
                 this.saveProductImage(item, jobj)
+                this.saveProdcutExtensionProperty(item, jobj)
+                this.saveProductParameter(item, jobj)
+                this.saveProductParameter(item, jobj)
 //                this.saveCategoryDisplayOrder(item, jobj)
                 item.saveInstance
             }
@@ -576,6 +580,15 @@ object CategoryController extends ModelController[Category]{
             val item = metaModel.findOneInstance(id)
             if(item != null) {
                 val pid = item.getParentID
+                val ps = metaModel.getProducts(item.getID)
+                ps.foreach {
+                    pr => {
+                        for(i <- (1 to pr.ExtensionPropertyNum)) {
+                            pr.setExtensionProperty(i, -1)
+                        }
+                        pr.saveInstance
+                    }
+                }
                 item.deleteInstance()
                 this.getAllSubCategories(pid, this.getDefaultLang)
             } else {
@@ -612,11 +625,37 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
+    private def saveCategoryType(item : Category, jobj : JObject) {
+        if(jobj.values.keySet.contains("typeId")) {
+            val t = jobj.values("typeId").asInstanceOf[BigInt]
+            item.setType(t.toLong)
+        }
+    }
+
     private def saveProductActive(item : Product, jobj : JObject) {
         if(jobj.values.keySet.contains("active")) {
             val active = jobj.values("active").asInstanceOf[Boolean]
             if(item.getActive != active) {
                 item.setActive(active)
+            }
+        }
+    }
+
+    private def saveProductParameter(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("parameter")) {
+            val param = jobj.values("parameter").asInstanceOf[String]
+            item.setParameter(param)
+        }
+    }
+
+    private def saveProdcutExtensionProperty(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("extensionProperty")) {
+            val eps = jobj.values("actextensionPropertyve").asInstanceOf[Map[String, BigInt]]
+            for(i <- (1 to item.ExtensionPropertyNum)) {
+                val epname = "ep" + i.toString
+                if(eps.keySet.contains(epname)) {
+                    item.setExtensionProperty(i, eps(epname).toInt)
+                }
             }
         }
     }
@@ -773,6 +812,8 @@ object CategoryController extends ModelController[Category]{
                     val updateTime = item.getUpdateTime().toString
                     val parentId = item.getParentID
                     val image = urlEncode(item.getFirstImageFileLocation)
+                    val ptype = item.getType
+                    val leaf = metaModel.getChildren(item.getID).isEmpty && metaModel.getProducts(item.getID).isEmpty
 //                    val cat_desc = item.getDescription(languageId)
                     List(
                         JsonAST.JField("id", JsonAST.JInt(id))
@@ -788,6 +829,10 @@ object CategoryController extends ModelController[Category]{
                         JsonAST.JField("updateTime", JsonAST.JString(updateTime))
                         ++
                         JsonAST.JField("active", JsonAST.JBool(active))
+                        ++
+                        JsonAST.JField("typeId", JsonAST.JInt(ptype))
+                        ++
+                        JsonAST.JField("changeType", JsonAST.JBool(leaf))
                     )
                 }
         }
@@ -805,6 +850,7 @@ object CategoryController extends ModelController[Category]{
         val products : List[Product] = metaModel.getProducts(categoryId)
         val resultList = products.flatMap {
             product => {
+                product.getExtensionProperties()
                 val product_id = product.getID()
                 val product_name = product.getName(languageId)
                 val image = product.getImage

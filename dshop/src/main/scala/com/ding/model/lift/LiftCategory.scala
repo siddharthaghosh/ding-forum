@@ -31,6 +31,7 @@ extends LiftBaseModel[LiftCategory]
     object active extends MappedBoolean(this)
     object add_time extends MappedDateTime(this)
     object update_time extends MappedDateTime(this)
+    object product_type extends MappedLong(this)
     object product extends MappedManyToMany(LiftProductCategory,
                                             LiftProductCategory.category_id,
                                             LiftProductCategory.product_id,
@@ -122,6 +123,7 @@ extends LiftBaseModel[LiftCategory]
     override def setParentID(id : Long) {
         this.parent_id(id)
     }
+    override def getType() : Long = this.product_type.is
     override def setUpdateTime(date : Date) {
         this.update_time(date)
     }
@@ -131,6 +133,7 @@ extends LiftBaseModel[LiftCategory]
     override def setActive(active : Boolean) {
         this.active(active)
     }
+    override def setType(t : Long) = this.product_type(t)
     override def saveInstance() : Boolean = {
         this.setUpdateTime(new Date())
         this.save

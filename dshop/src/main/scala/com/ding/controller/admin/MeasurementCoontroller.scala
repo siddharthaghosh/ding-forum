@@ -120,8 +120,8 @@ object MeasurementCoontroller extends ModelController[Measurement]{
     }
 
     private def measurementName() : Box[LiftResponse] = {
-//        val reqstr = this.getRequestContent()
-        val reqstr = "[{\"id\": 2}]"
+        val reqstr = this.getRequestContent()
+//        val reqstr = "[{\"id\": 2}]"
         val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
         val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
         val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
