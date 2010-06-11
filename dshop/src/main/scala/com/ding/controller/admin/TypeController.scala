@@ -23,6 +23,9 @@ object TypeController extends ModelController[Type]{
             case "explore" => {
                     explore()
                 }
+            case "exploreSpec" => {
+                    exploreSpec()
+                }
             case "removetype" => {
                     removeType()
                 }
@@ -97,6 +100,29 @@ object TypeController extends ModelController[Type]{
             Full(JsonResponse(JsonAST.JObject(
                         JField("total", JInt(total))::JField("type", JArray(resultList))::Nil
                     )))
+        }
+    }
+
+    private def exploreSpec() : Box[LiftResponse] = {
+        val reqstr = this.getRequestContent()
+        val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+        val jsonItem = jsonList.head.asInstanceOf[JsonAST.JObject]
+        val tid = jsonItem.values("id").asInstanceOf[BigInt].toLong
+        val item = metaModel.findOneInstance(tid)
+        if(item != null) {
+            val id = item.getID
+            val name = item.getName(this.getDefaultLang)
+            val resultArr = JArray(JObject(
+                    JsonAST.JField("id", JsonAST.JInt(id))
+                    ::
+                    JsonAST.JField("name", JsonAST.JString(name))
+                    :: Nil
+                ) :: Nil)
+            Full(JsonResponse(JsonAST.JObject(
+                        JField("total", JInt(1))::JField("type", resultArr)::Nil
+                    )))
+        } else {
+            Full(NotFoundResponse())
         }
     }
 

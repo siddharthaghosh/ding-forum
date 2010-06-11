@@ -21,6 +21,8 @@ extends ImageBaseModel
 
     def addProduct(pid : Long)
 
+    def removeProduct(pid : Long)
+
     def getID() : Long
     def getParentID() : Long
     def getUpdateTime() : Date
