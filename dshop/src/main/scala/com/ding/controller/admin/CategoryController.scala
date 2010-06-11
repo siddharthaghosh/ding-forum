@@ -33,9 +33,9 @@ object CategoryController extends ModelController[Category]{
             case "save" => {
                     categorySave()
                 }
-            case "remove" => {
-                    remove()
-                }
+//            case "remove" => {
+//                    remove()
+//                }
             case "explore" => {
                     explore()
                 }
@@ -60,6 +60,15 @@ object CategoryController extends ModelController[Category]{
             case "productimage" => {
                     queryProductImage()
                 }
+            case "producttype" => {
+                    queryProductType()
+                }
+            case "productparameter" => {
+                    queryProductParameter()
+                }
+            case "productextensionproperty" => {
+                    queryProductExtensionProperty()
+                }
 //            case "subcategory" => {
 //                    categoryExplore()
 //                }
@@ -75,9 +84,12 @@ object CategoryController extends ModelController[Category]{
             case "removecategory" => {
                     categoryRemove()
                 }
-            case "temp" => {
-                    tempProc()
+            case "removeproduct" => {
+                    productRemove()
                 }
+//            case "temp" => {
+//                    tempProc()
+//                }
             case _ => categoryExplore()
         }
     }
@@ -477,18 +489,60 @@ object CategoryController extends ModelController[Category]{
 //        Full(NotFoundResponse())
     }
 
-    private def tempProc() = {
+    private def queryProductType() = {
         try {
-            val jobj = this.getJsonObjectFromRequest()
-            val id = jobj.values("id").asInstanceOf[BigInt].toLong
-            val item = metaModel.findOneInstance(id)
-            if(item != null) {
-                item.addProduct(2)
-                item.saveInstance
+            val id = this.getIdFromResquest
+            val p = MetaModels.metaProduct.findOneInstance(id)
+            if(p != null) {
+                val tid = p.categories.head.getType
+                Full(JsonResponse(JObject(JField("typeId", JInt(tid))::Nil)))
+            } else {
+                Full(NotFoundResponse())
             }
-            Full(OkResponse())
         }
     }
+
+    private def queryProductParameter() = {
+        try {
+            val id = this.getIdFromResquest
+            val p = MetaModels.metaProduct.findOneInstance(id)
+            if(p != null) {
+                Full(JsonResponse(JObject(JField("typeId", JString(p.getParameter))::Nil)))
+            } else {
+                Full(NotFoundResponse())
+            }
+        }
+    }
+
+    private def queryProductExtensionProperty() = {
+        try {
+            val id = this.getIdFromResquest
+            val p = MetaModels.metaProduct.findOneInstance(id)
+            if(p != null) {
+                val eps = p.getExtensionProperties.flatMap {
+                    ep => {
+                        JInt(ep) :: Nil
+                    }
+                }
+                Full(JsonResponse(JObject(JField("extensionProperty", JArray(eps.toList))::Nil)))
+            } else {
+                Full(NotFoundResponse())
+            }
+        }
+    }
+
+//    private def tempProc() = {
+//        try {
+//            val jobj = this.getJsonObjectFromRequest()
+//            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+//            val item = metaModel.findOneInstance(id)
+//            if(item != null) {
+//                item.addProduct(2)
+//                item.saveInstance
+//            }
+//            Full(OkResponse())
+//        }
+//    }
 
     private def categorySave() = {
         try {
@@ -535,8 +589,7 @@ object CategoryController extends ModelController[Category]{
                 this.saveProductActive(item, jobj)
                 this.saveProductName(item, jobj)
                 this.saveProductImage(item, jobj)
-                this.saveProdcutExtensionProperty(item, jobj)
-                this.saveProductParameter(item, jobj)
+                this.saveProductExtensionProperty(item, jobj)
                 this.saveProductParameter(item, jobj)
 //                this.saveCategoryDisplayOrder(item, jobj)
                 item.saveInstance
@@ -598,6 +651,25 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
+    private def productRemove() = {
+        val jobj = this.getJsonObjectFromRequest()
+        val cid = jobj.values("id").asInstanceOf[BigInt].toLong
+        val citem = metaModel.findOneInstance(cid)
+        if(citem != null) {
+            val reqstr = this.getRequestContent
+            val ps = JsonParser.parse(reqstr).asInstanceOf[JArray].arr(1).asInstanceOf[JArray].arr
+            ps.foreach {
+                p => {
+                    val pid = p.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong
+                    citem.removeProduct(pid)
+                }
+            }
+            this.getAllSubProducts(cid, this.getDefaultLang)
+        } else {
+            Full(NotFoundResponse())
+        }
+    }
+
     private def saveCategoryParent(item : Category, jobj : JObject) {
         if(jobj.values.keySet.contains("parentId")) {
             val parentId = jobj.values("parentId").asInstanceOf[BigInt].toLong
@@ -648,9 +720,9 @@ object CategoryController extends ModelController[Category]{
         }
     }
 
-    private def saveProdcutExtensionProperty(item : Product, jobj : JObject) {
+    private def saveProductExtensionProperty(item : Product, jobj : JObject) {
         if(jobj.values.keySet.contains("extensionProperty")) {
-            val eps = jobj.values("actextensionPropertyve").asInstanceOf[Map[String, BigInt]]
+            val eps = jobj.values("actextensionProperty").asInstanceOf[Map[String, BigInt]]
             for(i <- (1 to item.ExtensionPropertyNum)) {
                 val epname = "ep" + i.toString
                 if(eps.keySet.contains(epname)) {
@@ -728,30 +800,30 @@ object CategoryController extends ModelController[Category]{
 //        println(displayArr)
     }
 
-    private def remove() = {
-        val reqstr = this.getRequestContent()
-        ShopLogger.logger.debug(reqstr)
-        try {
-            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
-            val item = metaModel.findOneInstance(jsonList.head.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong)
-            val parent_id =
-                if (item != null)
-                    item.getParentID
-            else
-                -1
-            jsonList.foreach(
-                item => {
-                    val cat_id = item.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong
-                    val cat_item = metaModel.findOneInstance(cat_id)
-                    if(cat_item != null) {
-                        cat_item.deleteInstance()
-                    }
-                }
-            )
-            this.getAllSubCategories(parent_id, this.getDefaultLang())
-        }
-        
-    }
+//    private def remove() = {
+//        val reqstr = this.getRequestContent()
+//        ShopLogger.logger.debug(reqstr)
+//        try {
+//            val jsonList : List[JsonAST.JValue] = JsonParser.parse(reqstr).asInstanceOf[JsonAST.JArray].arr
+//            val item = metaModel.findOneInstance(jsonList.head.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong)
+//            val parent_id =
+//                if (item != null)
+//                    item.getParentID
+//            else
+//                -1
+//            jsonList.foreach(
+//                item => {
+//                    val cat_id = item.asInstanceOf[JObject].values("id").asInstanceOf[BigInt].toLong
+//                    val cat_item = metaModel.findOneInstance(cat_id)
+//                    if(cat_item != null) {
+//                        cat_item.deleteInstance()
+//                    }
+//                }
+//            )
+//            this.getAllSubCategories(parent_id, this.getDefaultLang())
+//        }
+//
+//    }
 
     private def navigator() = {
         val reqstr = "[]"

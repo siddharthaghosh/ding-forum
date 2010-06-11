@@ -28,11 +28,26 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                                              LiftProductCategory.category_id,
                                              LiftCategory)
 
-    object ep1 extends MappedInt(this)
-    object ep2 extends MappedInt(this)
-    object ep3 extends MappedInt(this)
-    object ep4 extends MappedInt(this)
-    object ep5 extends MappedInt(this)
+    object ep1 extends MappedInt(this){
+        override def defaultValue = -1
+        override def dbNotNull_? = true
+    }
+    object ep2 extends MappedInt(this){
+        override def defaultValue = -1
+        override def dbNotNull_? = true
+    }
+    object ep3 extends MappedInt(this){
+        override def defaultValue = -1
+        override def dbNotNull_? = true
+    }
+    object ep4 extends MappedInt(this){
+        override def defaultValue = -1
+        override def dbNotNull_? = true
+    }
+    object ep5 extends MappedInt(this){
+        override def defaultValue = -1
+        override def dbNotNull_? = true
+    }
 
     object parameter extends MappedText(this)
 

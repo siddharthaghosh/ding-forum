@@ -31,7 +31,10 @@ extends LiftBaseModel[LiftCategory]
     object active extends MappedBoolean(this)
     object add_time extends MappedDateTime(this)
     object update_time extends MappedDateTime(this)
-    object product_type extends MappedLong(this)
+    object product_type extends MappedLong(this) {
+        override def defaultValue = -1
+        override def dbNotNull_? = true
+    }
     object product extends MappedManyToMany(LiftProductCategory,
                                             LiftProductCategory.category_id,
                                             LiftProductCategory.product_id,
@@ -54,6 +57,10 @@ extends LiftBaseModel[LiftCategory]
                     a.display_order.is > b.display_order.is
                 }
             )
+        }
+
+        def clearRemoveJoins {
+            this.removedJoins = Nil
         }
 
         def allSortByDisplayOrder = {
@@ -112,9 +119,28 @@ extends LiftBaseModel[LiftCategory]
         this.product.save
     }
 
+    override def removeProduct(pid : Long) {
+        val po = LiftProduct.find(By(LiftProduct.product_id, pid))
+        if(!po.isEmpty) {
+            val p = po.open_!
+            val n = this.product.indexOf(p)
+            this.product.remove(n)
+            this.product.save
+            for(i <- (1 to p.ExtensionPropertyNum)) {
+                p.setExtensionProperty(i, -1)
+            }
+            p.saveInstance
+            val rootcat = LiftCategory.findOneInstance(0)
+            rootcat.addProduct(p.getID)
+            rootcat.save
+        }
+//        this.product.indexOf()
+    }
+
     override def children() : List[LiftCategory] = {
         LiftCategory.findAll(By(LiftCategory.parent_id, this.cat_id), OrderBy(LiftCategory.display_order, Ascending))
     }
+
     override def getID() : Long = this.cat_id.is
     override def getParentID() : Long = this.parent_id.is
     override def getUpdateTime() : Date = this.update_time.is
