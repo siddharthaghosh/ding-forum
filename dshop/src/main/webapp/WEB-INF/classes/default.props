@@ -1,11 +1,11 @@
 db.driver=com.mysql.jdbc.Driver
-db.url=jdbc:mysql://192.168.1.103:3306/dshop
+db.url=jdbc:mysql://192.168.1.103:3306/dshop?characterEncoding=utf-8
 db.user=root
 db.password=aaaaaa
 upload.tmpdir=d:/temp/uploadfiles/
 upload.sessionkey=uploadFileNames
 image.dir=d:/ws-netbeans/dshop/image/
-image.origin.dir=d:/ws-netbeans/dshop/image/origin
+image.origin.dir=d:/ws-netbeans/dshop/image/origin/
 image.notfound=nopic.gif
 image.thumbnail.width=120
 image.thumbnail.height=90
