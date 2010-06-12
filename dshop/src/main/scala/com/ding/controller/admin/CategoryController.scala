@@ -548,8 +548,24 @@ object CategoryController extends ModelController[Category]{
         try {
             val jobj = this.getJsonObjectFromRequest()
             val id = jobj.values("id").asInstanceOf[BigInt].toLong
-            val item = if(id == -1)
-                metaModel.newInstance()
+            val item = if(id == -1){
+                if(jobj.values.keySet.contains("parentId")) {
+                    val pid = jobj.values("parentId").asInstanceOf[BigInt].toLong
+                    val pitem = metaModel.findOneInstance(pid)
+                    if(pitem != null) {
+                        if((pitem.getType == -1) && (pitem.products.isEmpty) || (pitem.getID == 0)) {
+                            metaModel.newInstance()
+                        }else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+                else {
+                    null
+                }
+            }
             else
                 metaModel.findOneInstance(id)
             if(item != null) {
@@ -563,8 +579,9 @@ object CategoryController extends ModelController[Category]{
                 this.saveCategoryType(item, jobj)
                 item.saveInstance
             }
-            val pid = if(item.getParentID >= 0) item.getParentID else 0
-
+//            val pid = if(item.getParentID >= 0) item.getParentID else 0
+            val pids = urlDecode(S.param("id").openOr("0")).toDouble.toInt
+            val pid = if(pids >= 0) pids else 0
             this.getAllSubCategories(pid, this.getDefaultLang)
         }
     }
@@ -575,9 +592,18 @@ object CategoryController extends ModelController[Category]{
             val id = jobj.values("id").asInstanceOf[BigInt].toLong
             val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
             val item = if(id == -1){
-                val i = MetaModels.metaProduct.newInstance()
-                i.saveInstance
-                i
+                val citem = metaModel.findOneInstance(cid)
+                if(citem != null) {
+                    if((citem.children.isEmpty) || (citem.getID == 0)) {
+                        val i = MetaModels.metaProduct.newInstance()
+                        i.saveInstance
+                        i
+                    }else {
+                        null
+                    }
+                }else {
+                    null
+                }               
             }
             else
                 MetaModels.metaProduct.findOneInstance(id)
@@ -885,7 +911,9 @@ object CategoryController extends ModelController[Category]{
                     val parentId = item.getParentID
                     val image = urlEncode(item.getFirstImageFileLocation)
                     val ptype = item.getType
-                    val leaf = metaModel.getChildren(item.getID).isEmpty && metaModel.getProducts(item.getID).isEmpty
+                    val hasSubCat = !metaModel.getChildren(id).isEmpty
+                    val hasProduct = !metaModel.getProducts(id).isEmpty
+                    val leaf = (!hasSubCat) && (!hasProduct)
 //                    val cat_desc = item.getDescription(languageId)
                     List(
                         JsonAST.JField("id", JsonAST.JInt(id))
@@ -905,6 +933,10 @@ object CategoryController extends ModelController[Category]{
                         JsonAST.JField("typeId", JsonAST.JInt(ptype))
                         ++
                         JsonAST.JField("changeType", JsonAST.JBool(leaf))
+                        ++
+                        JsonAST.JField("hasSubCategory", JsonAST.JBool(hasSubCat))
+                        ++
+                        JsonAST.JField("hasProduct", JsonAST.JBool(hasProduct))
                     )
                 }
         }
