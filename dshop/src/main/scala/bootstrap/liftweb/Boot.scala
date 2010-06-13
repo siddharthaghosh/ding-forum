@@ -62,7 +62,7 @@ class Boot {
     private val schemify_arr : Array[BaseMetaMapper] = Array(User, LiftDocument, LiftLanguage,
                                                              LiftCategory, LiftCategoryNameDescription, LiftOptionGroup,
                                                              LiftOptionGroupName, LiftOptionValue, LiftOptionValueName,
-                                                             LiftManufacturer, LiftProduct, LiftProductNameDescription,
+                                                             LiftManufacturer, LiftProduct, LiftProductNameDescription,LiftGoods,
                                                              LiftProductCategory, LiftUploadFile, LiftType, LiftTypeName, LiftTypeOptionGroup,
                                                              LiftMeasurement, LiftMeasurementName)
     /**

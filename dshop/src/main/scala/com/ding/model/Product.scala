@@ -21,6 +21,9 @@ extends ImageBaseModel
     def getExtensionProperties() : Array[Int]
     def setExtensionProperties(resultArr : Array[Int])
     def setExtensionProperty(index : Int, value : Int)
+    def addGoods(gid : Long)
+    def removeGoods(gid : Long)
+    def removeAllGoods()
     val ExtensionPropertyNum : Int
 
 }
