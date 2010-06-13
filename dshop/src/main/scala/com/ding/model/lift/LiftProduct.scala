@@ -27,7 +27,7 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
                                              LiftProductCategory.product_id,
                                              LiftProductCategory.category_id,
                                              LiftCategory)
-
+    object goods extends MappedOneToMany(LiftGoods, LiftGoods.product_id)
     object ep1 extends MappedInt(this){
         override def defaultValue = -1
         override def dbNotNull_? = true
@@ -75,6 +75,25 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
 
     override def categories() : List[Category] = {
         category.all
+    }
+
+    override def addGoods(gid : Long){
+        val goods = LiftGoods.findOneInstance(gid)
+        if(goods != null) {
+            this.goods += goods
+            this.goods.save
+        }
+    }
+    override def removeGoods(gid : Long){}
+    override def removeAllGoods(){
+        if(this.goods.all.length > 0){
+            this.goods.all.foreach {
+                g => {
+                    g.delete_!
+                }
+            }
+            this.goods.save
+        }
     }
 
     def getExtensionProperties() : Array[Int] = {

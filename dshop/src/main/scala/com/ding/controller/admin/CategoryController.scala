@@ -617,6 +617,7 @@ object CategoryController extends ModelController[Category]{
                 this.saveProductImage(item, jobj)
                 this.saveProductExtensionProperty(item, jobj)
                 this.saveProductParameter(item, jobj)
+                this.saveProductGoods(item, jobj)
 //                this.saveCategoryDisplayOrder(item, jobj)
                 item.saveInstance
             }
@@ -755,6 +756,24 @@ object CategoryController extends ModelController[Category]{
                     item.setExtensionProperty(i, eps(epname).toInt)
                 }
             }
+        }
+    }
+
+    private def saveProductGoods(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("goods")) {
+            val goods = jobj.values("goods").asInstanceOf[Map[String, _]]
+            val optionUsing = goods("isOptionUsing").asInstanceOf[Boolean]
+            if(optionUsing) {
+
+            } else {
+                item.removeAllGoods()
+                val g = MetaModels.metaGoods.newInstance
+                g.saveInstance
+                item.addGoods(g.getID)
+            }
+//            if(item.getActive != active) {
+//                item.setActive(active)
+//            }
         }
     }
 
@@ -981,8 +1000,8 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def getJsonObjectFromRequest() : JObject = {
-        val reqstr = this.getRequestContent
-//        val reqstr = "[{\"categoryId\":56, \"displayOrder\":[{\"id\":2, \"displayOrder\":10},{\"id\":3, \"displayOrder\":15}]}]"
+//        val reqstr = this.getRequestContent
+        val reqstr = "[{\"id\":2, \"categoryId\":56, \"goods\": {\"isOptionUsing\": false},\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
