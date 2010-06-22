@@ -1,0 +1,1 @@
+mvndebug clean jetty:run -o -Dmaven.test.skip=true

@@ -8,6 +8,8 @@
                 <goal>-o</goal>
                 
                 
+                
+                
             </goals>
             <properties>
                 <maven.test.skip>true</maven.test.skip>
@@ -41,6 +43,17 @@
             <actionName>build</actionName>
             <goals>
                 <goal>install</goal>
+                <goal>-o</goal>
+            </goals>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-WAR</actionName>
+            <displayName>WAR</displayName>
+            <goals>
+                <goal>war:war</goal>
                 <goal>-o</goal>
             </goals>
             <properties>
