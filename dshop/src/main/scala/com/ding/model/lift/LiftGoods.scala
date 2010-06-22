@@ -35,6 +35,43 @@ class LiftGoods extends LiftBaseModel[LiftGoods] with Goods{
     }
 
     override def getProductID() : Long = this.product_id.is
+
+    def getStore() : Int = {
+        this.store.is
+    }
+    def setStore(store : Int) {
+        this.store(store)
+    }
+
+    def getBn() : String = this.bn.is
+    def setBn(bn : String) {
+        this.bn(bn)
+    }
+
+    def getStorePlace() : String = this.store_place.is
+    def setStorePlace(sp : String) {
+        this.store_place(sp)
+    }
+
+    def getWeight() : Double = this.weight.is
+    def setWeight(w : Double) {
+        this.weight(w)
+    }
+
+    def getCost() : Double = this.cost.is
+    def setCost(cost : Double) {
+        this.cost(cost)
+    }
+
+    def getMarketPrice() : Double = this.market_price.is
+    def setMarketPrice(mp : Double) {
+        this.market_price(mp)
+    }
+
+    def getPrice() : Double = this.price.is
+    def setPrice(price : Double) {
+        this.price(price)
+    }
 }
 
 object LiftGoods extends LiftGoods with LiftMetaModel[LiftGoods] with MetaGoods {

@@ -303,7 +303,10 @@ object TypeController extends ModelController[Type]{
             val resultj = JArray(JString(code) :: result :: Nil)
             Full(JsonResponse(resultj))
         } else {
-            Full(NotFoundResponse())
+            val code = this.getDefaultLangCode
+            val result = JsonParser.parse("[]")
+            val resultj = JArray(JString(code) :: result :: Nil)
+            Full(JsonResponse(resultj))
         }
     }
 
@@ -349,7 +352,10 @@ object TypeController extends ModelController[Type]{
             val resultj = JArray(JString(code) :: result :: Nil)
             Full(JsonResponse(resultj))
         } else {
-            Full(NotFoundResponse())
+            val code = this.getDefaultLangCode
+            val result = JsonParser.parse("[]")
+            val resultj = JArray(JString(code) :: result :: Nil)
+            Full(JsonResponse(resultj))
         }
     }
 

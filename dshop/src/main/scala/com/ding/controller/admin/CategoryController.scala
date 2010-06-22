@@ -69,6 +69,9 @@ object CategoryController extends ModelController[Category]{
             case "productextensionproperty" => {
                     queryProductExtensionProperty()
                 }
+            case "productoption" => {
+                    queryProductOption()
+                }
 //            case "subcategory" => {
 //                    categoryExplore()
 //                }
@@ -80,6 +83,27 @@ object CategoryController extends ModelController[Category]{
                 }
             case "saveproductdisplayorder" => {
                     productSaveDisplayOrder()
+                }
+            case "saveproductparameter" => {
+                    productSaveParameter()
+                }
+            case "saveproductextensionproperty" => {
+                    productSaveExtensionProperty()
+                }
+            case "saveproductoption" => {
+                    productSaveOption()
+                }
+            case "openproductoption" => {
+                    productOpenOption()
+                }
+            case "closeproductoption" => {
+                    productCloseOption()
+                }
+            case "addproductoptiongroup" => {
+                    productAddOptionGroup()
+                }
+            case "removeproductoptiongroup" => {
+                    productRemoveOptionGroup()
                 }
             case "removecategory" => {
                     categoryRemove()
@@ -507,7 +531,12 @@ object CategoryController extends ModelController[Category]{
             val id = this.getIdFromResquest
             val p = MetaModels.metaProduct.findOneInstance(id)
             if(p != null) {
-                Full(JsonResponse(JObject(JField("typeId", JString(p.getParameter))::Nil)))
+                val code = this.getDefaultLangCode
+                val pstr = if(p.getParameter != null && p.getParameter.length > 0) p.getParameter else "[]"
+                val result = JsonParser.parse(pstr)
+                val resultj = JArray(JString(code) :: result :: Nil)
+                Full(JsonResponse(resultj))
+//                Full(JsonResponse(JObject(JField("typeId", JString(p.getParameter))::Nil)))
             } else {
                 Full(NotFoundResponse())
             }
@@ -525,6 +554,55 @@ object CategoryController extends ModelController[Category]{
                     }
                 }
                 Full(JsonResponse(JObject(JField("extensionProperty", JArray(eps.toList))::Nil)))
+            } else {
+                Full(NotFoundResponse())
+            }
+        }
+    }
+
+    private def queryProductOption() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+//            val id = this.getIdFromResquest
+            val p = MetaModels.metaProduct.findOneInstance(id)
+            if(p != null) {
+                val usingOption = p.getUsingOption
+                val tmpOptions = JsonParser.parse(p.getOptions).asInstanceOf[JArray].arr
+                val options = JArray(tmpOptions.flatMap {
+                        option => {
+                            val gid = option.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
+                            val gitem = MetaModels.metaOptionGroup.findOneInstance(gid)
+                            val gname = if(gitem == null) "NoSuchGroup" else gitem.getName(this.getDefaultLang)
+                            val values = option.children.find(
+                                f => {
+                                    val itemf = f.asInstanceOf[JField]
+                                    itemf.name == "value"
+                                }
+                            )
+                            JObject(JField("group", JObject(JField("id", JInt(gid)) :: JField("name", JString(gname)) :: Nil)) ::
+                                    values.get.asInstanceOf[JField] ::
+                                    Nil) :: Nil
+                        }
+                    })
+//                val options = JsonParser.parse(p.getOptions).asInstanceOf[JArray]
+
+                val allGoods = p.Goods
+                val goodsArr = JArray(allGoods.flatMap {
+                        goods => {
+                            val id = JField("id", JInt(goods.getID))
+                            val store = JField("", JInt(goods.getStore))
+                            val bn = JField("", JString(goods.getBn))
+                            val storep = JField("", JString(goods.getStorePlace))
+                            val weight = JField("", JDouble(goods.getWeight))
+                            val cost = JField("", JDouble(goods.getCost))
+                            val marketp = JField("", JDouble(goods.getMarketPrice))
+                            val price = JField("", JDouble(goods.getPrice))
+                            JObject(id :: store :: bn :: storep :: weight :: cost :: marketp :: price :: Nil) :: Nil
+                        }
+                    })
+                val resultobj = JObject(JField("isOptionUsing", JBool(usingOption)) :: JField("option", options) :: JField("goods", goodsArr) :: Nil)
+                Full(JsonResponse(resultobj))
             } else {
                 Full(NotFoundResponse())
             }
@@ -582,8 +660,37 @@ object CategoryController extends ModelController[Category]{
 //            val pid = if(item.getParentID >= 0) item.getParentID else 0
             val pids = urlDecode(S.param("id").openOr("0")).toDouble.toInt
             val pid = if(pids >= 0) pids else 0
-            this.getAllSubCategories(pid, this.getDefaultLang)
+            this.getAllSubCategories(-1, this.getDefaultLang)
         }
+    }
+
+    private def getProductItemById(id : Long) = {
+        val item = if (id == -1) {
+            null
+        } else {
+            MetaModels.metaProduct.findOneInstance(id)
+        }
+        item
+    }
+
+    private def getProductItemByIdNotExistCreate(id : Long, cid : Long) = {
+        val item = if(id == -1){
+            val citem = metaModel.findOneInstance(cid)
+            if(citem != null) {
+                if((citem.children.isEmpty) || (citem.getID == 0)) {
+                    val i = MetaModels.metaProduct.newInstance()
+                    i.saveInstance
+                    i
+                }else {
+                    null
+                }
+            }else {
+                null
+            }
+        }
+        else
+            MetaModels.metaProduct.findOneInstance(id)
+        item
     }
 
     private def productSave() = {
@@ -615,9 +722,9 @@ object CategoryController extends ModelController[Category]{
                 this.saveProductActive(item, jobj)
                 this.saveProductName(item, jobj)
                 this.saveProductImage(item, jobj)
-                this.saveProductExtensionProperty(item, jobj)
-                this.saveProductParameter(item, jobj)
-                this.saveProductGoods(item, jobj)
+//                this.saveProductExtensionProperty(item, jobj)
+//                this.saveProductParameter(item, jobj)
+//                this.saveProductGoods(item, jobj)
 //                this.saveCategoryDisplayOrder(item, jobj)
                 item.saveInstance
             }
@@ -653,9 +760,184 @@ object CategoryController extends ModelController[Category]{
         getAllSubProducts(cid, this.getDefaultLang)
     }
 
+    private def productSaveParameter() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val item = if(id == -1){
+                val citem = metaModel.findOneInstance(cid)
+                if(citem != null) {
+                    if((citem.children.isEmpty) || (citem.getID == 0)) {
+                        val i = MetaModels.metaProduct.newInstance()
+                        i.saveInstance
+                        i
+                    }else {
+                        null
+                    }
+                }else {
+                    null
+                }
+            }
+            else
+                MetaModels.metaProduct.findOneInstance(id)
+            
+            if(item != null) {
+                this.saveProductParameter(item, jobj)
+                item.saveInstance
+            }
+
+        }
+        queryProductParameter()
+    }
+
+    private def productAddOptionGroup() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                val resultId = this.addProductOptionGroup(item, jobj)
+                if(resultId <=0 || !item.saveInstance) {
+                    throw new Exception
+                }else {
+                    val gname = MetaModels.metaOptionGroup.findOneInstance(resultId).getName(this.getDefaultLang)
+                    Full(JsonResponse(JObject(JField("groupId", JInt(resultId)) :: JField("name", JString(gname)) :: JField("error", JString("")) :: Nil)))
+                }
+
+            }else {
+                throw new Exception
+            }
+        }
+        catch {
+            case e : Exception => {
+                    val errMsg = "please delete all goods"
+                    Full(JsonResponse(JObject(JField("groupId", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
+                }
+        }
+    }
+
+    private def productRemoveOptionGroup() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                val resultId = this.removeProductOptionGroup(item, jobj)
+                if(resultId <=0 || !item.saveInstance) {
+                    throw new Exception
+                }else {
+                    val gname = MetaModels.metaOptionGroup.findOneInstance(resultId).getName(this.getDefaultLang)
+                    Full(JsonResponse(JObject(JField("groupId", JInt(resultId)) :: JField("name", JString(gname)) :: JField("error", JString("")) :: Nil)))
+                }
+
+            }else {
+                throw new Exception
+            }
+        }
+        catch {
+            case e : Exception => {
+                    val errMsg = "please delete all goods"
+                    Full(JsonResponse(JObject(JField("groupId", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
+                }
+        }
+    }
+
+    private def productOpenOption() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+//            val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                this.openProductOption(item, jobj)
+                item.saveInstance
+            }
+        }
+        queryProductOption()
+    }
+
+    private def productCloseOption() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+//            val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                this.closeProductOption(item, jobj)
+                item.saveInstance
+            }
+        }
+        queryProductOption()
+    }
+
+    private def productSaveOption() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val item = if(id == -1){
+                val citem = metaModel.findOneInstance(cid)
+                if(citem != null) {
+                    if((citem.children.isEmpty) || (citem.getID == 0)) {
+                        val i = MetaModels.metaProduct.newInstance()
+                        i.saveInstance
+                        i
+                    }else {
+                        null
+                    }
+                }else {
+                    null
+                }
+            }
+            else
+                MetaModels.metaProduct.findOneInstance(id)
+
+            if(item != null) {
+                this.saveProductOption(item, jobj)
+                item.saveInstance
+            }
+
+        }
+        queryProductOption()
+    }
+
+    private def productSaveExtensionProperty() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val cid = jobj.values("categoryId").asInstanceOf[BigInt].toLong
+            val item = if(id == -1){
+                val citem = metaModel.findOneInstance(cid)
+                if(citem != null) {
+                    if((citem.children.isEmpty) || (citem.getID == 0)) {
+                        val i = MetaModels.metaProduct.newInstance()
+                        i.saveInstance
+                        i
+                    }else {
+                        null
+                    }
+                }else {
+                    null
+                }
+            }
+            else
+                MetaModels.metaProduct.findOneInstance(id)
+
+            if(item != null) {
+                this.saveProductExtensionProperty(item, jobj)
+                item.saveInstance
+            }
+
+        }
+        queryProductExtensionProperty()
+    }
+
     private def categoryRemove() = {
         try {
             val jobj = this.getJsonObjectFromRequest()
+//            val ids = urlDecode(S.param("id").openOr("-5"))
+//            val id = ids.toDouble.toLong
             val id = jobj.values("id").asInstanceOf[BigInt].toLong
             val item = metaModel.findOneInstance(id)
             if(item != null) {
@@ -670,7 +952,7 @@ object CategoryController extends ModelController[Category]{
                     }
                 }
                 item.deleteInstance()
-                this.getAllSubCategories(pid, this.getDefaultLang)
+                this.getAllSubCategories(-1, this.getDefaultLang)
             } else {
                 Full(NotFoundResponse())
             }
@@ -749,14 +1031,154 @@ object CategoryController extends ModelController[Category]{
 
     private def saveProductExtensionProperty(item : Product, jobj : JObject) {
         if(jobj.values.keySet.contains("extensionProperty")) {
-            val eps = jobj.values("actextensionProperty").asInstanceOf[Map[String, BigInt]]
+            val eps = jobj.values("extensionProperty").asInstanceOf[List[BigInt]]
             for(i <- (1 to item.ExtensionPropertyNum)) {
-                val epname = "ep" + i.toString
-                if(eps.keySet.contains(epname)) {
-                    item.setExtensionProperty(i, eps(epname).toInt)
+                if((i - 1) < eps.length) {
+                    item.setExtensionProperty(i, eps(i-1).toInt)
                 }
             }
         }
+    }
+
+    private def saveProductOption(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("isOptionUsing")) {
+            val optUsing = jobj.values("isOptionUsing").asInstanceOf[Boolean]
+            if(optUsing) {
+                item.setUsingOption(true)
+                val opt = jobj.children.find(
+                    f => {
+                        val itemf = f.asInstanceOf[JField]
+                        itemf.name == "option"
+                    }
+                )
+                val valueArr = opt.get.asInstanceOf[JField].value
+                val valueStr = Printer.pretty(JsonAST.render(valueArr))
+                item.setOptions(valueStr)
+            }else {
+                item.setUsingOption(false)
+                item.setOptions("[]")
+                item.removeAllGoods()
+                val g = MetaModels.metaGoods.newInstance
+                g.saveInstance
+                item.addGoods(g.getID)
+            }
+        }
+    }
+
+    private def openProductOption(item : Product, jobj : JObject) {
+        val openBefore = item.getUsingOption
+        if(!openBefore) {
+            item.setUsingOption(true)
+            item.setOptions("[]")
+            item.removeAllGoods()
+        }
+    }
+
+    private def closeProductOption(item : Product, jobj : JObject) {
+        val openBefore = item.getUsingOption
+        if(openBefore) {
+            item.setUsingOption(false)
+            item.setOptions("[]")
+            item.removeAllGoods()
+            val g = MetaModels.metaGoods.newInstance
+            g.saveInstance
+            item.addGoods(g.getID)
+        }
+    }
+
+    private def addProductOptionGroup(item : Product, jobj : JObject) : Long = {
+        val failedId = -1
+        //商品开启option控制否, 未开启不能添加规格
+        if(!item.getUsingOption) {
+            return failedId
+        }
+        //商品在开启规格控制的情况下，如果已经具有货品，不能更改规格
+        if(!item.Goods.isEmpty) {
+            return failedId
+        }
+        try {
+            val addGroupId = jobj.values("groupId").asInstanceOf[BigInt].toLong
+            val groupList = JsonParser.parse(item.getOptions).asInstanceOf[JArray].arr
+            //商品当前的规格配置中是否已经存在此规格
+            val oldGroup = groupList.find(
+                group => {
+                    val gid = group.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
+                    gid == addGroupId
+                }
+            )
+            //已经存在此规格，不能重复添加
+            if(!oldGroup.isEmpty)
+                return failedId
+            //该规格是否在商品所属类型配置中
+            val tid = item.categories.head.getType
+            val typeItem = MetaModels.metaType.findOneInstance(tid)
+            if(typeItem == null)
+                return failedId
+            val supportGroups = typeItem.getAllSupportOptionGroup
+            val existGroup = supportGroups.find(
+                group => {
+                    group.getID == addGroupId
+                }
+            )
+            //所属类型没有配置此选项组，不可添加
+            if(existGroup.isEmpty) {
+                return failedId
+            }
+            val jgroup = JObject(JField("groupId", JInt(addGroupId)) :: JField("value", JArray(Nil)) :: Nil)
+            val newGroupList = JArray(groupList ::: (jgroup :: Nil))
+            item.setOptions(Printer.pretty(JsonAST.render(newGroupList)))
+            addGroupId
+        }
+        catch {
+            case e : Exception => {
+                    failedId
+                }
+        }
+
+    }
+
+    private def removeProductOptionGroup(item : Product, jobj : JObject) : Long = {
+        val failedId = -1
+        //商品开启option控制否, 未开启不能删除规格
+        if(!item.getUsingOption) {
+            return failedId
+        }
+        //商品在开启规格控制的情况下，如果已经具有货品，不能更改规格
+        if(!item.Goods.isEmpty) {
+            return failedId
+        }
+        try {
+            val removeGroupId = jobj.values("groupId").asInstanceOf[BigInt].toLong
+            val groupList = JsonParser.parse(item.getOptions).asInstanceOf[JArray].arr
+            //商品当前的规格配置中是否已经存在此规格
+            val oldGroup = groupList.find(
+                group => {
+                    val gid = group.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
+                    gid == removeGroupId
+                }
+            )
+            //不存在此规格，不能删除
+            if(oldGroup.isEmpty)
+                return failedId
+//            val pos = groupList.indexOf(oldGroup.get)
+            val nl = groupList.filterNot(
+                group => {
+                    val gid = group.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
+                    gid == removeGroupId
+                }
+            )
+            val newGroupList = JArray(nl)
+//            val jgroup = JObject(JField("groupId", JInt(removeGroupId)) :: JField("value", JArray(Nil)) :: Nil)
+//            val newGroupList = JArray(groupList ::: (jgroup :: Nil))
+            item.setOptions(Printer.pretty(JsonAST.render(newGroupList)))
+            removeGroupId
+        }
+        catch {
+            case e : Exception => {
+                    failedId
+                }
+        }
+
     }
 
     private def saveProductGoods(item : Product, jobj : JObject) {
@@ -764,8 +1186,10 @@ object CategoryController extends ModelController[Category]{
             val goods = jobj.values("goods").asInstanceOf[Map[String, _]]
             val optionUsing = goods("isOptionUsing").asInstanceOf[Boolean]
             if(optionUsing) {
-
+                item.setUsingOption(true)
             } else {
+                item.setUsingOption(false)
+                item.setOptions("[]")
                 item.removeAllGoods()
                 val g = MetaModels.metaGoods.newInstance
                 g.saveInstance
@@ -978,6 +1402,7 @@ object CategoryController extends ModelController[Category]{
                 val product_name = product.getName(languageId)
                 val image = product.getImage
                 val active = product.getActive
+                val isOptionUsing = product.getUsingOption
                 val imageArr = try {
                     JsonParser.parse(image).asInstanceOf[JArray]
                 } catch {
@@ -991,6 +1416,8 @@ object CategoryController extends ModelController[Category]{
                     JsonAST.JField("name", JsonAST.JString(product_name))
                     ++
                     JsonAST.JField("active", JsonAST.JBool(active))
+                    ++
+                    JsonAST.JField("isOptionUsing", JsonAST.JBool(isOptionUsing))
                 )
             }
         }
@@ -1000,8 +1427,8 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def getJsonObjectFromRequest() : JObject = {
-//        val reqstr = this.getRequestContent
-        val reqstr = "[{\"id\":2, \"categoryId\":56, \"goods\": {\"isOptionUsing\": false},\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
+        val reqstr = this.getRequestContent
+//        val reqstr = "[{\"id\":13, \"groupId\":3, \"categoryId\":56, \"isOptionUsing\": true,\"option\": [],\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
@@ -1015,6 +1442,7 @@ object CategoryController extends ModelController[Category]{
 
     private def getIdFromResquest() : Long = {
         val reqstr = this.getRequestContent()
+//         val reqstr = "[{\"id\":2 }]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
@@ -1025,5 +1453,7 @@ object CategoryController extends ModelController[Category]{
     
     override def getRequestContent() = {
         urlDecode(S.param("json").openOr(""))
+//        val reqstr = "[{\"id\":2, \"categoryId\":56, \"isOptionUsing\": true,\"option\": [111,222],\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
+//        reqstr
     }
 }
