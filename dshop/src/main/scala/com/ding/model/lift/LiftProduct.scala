@@ -49,7 +49,18 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         override def dbNotNull_? = true
     }
 
-    object parameter extends MappedText(this)
+    object parameter extends MappedText(this) {
+        override def defaultValue = "[]"
+        override def dbNotNull_? = true
+    }
+    object option extends MappedText(this) {
+        override def defaultValue = "[]"
+        override def dbNotNull_? = true
+    }
+    object is_option_using extends MappedBoolean(this){
+        override def defaultValue = false
+        override def dbNotNull_? = true
+    }
 
     override def getDisplayOrder(categoryId : Long) : Int = {
         val join = category.joins.find(
@@ -77,6 +88,10 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         category.all
     }
 
+    override def Goods() : List[Goods] = {
+        goods.all
+    }
+
     override def addGoods(gid : Long){
         val goods = LiftGoods.findOneInstance(gid)
         if(goods != null) {
@@ -96,7 +111,7 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         }
     }
 
-    def getExtensionProperties() : Array[Int] = {
+    override def getExtensionProperties() : Array[Int] = {
 
         val resultarr = new Array[Int](this.ExtensionPropertyNum)
 
@@ -107,7 +122,7 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         resultarr
     }
 
-    def setExtensionProperties(resultArr : Array[Int]) {
+    override def setExtensionProperties(resultArr : Array[Int]) {
         val leng = if(resultArr.length > this.ExtensionPropertyNum) this.ExtensionPropertyNum else resultArr.length
         for(i <- (1 to leng)) {
             val oep = this.getClass.getMethod("ep" + i.toString).invoke(this).asInstanceOf[MappedInt[LiftProduct]]
@@ -115,18 +130,27 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         }
     }
 
-    def setExtensionProperty(index : Int, value : Int) {
+    override def setExtensionProperty(index : Int, value : Int) {
         if(index <= this.ExtensionPropertyNum) {
             val oep = this.getClass.getMethod("ep" + index.toString).invoke(this).asInstanceOf[MappedInt[LiftProduct]]
             oep(value)
         }
     }
 
-    def setParameter(param : String) {
+    override def setParameter(param : String) {
         this.parameter(param)
     }
-    def getParameter() : String = {
+    override def getParameter() : String = {
         this.parameter.is
+    }
+
+    override def getOptions() : String = this.option.is
+    override def setOptions(opt : String) {
+        this.option(opt)
+    }
+    override def getUsingOption() : Boolean = this.is_option_using.is
+    override def setUsingOption(using : Boolean) {
+        this.is_option_using(using)
     }
 }
 
