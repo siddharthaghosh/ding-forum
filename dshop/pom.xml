@@ -8,8 +8,9 @@
     <name>dshop</name>
     <inceptionYear>2007</inceptionYear>
     <properties>
-        <scala.version>2.8.0.Beta1</scala.version>
+        <scala.version>2.8.0.RC3</scala.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <lift.version>2.0-scala280-SNAPSHOT</lift.version>
     </properties>
 
     <repositories>
@@ -46,9 +47,14 @@
         </dependency>
         <dependency>
             <groupId>net.liftweb</groupId>
+            <artifactId>lift-mapper</artifactId>
+            <version>${lift.version}</version>
+        </dependency> 
+ <!--       <dependency>
+            <groupId>net.liftweb</groupId>
             <artifactId>lift-core</artifactId>
-            <version>2.0-scala280-SNAPSHOT</version>
-        </dependency>
+            <version>${lift.version}</version>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
@@ -104,6 +110,16 @@
             <artifactId>commons-io</artifactId>
             <version>1.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.mortennobel</groupId>
+            <artifactId>java-image-scaling</artifactId>
+            <version>0.8.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.jchardet</groupId>
+            <artifactId>jchardet</artifactId>
+            <version>1.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -120,6 +136,13 @@
                             <goal>testCompile</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>process-java-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
@@ -131,40 +154,6 @@
                 <configuration>
                     <contextPath>/</contextPath>
                     <scanIntervalSeconds>5</scanIntervalSeconds>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>net.sf.alchim</groupId>
-                <artifactId>yuicompressor-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compress</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <nosuffix>true</nosuffix>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <configuration>
-                    <downloadSources>true</downloadSources>
-                    <excludes>
-                        <exclude>org.scala-lang:scala-library</exclude>
-                    </excludes>
-                    <classpathContainers>
-                        <classpathContainer>ch.epfl.lamp.sdt.launching.SCALA_CONTAINER</classpathContainer>
-                    </classpathContainers>
-                    <projectnatures>
-                        <java.lang.String>ch.epfl.lamp.sdt.core.scalanature</java.lang.String>
-                        <java.lang.String>org.eclipse.jdt.core.javanature</java.lang.String>
-                    </projectnatures>
-                    <buildcommands>
-                        <java.lang.String>ch.epfl.lamp.sdt.core.scalabuilder</java.lang.String>
-                    </buildcommands>
                 </configuration>
             </plugin>
             <plugin>
