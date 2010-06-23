@@ -7,6 +7,8 @@ package com.ding.model.lift
 
 import com.ding.model._
 import net.liftweb.mapper._
+import net.liftweb.json._
+import net.liftweb.json.JsonAST._
 
 class LiftProduct extends LiftBaseModel[LiftProduct]
                      with Product
@@ -151,6 +153,28 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
     override def getUsingOption() : Boolean = this.is_option_using.is
     override def setUsingOption(using : Boolean) {
         this.is_option_using(using)
+    }
+
+    def valueUsingByGoods(vid : Long) : Boolean = this.valueUsingByGoods1(vid)
+
+    def valueUsingByGoods1(vid : Long) : Boolean = {
+        if(!this.is_option_using.is)
+            return false
+        if(this.goods.all.length < 1)
+            return false
+        this.Goods.foreach {
+            goods => {
+                val optionList = JsonParser.parse(goods.getOption).asInstanceOf[JArray].arr
+                optionList.foreach {
+                    option => {
+                        val thisVid = option.asInstanceOf[JObject].values("valueId").asInstanceOf[BigInt].toLong
+                        if(thisVid == vid)
+                            return true
+                    }
+                }
+            }
+        }
+        return false
     }
 }
 
