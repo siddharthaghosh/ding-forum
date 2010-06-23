@@ -105,6 +105,12 @@ object CategoryController extends ModelController[Category]{
             case "removeproductoptiongroup" => {
                     productRemoveOptionGroup()
                 }
+            case "addproductoptionvalue" => {
+                    productAddOptionValue()
+                }
+            case "removeproductoptionvalue" => {
+                    productRemoveOptionValue()
+                }
             case "removecategory" => {
                     categoryRemove()
                 }
@@ -574,14 +580,17 @@ object CategoryController extends ModelController[Category]{
                             val gid = option.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
                             val gitem = MetaModels.metaOptionGroup.findOneInstance(gid)
                             val gname = if(gitem == null) "NoSuchGroup" else gitem.getName(this.getDefaultLang)
-                            val values = option.children.find(
-                                f => {
-                                    val itemf = f.asInstanceOf[JField]
-                                    itemf.name == "value"
+                            val valueArr = option.asInstanceOf[JObject].values("value").asInstanceOf[List[BigInt]]
+                            val values = valueArr.flatMap {
+                                value => {
+                                    val name = MetaModels.metaOptionValue.findOneInstance(value.toLong).getName(this.getDefaultLang)
+                                    JObject(JField("id", JInt(value)) ::
+                                            JField("name", JString(name)) ::
+                                            Nil) :: Nil
                                 }
-                            )
+                            }
                             JObject(JField("group", JObject(JField("id", JInt(gid)) :: JField("name", JString(gname)) :: Nil)) ::
-                                    values.get.asInstanceOf[JField] ::
+                                    JField("value", JArray(values)) ::
                                     Nil) :: Nil
                         }
                     })
@@ -591,14 +600,28 @@ object CategoryController extends ModelController[Category]{
                 val goodsArr = JArray(allGoods.flatMap {
                         goods => {
                             val id = JField("id", JInt(goods.getID))
-                            val store = JField("", JInt(goods.getStore))
-                            val bn = JField("", JString(goods.getBn))
-                            val storep = JField("", JString(goods.getStorePlace))
-                            val weight = JField("", JDouble(goods.getWeight))
-                            val cost = JField("", JDouble(goods.getCost))
-                            val marketp = JField("", JDouble(goods.getMarketPrice))
-                            val price = JField("", JDouble(goods.getPrice))
-                            JObject(id :: store :: bn :: storep :: weight :: cost :: marketp :: price :: Nil) :: Nil
+                            val store = JField("store", JInt(goods.getStore))
+                            val bn = JField("bn", JString(goods.getBn))
+                            val storep = JField("storePlace", JString(goods.getStorePlace))
+                            val weight = JField("weight", JDouble(goods.getWeight))
+                            val cost = JField("cost", JDouble(goods.getCost))
+                            val marketp = JField("marketPrice", JDouble(goods.getMarketPrice))
+                            val price = JField("price", JDouble(goods.getPrice))
+                            val optionList = JsonParser.parse(if(goods.getOption == null) "[]" else goods.getOption).asInstanceOf[JArray].arr
+                            val option = JField("option", JArray(optionList.flatMap {
+                                option => {
+                                    val optionItem = option.asInstanceOf[JObject]
+                                    val gid = optionItem.values("groupId").asInstanceOf[BigInt]
+                                    val vid = optionItem.values("valueId").asInstanceOf[BigInt]
+                                    val gname = MetaModels.metaOptionGroup.findOneInstance(gid.toLong).getName(this.getDefaultLang)
+                                    val vname = MetaModels.metaOptionValue.findOneInstance(vid.toLong).getName(this.getDefaultLang)
+                                    JObject(JField("group", JObject(JField("id", JInt(gid)) :: JField("name", JString(gname)) :: Nil)) ::
+                                    JField("value", JObject(JField("id", JInt(vid)) :: JField("name", JString(vname)) :: Nil)) ::
+                                    Nil) ::
+                                    Nil
+                                }
+                            }))
+                            JObject(id :: store :: bn :: storep :: weight :: cost :: marketp :: price :: option :: Nil) :: Nil
                         }
                     })
                 val resultobj = JObject(JField("isOptionUsing", JBool(usingOption)) :: JField("option", options) :: JField("goods", goodsArr) :: Nil)
@@ -802,7 +825,7 @@ object CategoryController extends ModelController[Category]{
                     throw new Exception
                 }else {
                     val gname = MetaModels.metaOptionGroup.findOneInstance(resultId).getName(this.getDefaultLang)
-                    Full(JsonResponse(JObject(JField("groupId", JInt(resultId)) :: JField("name", JString(gname)) :: JField("error", JString("")) :: Nil)))
+                    Full(JsonResponse(JObject(JField("id", JInt(resultId)) :: JField("name", JString(gname)) :: JField("error", JString("")) :: Nil)))
                 }
 
             }else {
@@ -812,7 +835,7 @@ object CategoryController extends ModelController[Category]{
         catch {
             case e : Exception => {
                     val errMsg = "please delete all goods"
-                    Full(JsonResponse(JObject(JField("groupId", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
+                    Full(JsonResponse(JObject(JField("id", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
                 }
         }
     }
@@ -828,7 +851,7 @@ object CategoryController extends ModelController[Category]{
                     throw new Exception
                 }else {
                     val gname = MetaModels.metaOptionGroup.findOneInstance(resultId).getName(this.getDefaultLang)
-                    Full(JsonResponse(JObject(JField("groupId", JInt(resultId)) :: JField("name", JString(gname)) :: JField("error", JString("")) :: Nil)))
+                    Full(JsonResponse(JObject(JField("id", JInt(resultId)) :: JField("name", JString(gname)) :: JField("error", JString("")) :: Nil)))
                 }
 
             }else {
@@ -838,7 +861,67 @@ object CategoryController extends ModelController[Category]{
         catch {
             case e : Exception => {
                     val errMsg = "please delete all goods"
-                    Full(JsonResponse(JObject(JField("groupId", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
+                    Full(JsonResponse(JObject(JField("id", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
+                }
+        }
+    }
+
+    private def productAddOptionValue() = {
+        try {
+            val time1 = System.currentTimeMillis()
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                val resultId = this.addProductOptionValue(item, jobj)
+                if(resultId <=0 || !item.saveInstance) {
+                    throw new Exception
+                }else {
+                    val vname = MetaModels.metaOptionValue.findOneInstance(resultId).getName(this.getDefaultLang)
+                    val jresponse = JsonResponse(JObject(JField("id", JInt(resultId)) :: JField("name", JString(vname)) :: JField("error", JString("")) :: Nil))
+                    val time2 = System.currentTimeMillis()
+                    println("outer : " + (time2-time1).toString + "ms")
+                    Full(jresponse)
+                }
+
+            }else {
+                throw new Exception
+            }
+        }
+        catch {
+            case e : Exception => {
+                    val errMsg = "add value error"
+                    Full(JsonResponse(JObject(JField("id", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
+                }
+        }
+    }
+
+    private def productRemoveOptionValue() = {
+        try {
+            val time1 = System.currentTimeMillis()
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                val resultId = this.removeProductOptionValue(item, jobj)
+                if(resultId <=0 || !item.saveInstance) {
+                    throw new Exception
+                }else {
+                    val vname = MetaModels.metaOptionValue.findOneInstance(resultId).getName(this.getDefaultLang)
+                    val jresponse = JsonResponse(JObject(JField("id", JInt(resultId)) :: JField("name", JString(vname)) :: JField("error", JString("")) :: Nil))
+                    val time2 = System.currentTimeMillis()
+                    println("outer : " + (time2-time1).toString + "ms")
+                    Full(jresponse)
+                }
+
+            }else {
+                throw new Exception
+            }
+        }
+        catch {
+            case e : Exception => {
+                    val errMsg = "remove value error"
+                    Full(JsonResponse(JObject(JField("id", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
                 }
         }
     }
@@ -1181,6 +1264,129 @@ object CategoryController extends ModelController[Category]{
 
     }
 
+    private def addProductOptionValue(item : Product, jobj : JObject) : Long = {
+        val time1 = System.currentTimeMillis()
+        val failedId = -1
+        //商品开启option控制否, 未开启不能增加规格值
+        if(!item.getUsingOption) {
+            return failedId
+        }
+        try{
+            val groupId = jobj.values("groupId").asInstanceOf[BigInt].toLong
+            val valueId = jobj.values("valueId").asInstanceOf[BigInt]
+
+            //该规格是否在商品所属类型配置中
+            val tid = item.categories.head.getType
+            val typeItem = MetaModels.metaType.findOneInstance(tid)
+            if(typeItem == null)
+                return failedId
+            val supportGroups = typeItem.getAllSupportOptionGroup
+            val existGroup = supportGroups.find(
+                group => {
+                    group.getID == groupId
+                }
+            )
+            //所属类型没有配置此选项组，不可添加
+            if(existGroup.isEmpty) {
+                return failedId
+            }
+            //在选项组里查找是否有该Value
+            val existValue = existGroup.get.allValues.find(
+                value => {
+                    value.getID == valueId.toLong
+                }
+            )
+            //选项组配置中没有该Value, 不可添加
+            if(existValue.isEmpty) {
+                return failedId
+            }
+
+            val groupList = JsonParser.parse(item.getOptions).asInstanceOf[JArray].arr
+            //商品当前的规格配置中是否已经存在此规格
+            val groupBox = groupList.find(
+                group => {
+                    val gid = group.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
+                    gid == groupId
+                }
+            )
+            //不存在该规格组, 就不能添加规格值
+            if(groupBox.isEmpty)
+                return failedId
+            val groupItem = groupBox.get.asInstanceOf[JObject]
+            val valueList = groupItem.values("value").asInstanceOf[List[BigInt]]
+            val valueExist = valueList.contains(valueId)
+            //商品已经配置过该规格值
+            if(valueExist)
+                return failedId
+            val newValueList = (valueList ::: (valueId :: Nil)).flatMap {
+                value => {
+                    JInt(value) :: Nil
+                }
+            }
+            val newGroupItem = JObject(JField("groupId", JInt(groupId)) :: JField("value", JArray(newValueList)) :: Nil)
+            val pos = groupList.indexOf(groupItem)
+            val newGroupList = groupList.dropRight(groupList.length - pos) ::: (newGroupItem :: Nil) ::: groupList.drop(pos + 1)
+            item.setOptions(Printer.pretty(JsonAST.render(JArray(newGroupList))))
+            val time2 = System.currentTimeMillis()
+            print(time2 - time1)
+            println("ms")
+            valueId.toLong
+        } catch {
+            case e : Exception => {
+                    failedId
+                }
+        }
+    }
+
+    private def removeProductOptionValue(item : Product, jobj : JObject) : Long = {
+        val failedId = -1
+        //商品开启option控制否, 未开启不能增加规格值
+        if(!item.getUsingOption) {
+            return failedId
+        }
+        try {
+            val groupId = jobj.values("groupId").asInstanceOf[BigInt].toLong
+            val valueId = jobj.values("valueId").asInstanceOf[BigInt]
+            val groupList = JsonParser.parse(item.getOptions).asInstanceOf[JArray].arr
+            //商品当前的规格配置中是否已经存在此规格
+            val groupBox = groupList.find(
+                group => {
+                    val gid = group.asInstanceOf[JObject].values("groupId").asInstanceOf[BigInt].toLong
+                    gid == groupId
+                }
+            )
+            //不存在该规格组, 就不能删除规格值
+            if(groupBox.isEmpty)
+                return failedId
+            val groupItem = groupBox.get.asInstanceOf[JObject]
+            val valueList = groupItem.values("value").asInstanceOf[List[BigInt]]
+            val valueExist = valueList.contains(valueId)
+            //商品未配置过该规格值, 不能删除
+            if(!valueExist)
+                return failedId
+            //该商品是否有货品使用此规格值
+            val vusing = item.valueUsingByGoods(valueId.toLong)
+            //规格值有被使用，不能删除
+            if(vusing)
+                return failedId
+            val posv = valueList.indexOf(valueId)
+            val newValueList = (valueList.dropRight(valueList.length - posv) ::: valueList.drop(posv + 1)).flatMap {
+                value => {
+                    JInt(value) :: Nil
+                }
+            }
+            val newGroupItem = JObject(JField("groupId", JInt(groupId)) :: JField("value", JArray(newValueList)) :: Nil)
+            val pos = groupList.indexOf(groupItem)
+            val newGroupList = groupList.dropRight(groupList.length - pos) ::: (newGroupItem :: Nil) ::: groupList.drop(pos + 1)
+            item.setOptions(Printer.pretty(JsonAST.render(JArray(newGroupList))))
+            valueId.toLong
+        } catch {
+            case e : Exception => {
+                    failedId
+                }
+        }
+    }
+
     private def saveProductGoods(item : Product, jobj : JObject) {
         if(jobj.values.keySet.contains("goods")) {
             val goods = jobj.values("goods").asInstanceOf[Map[String, _]]
@@ -1428,7 +1634,7 @@ object CategoryController extends ModelController[Category]{
 
     private def getJsonObjectFromRequest() : JObject = {
         val reqstr = this.getRequestContent
-//        val reqstr = "[{\"id\":13, \"groupId\":3, \"categoryId\":56, \"isOptionUsing\": true,\"option\": [],\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
+//        val reqstr = "[{\"id\":13, \"groupId\":3, \"valueId\":11, \"categoryId\":56, \"isOptionUsing\": true,\"option\": [],\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]

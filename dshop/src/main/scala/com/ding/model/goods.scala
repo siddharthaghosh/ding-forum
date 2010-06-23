@@ -28,6 +28,9 @@ trait Goods extends BaseModel{
 
     def getPrice() : Double
     def setPrice(price : Double)
+
+    def getOption() : String
+    def setOption(op : String)
 }
 
 trait MetaGoods extends MetaModel[Goods] {

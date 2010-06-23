@@ -15,7 +15,9 @@ class LiftGoods extends LiftBaseModel[LiftGoods] with Goods{
     
     object goods_id extends MappedLongIndex(this)
     object product_id extends MappedLongForeignKey(this, LiftProduct)
-    object option extends MappedText(this)
+    object option extends MappedText(this) {
+        override def defaultValue = "[]"
+    }
     object bn extends MappedString(this, 255)
     object store extends MappedInt(this) {
         override def defaultValue = 0
@@ -71,6 +73,11 @@ class LiftGoods extends LiftBaseModel[LiftGoods] with Goods{
     def getPrice() : Double = this.price.is
     def setPrice(price : Double) {
         this.price(price)
+    }
+
+    def getOption() : String = this.option.is
+    def setOption(op : String) {
+        this.option(op)
     }
 }
 

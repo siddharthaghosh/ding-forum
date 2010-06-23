@@ -30,6 +30,7 @@ extends ImageBaseModel
     def removeGoods(gid : Long)
     def removeAllGoods()
     val ExtensionPropertyNum : Int
+    def valueUsingByGoods(vid : Long) : Boolean
 
 }
 
