@@ -19,22 +19,27 @@ class LiftGoods extends LiftBaseModel[LiftGoods] with Goods{
         override def defaultValue = "[]"
     }
     object bn extends MappedString(this, 255)
-    object store extends MappedInt(this) {
-        override def defaultValue = 0
-    }
+    object store extends MappedInt(this)
+//    {
+//        override def defaultValue = 0
+//    }
     object store_place extends MappedString(this, 255)
-    object weight extends MappedDouble(this){
-        override def defaultValue = 0
-    }
-    object cost extends MappedDouble(this){
-        override def defaultValue = 0
-    }
-    object market_price extends MappedDouble(this){
-        override def defaultValue = 0
-    }
-    object price extends MappedDouble(this){
-        override def defaultValue = 0
-    }
+    object weight extends MappedDouble(this)
+//    {
+//        override def defaultValue = null
+//    }
+    object cost extends MappedDouble(this)
+//    {
+//        override def defaultValue = 0
+//    }
+    object market_price extends MappedDouble(this)
+//    {
+//        override def defaultValue = 0
+//    }
+    object price extends MappedDouble(this)
+//    {
+//        override def defaultValue = 0
+//    }
 
     override def getProductID() : Long = this.product_id.is
 

@@ -176,6 +176,35 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
         }
         return false
     }
+
+    def alreadyUsedOptionSet() : scala.collection.mutable.Set[scala.collection.mutable.Set[String]] = {
+        val resultSet = new scala.collection.mutable.HashSet[scala.collection.mutable.Set[String]]
+        this.Goods.foreach {
+            goods => {
+                val opstr = goods.getOption
+                val opset = new scala.collection.mutable.HashSet[String]
+                JsonParser.parse(opstr).asInstanceOf[JArray].arr.foreach {
+                    op => {
+                        opset += Printer.pretty(JsonAST.render(op))
+                    }
+                }
+                resultSet += opset
+            }
+        }
+        resultSet
+    }
+
+    def isOptionSettingUsed(opstr : String) : Boolean = {
+        val usedSet = this.alreadyUsedOptionSet()
+        println(usedSet)
+        val opset = new scala.collection.mutable.HashSet[String]
+        JsonParser.parse(opstr).asInstanceOf[JArray].arr.foreach {
+            op => {
+                opset += Printer.pretty(JsonAST.render(op))
+            }
+        }
+        usedSet.contains(opset)
+    }
 }
 
 object LiftProduct extends LiftProduct with LiftMetaModel[LiftProduct] with MetaProduct {
