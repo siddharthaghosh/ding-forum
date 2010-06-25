@@ -31,7 +31,8 @@ extends ImageBaseModel
     def removeAllGoods()
     val ExtensionPropertyNum : Int
     def valueUsingByGoods(vid : Long) : Boolean
-
+    def alreadyUsedOptionSet() : scala.collection.mutable.Set[scala.collection.mutable.Set[String]]
+    def isOptionSettingUsed(op : String) : Boolean
 }
 
 trait MetaProduct extends MetaModel[Product] {

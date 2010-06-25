@@ -111,6 +111,12 @@ object CategoryController extends ModelController[Category]{
             case "removeproductoptionvalue" => {
                     productRemoveOptionValue()
                 }
+            case "saveproductgoods" => {
+                    productSaveGoods()
+                }
+            case "removeproductgoods" => {
+                    productRemoveGoods()
+                }
             case "removecategory" => {
                     categoryRemove()
                 }
@@ -603,24 +609,26 @@ object CategoryController extends ModelController[Category]{
                             val store = JField("store", JInt(goods.getStore))
                             val bn = JField("bn", JString(goods.getBn))
                             val storep = JField("storePlace", JString(goods.getStorePlace))
-                            val weight = JField("weight", JDouble(goods.getWeight))
-                            val cost = JField("cost", JDouble(goods.getCost))
-                            val marketp = JField("marketPrice", JDouble(goods.getMarketPrice))
+                            val gw = goods.getWeight
+                            println(gw)
+                            val weight = JField("weight", if(goods.getWeight == null) { JNull } else {JDouble(goods.getWeight)})
+                            val cost = JField("cost", if(goods.getCost == null) { JNull } else {JDouble(goods.getCost)})
+                            val marketp = JField("marketPrice", if(goods.getMarketPrice == null) { JNull } else {JDouble(goods.getMarketPrice)})
                             val price = JField("price", JDouble(goods.getPrice))
                             val optionList = JsonParser.parse(if(goods.getOption == null) "[]" else goods.getOption).asInstanceOf[JArray].arr
                             val option = JField("option", JArray(optionList.flatMap {
-                                option => {
-                                    val optionItem = option.asInstanceOf[JObject]
-                                    val gid = optionItem.values("groupId").asInstanceOf[BigInt]
-                                    val vid = optionItem.values("valueId").asInstanceOf[BigInt]
-                                    val gname = MetaModels.metaOptionGroup.findOneInstance(gid.toLong).getName(this.getDefaultLang)
-                                    val vname = MetaModels.metaOptionValue.findOneInstance(vid.toLong).getName(this.getDefaultLang)
-                                    JObject(JField("group", JObject(JField("id", JInt(gid)) :: JField("name", JString(gname)) :: Nil)) ::
-                                    JField("value", JObject(JField("id", JInt(vid)) :: JField("name", JString(vname)) :: Nil)) ::
-                                    Nil) ::
-                                    Nil
-                                }
-                            }))
+                                        option => {
+                                            val optionItem = option.asInstanceOf[JObject]
+                                            val gid = optionItem.values("groupId").asInstanceOf[BigInt]
+                                            val vid = optionItem.values("valueId").asInstanceOf[BigInt]
+                                            val gname = MetaModels.metaOptionGroup.findOneInstance(gid.toLong).getName(this.getDefaultLang)
+                                            val vname = MetaModels.metaOptionValue.findOneInstance(vid.toLong).getName(this.getDefaultLang)
+                                            JObject(JField("group", JObject(JField("id", JInt(gid)) :: JField("name", JString(gname)) :: Nil)) ::
+                                                    JField("value", JObject(JField("id", JInt(vid)) :: JField("name", JString(vname)) :: Nil)) ::
+                                                    Nil) ::
+                                            Nil
+                                        }
+                                    }))
                             JObject(id :: store :: bn :: storep :: weight :: cost :: marketp :: price :: option :: Nil) :: Nil
                         }
                     })
@@ -749,6 +757,12 @@ object CategoryController extends ModelController[Category]{
 //                this.saveProductParameter(item, jobj)
 //                this.saveProductGoods(item, jobj)
 //                this.saveCategoryDisplayOrder(item, jobj)
+                if(id == -1) {
+                    val newGoods = MetaModels.metaGoods.newInstance
+                    newGoods.saveInstance
+                    item.addGoods(newGoods.getID)
+
+                }
                 item.saveInstance
             }
 //            val pid = if(item.getParentID >= 0) item.getParentID else 0
@@ -924,6 +938,48 @@ object CategoryController extends ModelController[Category]{
                     Full(JsonResponse(JObject(JField("id", JInt(-1)) :: JField("name", JString("")) :: JField("error", JString(errMsg)) :: Nil)))
                 }
         }
+    }
+
+    private def productSaveGoods() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                saveProductGoods(item, jobj)
+                item.saveInstance
+            }
+            queryProductOption()
+        }catch {
+            case e : Exception => {
+                    e.printStackTrace
+                    queryProductOption()
+                }
+        }
+        finally {
+            queryProductOption()
+        }      
+    }
+
+    private def productRemoveGoods() = {
+        try {
+            val jobj = this.getJsonObjectFromRequest()
+            val id = jobj.values("id").asInstanceOf[BigInt].toLong
+            val item = this.getProductItemById(id)
+            if(item != null) {
+                removeProductGoods(item, jobj)
+                item.saveInstance
+            }
+            queryProductOption()
+        }catch {
+            case e : Exception => {
+                    e.printStackTrace
+                    queryProductOption()
+                }
+        }
+        finally {
+            queryProductOption()
+        }  
     }
 
     private def productOpenOption() = {
@@ -1388,22 +1444,129 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveProductGoods(item : Product, jobj : JObject) {
+        
+        def saveGoodsInfo(gitem : Goods, goods : Map[String, _]) {
+            
+            def ifNegativeGotZero(num : Double) : Double = {
+                if(num < 0)
+                    0
+                else
+                    num
+            }
+
+            if(goods.keySet.contains("store")) {
+                if(goods("store") == null)
+                    throw new Exception
+                val store = goods("store").asInstanceOf[Number].intValue
+                if(store != gitem.getStore)
+                    gitem.setStore(ifNegativeGotZero(store).toInt)
+            }
+            if(goods.keySet.contains("bn")) {
+                if(goods("bn") == null)
+                    throw new Exception
+                val bn = goods("bn").asInstanceOf[String]
+                if(bn != gitem.getBn)
+                    gitem.setBn(bn)
+            }
+            if(goods.keySet.contains("storePlace")) {
+                if(goods("storePlace") == null) {
+                    gitem.setStorePlace("")
+                }else{
+                    val sp = goods("storePlace").asInstanceOf[String]
+                    if(sp != gitem.getStorePlace)
+                        gitem.setStorePlace(sp)
+                }
+            }
+            if(goods.keySet.contains("weight")) {
+                val w = if(goods("weight") == null){ 0 } else { goods("weight").asInstanceOf[Number].doubleValue }
+                if(w != gitem.getWeight)
+                    gitem.setWeight(ifNegativeGotZero(w))
+            }
+            if(goods.keySet.contains("cost")) {
+                val c = if(goods("cost") == null){ 0 } else { goods("cost").asInstanceOf[Number].doubleValue }
+                if(c != gitem.getCost)
+                    gitem.setCost(ifNegativeGotZero(c))
+            }
+            if(goods.keySet.contains("price")) {
+                if(goods("price") == null)
+                    throw new Exception
+                val p = goods("price").asInstanceOf[Number].doubleValue
+                if(p != gitem.getPrice)
+                    gitem.setPrice(ifNegativeGotZero(p))
+            }
+            if(goods.keySet.contains("marketPrice")) {
+                val mp = if(goods("marketPrice") == null){ 0 } else { goods("marketPrice").asInstanceOf[Number].doubleValue }
+                if(mp != gitem.getMarketPrice)
+                    gitem.setMarketPrice(ifNegativeGotZero(mp))
+            }
+        }
+
+        def checkGoodsOptionAndSet(gitem : Goods, oplst : List[Map[String, BigInt]]) {
+            val opjlst = JArray(oplst.flatMap{
+                    opitem => {
+                        val gid = opitem("groupId")
+                        val vid = opitem("valueId")
+                        JObject(JField("groupId", JInt(gid))::JField("valueId",JInt(vid))::Nil) ::
+                        Nil
+                    }
+                })
+            val op = Printer.pretty(JsonAST.render(opjlst))
+            if(op == gitem.getOption)
+                return
+            if(item.isOptionSettingUsed(op))
+                throw new Exception
+            gitem.setOption(op)
+        }
+
         if(jobj.values.keySet.contains("goods")) {
             val goods = jobj.values("goods").asInstanceOf[Map[String, _]]
-            val optionUsing = goods("isOptionUsing").asInstanceOf[Boolean]
-            if(optionUsing) {
-                item.setUsingOption(true)
+            if(item.getUsingOption) {
+                val gid = goods("id").asInstanceOf[BigInt].toLong
+                val gitem = if(gid == -1)
+                    MetaModels.metaGoods.newInstance
+                else
+                    MetaModels.metaGoods.findOneInstance(gid)
+                if(gitem != null) {
+                    saveGoodsInfo(gitem, goods)
+                    if(gid == -1) {
+                        if(!goods.keySet.contains("option"))
+                            throw new Exception
+                        val oplst = goods("option").asInstanceOf[List[Map[String, BigInt]]]
+                        checkGoodsOptionAndSet(gitem, oplst)
+                    } else {
+                        if(goods.keySet.contains("option")) {
+                            val oplst = goods("option").asInstanceOf[List[Map[String, BigInt]]]
+                            checkGoodsOptionAndSet(gitem, oplst)
+                        }
+                    }
+                    
+                    gitem.saveInstance
+                    if(gid == -1)
+                        item.addGoods(gitem.getID)
+                }
+
             } else {
-                item.setUsingOption(false)
-                item.setOptions("[]")
-                item.removeAllGoods()
-                val g = MetaModels.metaGoods.newInstance
-                g.saveInstance
-                item.addGoods(g.getID)
+                val gid = goods("id").asInstanceOf[BigInt].toLong
+                val gitem = MetaModels.metaGoods.findOneInstance(gid)
+                if(gitem != null) {
+                    saveGoodsInfo(gitem, goods)
+                    gitem.setOption("[]")
+                    gitem.saveInstance
+                }
             }
-//            if(item.getActive != active) {
-//                item.setActive(active)
-//            }
+        }
+    }
+
+    private def removeProductGoods(item : Product, jobj : JObject) {
+        if(jobj.values.keySet.contains("goods")) {
+            val goodsList = jobj.values("goods").asInstanceOf[List[Map[String, BigInt]]]
+            goodsList.foreach {
+                goods => {
+                    val gid = goods("id").toLong
+                    val gitem = MetaModels.metaGoods.findOneInstance(gid)
+                    gitem.deleteInstance
+                }
+            }
         }
     }
 
@@ -1635,6 +1798,8 @@ object CategoryController extends ModelController[Category]{
     private def getJsonObjectFromRequest() : JObject = {
         val reqstr = this.getRequestContent
 //        val reqstr = "[{\"id\":13, \"groupId\":3, \"valueId\":11, \"categoryId\":56, \"isOptionUsing\": true,\"option\": [],\"name\":[{\"langId\":22, \"name\":\"p2\"},{\"langId\":23, \"name\":\"p2\"},{\"langId\":24, \"name\":\"p2\"}], \"active\":true}]"
+//        val reqstr = "[{\"id\":13,\"goods\":{\"id\":14,\"option\":[{\"groupId\":2,\"valueId\":10}, {\"groupId\":3,\"valueId\":12}]}}]"
+//        val reqstr = "[{\"id\":13,\"goods\":[{\"id\":14}]}]"
         try {
             val jsonList = JsonParser.parse(reqstr).asInstanceOf[JArray].arr
             val jsonObj = jsonList.head.asInstanceOf[JObject]
