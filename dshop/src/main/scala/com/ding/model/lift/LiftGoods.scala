@@ -6,6 +6,7 @@
 package com.ding.model.lift
 
 import com.ding.model._
+import net.liftweb.common.Empty
 import net.liftweb.mapper._
 
 class LiftGoods extends LiftBaseModel[LiftGoods] with Goods{
@@ -93,4 +94,11 @@ object LiftGoods extends LiftGoods with LiftMetaModel[LiftGoods] with MetaGoods 
     override def findOneInstance(id : Long) = {
         LiftGoods.find(By(LiftGoods.goods_id, id)).openOr(null)
     }
+
+//    override def newInstance() = {
+//        val item = this.create
+//        item.bn("")
+//        item.store(Empty)
+//        item
+//    }
 }

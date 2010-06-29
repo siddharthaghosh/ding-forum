@@ -15,6 +15,7 @@ import _root_.net.liftweb.http._
 import Helpers._
 
 import com.ding.util._
+import com.ding.model.lift.Administrator
 
 class DShopFilter extends ServletFilterProvider {
     override def doFilter(req: ServletRequest, res: ServletResponse, chain: FilterChain) = {
@@ -24,13 +25,18 @@ class DShopFilter extends ServletFilterProvider {
                     case (httpReq: HttpServletRequest, httpRes: HttpServletResponse) =>
                         val httpRequest = new HTTPRequestServlet(httpReq)
                         val httpResponse = new HTTPResponseServlet(httpRes)
-                        if(httpRequest.uri.startsWith(httpRequest.contextPath + "/gwtcall") || httpRequest.uri.startsWith(httpRequest.contextPath + "/gwtclient")) {
+                        if(httpRequest.uri.startsWith(httpRequest.contextPath + "/gwtcall")
+//                           || httpRequest.uri.startsWith(httpRequest.contextPath + "/gwtclient")
+                        ) {
                             chain.doFilter(req, res)
                         }else {
                             service(httpRequest, httpResponse) {
                                 chain.doFilter(req, res)
                             }
                         }
+//                        service(httpRequest, httpResponse) {
+//                            chain.doFilter(req, res)
+//                        }
                         
                     case _ => chain.doFilter(req, res)
                 }))
