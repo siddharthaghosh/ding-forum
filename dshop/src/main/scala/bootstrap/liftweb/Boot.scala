@@ -24,7 +24,7 @@ class Boot {
         if (!DB.jndiJdbcConnAvailable_?)
             DB.defineConnectionManager(DefaultConnectionIdentifier, DBVendor)
 
-        LiftRules.passNotFoundToChain = false
+        LiftRules.passNotFoundToChain = true
 // where to search snippet
         LiftRules.addToPackages("com.ding")
         Schemifier.schemify(true, Log.infoF _, schemify_arr : _*)
@@ -34,7 +34,7 @@ class Boot {
 //            })
         FrontController.setupController()
         // Build SiteMap
-        val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("Test", List("test"), "Test")) :: Menu(Loc("Form", List("form"),"Form")):: User.sitemap
+        val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("Test", List("test"), "Test")) :: Menu(Loc("Form", List("form"),"Form")):: Administrator.sitemap
         LiftRules.setSiteMap(SiteMap(entries:_*))
 
         /*
@@ -51,7 +51,7 @@ class Boot {
 
         LiftRules.early.append(makeUtf8)
 
-        LiftRules.loggedInTest = Full(() => User.loggedIn_?)
+        LiftRules.loggedInTest = Full(() => Administrator.loggedIn_?)
 
         S.addAround(DB.buildLoanWrapper)
 
@@ -64,7 +64,7 @@ class Boot {
                                                              LiftOptionGroupName, LiftOptionValue, LiftOptionValueName,
                                                              LiftManufacturer, LiftProduct, LiftProductNameDescription,LiftGoods,
                                                              LiftProductCategory, LiftUploadFile, LiftType, LiftTypeName, LiftTypeOptionGroup,
-                                                             LiftMeasurement, LiftMeasurementName)
+                                                             LiftMeasurement, LiftMeasurementName, Administrator)
     /**
      * Force the request to be UTF-8
      */

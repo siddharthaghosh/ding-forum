@@ -1119,7 +1119,7 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveCategoryParent(item : Category, jobj : JObject) {
-        if(jobj.values.keySet.contains("parentId")) {
+        if(jobj.values.keySet.contains("parentId") && jobj.values("parentId") != null ) {
             val parentId = jobj.values("parentId").asInstanceOf[BigInt].toLong
             if(item.getParentID != parentId)
                 item.setParentID(parentId)
@@ -1137,7 +1137,7 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveCategoryActive(item : Category, jobj : JObject) {
-        if(jobj.values.keySet.contains("active")) {
+        if(jobj.values.keySet.contains("active")  && jobj.values("active") != null ) {
             val active = jobj.values("active").asInstanceOf[Boolean]
             if(item.getActive != active) {
                 item.setActive(active)
@@ -1146,7 +1146,7 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveCategoryType(item : Category, jobj : JObject) {
-        if(jobj.values.keySet.contains("typeId")) {
+        if(jobj.values.keySet.contains("typeId") && jobj.values("typeId") != null ) {
             val t = jobj.values("typeId").asInstanceOf[BigInt]
             item.setType(t.toLong)
         }
@@ -1571,7 +1571,7 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveCategoryName(item : Category, jobj : JObject) {
-        if (jobj.values.keySet.contains("name")) {
+        if (jobj.values.keySet.contains("name") && jobj.values("name") != null ) {
             val nameArr = jobj.values("name").asInstanceOf[List[Map[String, _]]]
             nameArr foreach {
                 nameItem => {
@@ -1601,7 +1601,7 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveCategoryImage(item : Category, jobj : JObject) {
-        if(jobj.values.keySet.contains("image")) {
+        if(jobj.values.keySet.contains("image") && jobj.values("image") != null ) {
             val imageArr = jobj.values("image").asInstanceOf[List[String]]
             val jsonStr = JsonUtils.StringListToJsonStringArrayStr(imageArr)
             if(item.getImage != jsonStr) {
@@ -1621,7 +1621,7 @@ object CategoryController extends ModelController[Category]{
     }
 
     private def saveCategoryDisplayOrder(item : Category, jobj : JObject) {
-        if(jobj.values.keySet.contains("displayOrder")){
+        if(jobj.values.keySet.contains("displayOrder") && jobj.values("displayOrder") != null ){
             val displayArr = jobj.values("displayOrder").asInstanceOf[List[Map[String, _]]]
             displayArr.foreach {
                 displayItem => {

@@ -24,15 +24,18 @@ object FrontController {
 
     val controller_func : LiftRules.DispatchPF = {
         
-        case Req(List("gwtclient", _*), _, _) /* if Administrator.notLoggedIn_? */ => {
-                () => {
-                    println("not loggin yet!!!!!!!!!!!")
-                    Full(RedirectResponse("/adminlogin.html"))
-                }
-            }
+//        case Req(List("gwtclient", _*), _, _) /* if Administrator.notLoggedIn_? */ => {
+//                () => {
+//                    println("not loggin yet!!!!!!!!!!!")
+//                    Full(RedirectResponse("/adminlogin.html"))
+//                }
+//            }
 
         case Req(List("certificate", _*), _, _) => {
-                () => dispathProcess()
+//                () => dispathProcess()
+                () => {
+                    Full(RedirectResponse("/adminlogin.html"))
+                }
             }
 
         case Req(List("admin", _*), _, _) => {
