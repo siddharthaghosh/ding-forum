@@ -14,6 +14,7 @@ import _root_.com.ding.model.lift._
 import _root_.javax.servlet.http.{HttpServletRequest}
 import com.ding.controller._
 import com.ding.util._
+import _root_.scala.xml.{NodeSeq, Text}
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -25,6 +26,18 @@ class Boot {
             DB.defineConnectionManager(DefaultConnectionIdentifier, DBVendor)
 
         LiftRules.passNotFoundToChain = true
+        LiftRules.useXhtmlMimeType = false
+        LiftRules.enableLiftGC = false
+        LiftRules.autoIncludeAjax = {
+            session => {
+                false
+            }
+        }
+//        LiftRules.liftRequest.append {
+////            case Req("client"::"admin_client"::_, _, _) => true
+////            case Req("client"::"certificate_cilent"::_,_,_) => true
+//        }
+
 // where to search snippet
         LiftRules.addToPackages("com.ding")
         Schemifier.schemify(true, Log.infoF _, schemify_arr : _*)
@@ -34,20 +47,40 @@ class Boot {
 //            })
         FrontController.setupController()
         // Build SiteMap
-        val entries = Menu(Loc("Home", List("index"), "Home")) :: Menu(Loc("Test", List("test"), "Test")) :: Menu(Loc("Form", List("form"),"Form")):: Administrator.sitemap
+        val adminMenu = Menu(
+            Loc("Admin",
+                ("client"::"admin_client"::"eshop"::Nil),
+                "Admin",
+                If(
+                    ()=>Administrator.loggedIn_?, ()=> ForbiddenResponse()
+                )
+            )
+        )
+//        val myLink = MyLink.strPairToMyLink("client"::"certificate_client"::Nil,true)
+        val certLoc = Loc("certificate",
+                          ("client"::"certificate_client"::"admin"::"login"::Nil),
+                          "Certificate"
+        )
+        val certificateMenu = Menu(
+            certLoc
+        )
+        val testLoc = Loc("TestMatchHead", ("test"::Nil), "TestMatchHead")
+        val testMenu = Menu(testLoc)
+        val entries = Menu(Loc("Home", List("index"), "Home")) :: testMenu::Menu(Loc("Form", List("form"),"Form"))::  adminMenu :: certificateMenu :: Administrator.sitemap
+        
         LiftRules.setSiteMap(SiteMap(entries:_*))
 
-        /*
-         * Show the spinny image when an Ajax call starts
-         */
-        LiftRules.ajaxStart =
-            Full(() => LiftRules.jsArtifacts.show("ajax-loader").cmd)
-
-        /*
-         * Make the spinny image go away when it ends
-         */
-        LiftRules.ajaxEnd =
-            Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
+//        /*
+//         * Show the spinny image when an Ajax call starts
+//         */
+//        LiftRules.ajaxStart =
+//            Full(() => LiftRules.jsArtifacts.show("ajax-loader").cmd)
+//
+//        /*
+//         * Make the spinny image go away when it ends
+//         */
+//        LiftRules.ajaxEnd =
+//            Full(() => LiftRules.jsArtifacts.hide("ajax-loader").cmd)
 
         LiftRules.early.append(makeUtf8)
 
@@ -145,5 +178,34 @@ object DBVendor extends ConnectionManager {
         notify
     }
 }
+
+class MyLink[-T](override val uriList: List[String], override val matchHead_? : Boolean) extends Link(uriList, matchHead_?) {
+    def this(b: List[String]) = this(b, false)
+
+    override def isDefinedAt(req: Req): Boolean = {
+        println("link matchHead_? : " + this.matchHead_?)
+        if (matchHead_?) {
+            println("head matched")
+            req.path.partPath.take(uriList.length) == uriList
+        }
+        else {
+            println("head no match")
+            uriList == req.path.partPath
+        }
+    }
+
+//    def createLink(value: T): Box[NodeSeq] = Full(Text(createPath(value)))
+}
+object MyLink {
+    def apply(urlLst: List[String], matchHead_? : Boolean, url: String) = {
+        new MyLink[Unit](urlLst, matchHead_?) {
+            /* override */ def createLink(value: Unit): Box[NodeSeq] = Full(Text(url))
+        }
+    }
+
+    implicit def strLstToMyLink(in: Seq[String]): MyLink[Unit] = new MyLink[Unit](in.toList)
+    implicit def strPairToMyLink(in: (Seq[String], Boolean)): MyLink[Unit] = new MyLink[Unit](in._1.toList, in._2)
+}
+
 
 

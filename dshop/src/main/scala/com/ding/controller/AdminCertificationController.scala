@@ -28,9 +28,17 @@ object AdminCertificationController extends BaseController{
 
     private def loginProcess() = {
         if(Administrator.notLoggedIn_?) {
+            println("login processing")
+            print("username: ")
+            println(S.param("username").openOr("not username"))
+            print("password: ")
+            println(S.param("password").openOr("not password"))
+
             Administrator.login
 //            println(Administrator.loggedIn_?)
         }
-        Full(OkResponse())
+        val url = S.hostAndPath + Administrator.homePage
+
+        Full(JsonResponse(JObject(JField("url", JString(url))::Nil)))
     }
 }

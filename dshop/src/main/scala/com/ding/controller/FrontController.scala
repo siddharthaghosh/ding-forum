@@ -14,22 +14,34 @@ import net.liftweb.json.JsonAST._
 import com.ding.model._
 import com.ding.model.lift._
 import com.ding.util._
+import net.liftweb.sitemap._
 
 object reqInfo extends RequestVar[RequestInfo]({new RequestInfo})
-object loginInfo extends SessionVar[String]({"notlogin"})
+//object loginInfo extends SessionVar[String]({"notlogin"})
 
 object FrontController {
 
     //requestPathProcess()
 
     val controller_func : LiftRules.DispatchPF = {
-        
-        case Req(List("gwtclient", _*), _, _) /* if Administrator.notLoggedIn_? */ => {
-                () => {
-                    println("not loggin yet!!!!!!!!!!!")
-                    Full(RedirectResponse("/adminlogin.html"))
-                }
+
+        case Req("client"::"admin_client"::"eshop"::Nil, _, _) if Administrator.notLoggedIn_? => {
+                () => Full(RedirectResponse("/client/certificate_client/admin/login.html"))
             }
+        
+        case Req("client"::"admin_client"::_, _, _) if Administrator.notLoggedIn_? => {
+                () => Full(ForbiddenResponse())
+            }
+//        case req @ Req("client"::"certificate_client"::_, _, _) => {
+//                () => {
+//                    val certLoc = Loc("certificate",
+//                                      ("client"::"certificate_client"::Nil,true),
+//                                      "Certificate"
+//                    )
+//                    val text = if(certLoc.link.isDefinedAt(req)) {"match"} else {"nomatch"}
+//                    Full(InMemoryResponse(text.getBytes, ("Content-Type","text/html")::Nil, Nil,200))
+//                }
+//            }
 
         case Req(List("certificate", _*), _, _) => {
                 () => dispathProcess()
@@ -81,36 +93,24 @@ object FrontController {
 
     private def dispathProcess() : Box[LiftResponse] = {
 
-        if(loginInfo.is != "notlogin") {
-            Full(ForbiddenResponse("must login first"))
-        } else {
-            requestPathProcess()
+//        if(loginInfo.is != "notlogin") {
+//            Full(ForbiddenResponse("must login first"))
+//        } else {
+        requestPathProcess()
 
-            /*
-             * authorization code here, next step
-             */
-
-            reqInfo.is.module match {
-                case "certificate" => certificateProcess()
-                case "admin" => {
-                        adminProcess()
-                    }
-                case "image" => imageProcess()
-//                case "module" => moduleProcess()
-                case _ => Full(NotFoundResponse())
-            }
-        }
-        
         /*
          * authorization code here, next step
          */
-//        val req = S.request.open_!
-//        val path = req.path
-//        val partpath = path.partPath
-//
-//        partpath(1) match {
-//            case "language" => admin.LanguageController.process()
-//            case _ => Full(NotFoundResponse())
+
+        reqInfo.is.module match {
+            case "certificate" => certificateProcess()
+            case "admin" => {
+                    adminProcess()
+                }
+            case "image" => imageProcess()
+//                case "module" => moduleProcess()
+            case _ => Full(NotFoundResponse())
+        }
 //        }
     }
 
