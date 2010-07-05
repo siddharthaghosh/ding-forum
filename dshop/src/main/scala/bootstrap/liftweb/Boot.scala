@@ -37,6 +37,14 @@ class Boot {
 ////            case Req("client"::"admin_client"::_, _, _) => true
 ////            case Req("client"::"certificate_cilent"::_,_,_) => true
 //        }
+        LiftSession.onBeginServicing = (
+            (session :LiftSession, req : Req) => {
+                S.addSessionRewriter("AdminLoginTest", {
+                        case RewriteRequest(ParsePath("client"::"admin_client"::"eshop"::Nil,"html",_,_),_,_) => 
+                            RewriteResponse("client"::"certificate_client"::"admin"::"login"::Nil, "html")
+                    })
+                return
+            })::LiftSession.onBeginServicing
 
 // where to search snippet
         LiftRules.addToPackages("com.ding")

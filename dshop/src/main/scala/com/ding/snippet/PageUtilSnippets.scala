@@ -10,13 +10,16 @@ import _root_.net.liftweb.util.Helpers
 import Helpers._
 import _root_.net.liftweb.http.S
 import _root_.net.liftweb.http.js
+import _root_.net.liftweb.common._
 
-class UrlUtils {
+class PageUtilSnippets {
 
-    def context(in: NodeSeq): NodeSeq =
-        Helpers.bind("context", in, "context" -> S.contextPath)
+    def setDHTML4DocType(kids: NodeSeq): NodeSeq = {
+        S.setDocType(Full("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">"))
+        kids
+    }
 
-    def contextToJS(in: NodeSeq) : NodeSeq = {
+    def setContextToJS(in: NodeSeq) : NodeSeq = {
         import js._
         import JsCmds._
         import JE._
