@@ -7,6 +7,7 @@ package com.ding.controller
 
 import net.liftweb.http._
 import com.ding.model._
+import com.ding.util._
 import net.liftweb.util._
 import net.liftweb.util.Helpers._
 import net.liftweb.http._
