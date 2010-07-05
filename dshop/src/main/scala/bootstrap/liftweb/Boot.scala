@@ -37,14 +37,13 @@ class Boot {
 ////            case Req("client"::"admin_client"::_, _, _) => true
 ////            case Req("client"::"certificate_cilent"::_,_,_) => true
 //        }
-        LiftSession.onBeginServicing = (
-            (session :LiftSession, req : Req) => {
-                S.addSessionRewriter("AdminLoginTest", {
-                        case RewriteRequest(ParsePath("client"::"admin_client"::"eshop"::Nil,"html",_,_),_,_) => 
-                            RewriteResponse("client"::"certificate_client"::"admin"::"login"::Nil, "html")
-                    })
-                return
-            })::LiftSession.onBeginServicing
+        def sessionBeginServicingFunc(session :LiftSession, req : Req) {
+            S.addSessionRewriter("AdminLoginTest", {
+                    case RewriteRequest(ParsePath("client"::"admin_client"::"eshop"::Nil,"html",_,_),_,_) if Administrator.notLoggedIn_? =>
+                        RewriteResponse("client"::"certificate_client"::"admin"::"login"::Nil, "html")
+                })
+        }
+        LiftSession.onBeginServicing = sessionBeginServicingFunc _ :: LiftSession.onBeginServicing
 
 // where to search snippet
         LiftRules.addToPackages("com.ding")
