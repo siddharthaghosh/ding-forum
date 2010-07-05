@@ -54,6 +54,12 @@ class Boot {
 //            })
         FrontController.setupController()
         // Build SiteMap
+        val clientMenu = Menu(
+            Loc("Client",
+                ("client"::"index"::Nil),
+                "Client"
+            )
+        )
         val adminMenu = Menu(
             Loc("Admin",
                 ("client"::"admin_client"::"eshop"::Nil),
@@ -73,7 +79,7 @@ class Boot {
         )
         val testLoc = Loc("TestMatchHead", ("test"::Nil), "TestMatchHead")
         val testMenu = Menu(testLoc)
-        val entries = Menu(Loc("Home", List("index"), "Home")) :: testMenu::Menu(Loc("Form", List("form"),"Form"))::  adminMenu :: certificateMenu :: Administrator.sitemap
+        val entries = Menu(Loc("Home", List("index"), "Home")) :: testMenu::Menu(Loc("Form", List("form"),"Form")) :: clientMenu :: adminMenu :: certificateMenu :: Administrator.sitemap
         
         LiftRules.setSiteMap(SiteMap(entries:_*))
 
