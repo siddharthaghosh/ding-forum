@@ -27,7 +27,7 @@ object FrontController {
 
 //        case Req("client"::"admin_client"::"eshop"::Nil, _, _) if Administrator.notLoggedIn_? => {
 //                () => {
-//                    val resultNode = S.runTemplate("client"::"certificate_client"::"admin"::"login"::Nil).open_!
+////                    val resultNode = S.runTemplate("client"::"certificate_client"::"admin"::"login"::Nil).open_!
 ////                    val resultResponse = XmlResponse(resultNode, "")
 //                    Full(RedirectResponse("/client/certificate_client/admin/login.html"))
 //                }
