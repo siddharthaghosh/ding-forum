@@ -25,22 +25,16 @@ object FrontController {
 
     val controller_func : LiftRules.DispatchPF = {
 
-        case Req("client"::"admin_client"::"eshop"::Nil, _, _) if Administrator.notLoggedIn_? => {
-                () => Full(RedirectResponse("/client/certificate_client/admin/login.html"))
-            }
-        
-        case Req("client"::"admin_client"::_, _, _) if Administrator.notLoggedIn_? => {
-                () => Full(ForbiddenResponse())
-            }
-//        case req @ Req("client"::"certificate_client"::_, _, _) => {
+//        case Req("client"::"admin_client"::"eshop"::Nil, _, _) if Administrator.notLoggedIn_? => {
 //                () => {
-//                    val certLoc = Loc("certificate",
-//                                      ("client"::"certificate_client"::Nil,true),
-//                                      "Certificate"
-//                    )
-//                    val text = if(certLoc.link.isDefinedAt(req)) {"match"} else {"nomatch"}
-//                    Full(InMemoryResponse(text.getBytes, ("Content-Type","text/html")::Nil, Nil,200))
+//                    val resultNode = S.runTemplate("client"::"certificate_client"::"admin"::"login"::Nil).open_!
+////                    val resultResponse = XmlResponse(resultNode, "")
+//                    Full(RedirectResponse("/client/certificate_client/admin/login.html"))
 //                }
+//            }
+        
+//        case Req("client"::"admin_client"::_, _, _) if Administrator.notLoggedIn_? => {
+//                () => Full(ForbiddenResponse())
 //            }
 
         case Req(List("certificate", _*), _, _) => {
