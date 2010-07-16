@@ -54,11 +54,25 @@ class Boot {
 //            })
         FrontController.setupController()
         // Build SiteMap
+        val clientCategoryMenu = Menu(
+            Loc("Category",
+                ("client"::"category"::Nil),
+                "Category"
+            )
+        )
+        val clientProductMenu = Menu(
+            Loc("Product",
+                ("client"::"product"::Nil),
+                "Product"
+            )
+        )
         val clientMenu = Menu(
             Loc("Client",
                 ("client"::"index"::Nil),
                 "Client"
-            )
+            ),
+            clientCategoryMenu,
+            clientProductMenu
         )
         val adminMenu = Menu(
             Loc("Admin",
