@@ -27,4 +27,11 @@ class PageUtilSnippets {
         val node = JsCmds.Script(JsCrVar("applicationContextPath", JsRaw(context)))
         node
     }
-}
+
+    def title(in : NodeSeq) : NodeSeq = {
+        val titleContent = "title -- unfinish here"
+        <title>
+            {titleContent}
+        </title>
+    }
+ }
