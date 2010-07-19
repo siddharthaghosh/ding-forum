@@ -66,13 +66,27 @@ class Boot {
                 "Product"
             )
         )
+        val cartMenu = Menu(
+            Loc("Cart",
+                ("client"::"cart"::Nil),
+                "Cart"
+            )
+        )
+        val paymentMenu = Menu(
+            Loc("Payment",
+                ("client"::"pay"::Nil),
+                "Payment"
+            )
+        )
         val clientMenu = Menu(
             Loc("Client",
                 ("client"::"index"::Nil),
                 "Client"
             ),
             clientCategoryMenu,
-            clientProductMenu
+            clientProductMenu,
+            cartMenu,
+            paymentMenu
         )
         val adminMenu = Menu(
             Loc("Admin",
