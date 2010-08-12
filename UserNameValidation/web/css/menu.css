@@ -1,0 +1,50 @@
+ul, li {
+    list-style: none;
+    
+}
+
+ul {
+    padding: 0px;
+    margin: 0px;
+}
+
+.mainMenu, .hmainMenu {
+    background-image: url(../images/title.gif);
+    background-repeat: repeat-x;
+    width: 250px;
+}
+
+.hmainMenu {
+    float: left;
+    margin-left: 1px;
+}
+
+li {
+    background-color: #EEEEEE;
+}
+
+a {
+    text-decoration: none;
+    padding-left: 20px;
+    display: block;
+    display: inline-block;
+    width: 230px;
+    padding-top: 4px;
+    padding-bottom: 3px;
+}
+
+.mainMenu li a, .hmainMenu li a {
+    color: black;
+    background-image: none;
+}
+
+.mainMenu a, .hmainMenu a {
+    color: white;
+    background-image: url(../images/collapsed.gif);
+    background-repeat: no-repeat;
+    background-position: 3px center;
+}
+
+.mainMenu ul, .hmainMenu ul {
+    display: none;
+}

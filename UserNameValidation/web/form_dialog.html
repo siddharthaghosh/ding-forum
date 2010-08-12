@@ -1,0 +1,81 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Form</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="css/validationEngine.jquery.css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/template.css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.8.2.custom.css" media="screen" charset="utf-8">
+    <script type="text/javascript" src="js/jquery-1.4.2.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.2.custom.js"></script>
+    <script type="text/javascript" src="js/jquery.form.js"></script>
+    <script type="text/javascript" src="js/jquery.validationEngine-en.js"></script>
+    <script type="text/javascript" src="js/jquery.validationEngine.js"></script>
+    <script type="text/javascript">
+        <!--
+        $(function () {
+            var options = {
+                beforeSubmit : showRequest,
+                success : showResponse,
+                complete : requestComplete
+            };
+            $("#myForm1").ajaxForm(options);
+            $("#myForm1").validationEngine({
+                promptPosition : "topRight"
+            });
+            $("#myForm1").dialog({
+                title : "login",
+                modal : false,
+                draggable : false,
+                resizable : false
+            });
+        });
+
+        function showRequest(data, form, option) {
+            $("#myForm1 input").attr("disabled", "disabled");
+            return true;
+        }
+
+        function showResponse(response, status, xhr, form) {
+        }
+
+        function requestComplete(xhr, status) {
+            $("#myForm1 input").removeAttr("disabled");
+        }
+        -->
+    </script>
+  </head>
+  <body>
+      <form id="myForm1" action="uname_pwd" method="post">
+              <table>
+                  <tbody>
+                      <tr>
+                          <td>
+                              name:
+                          </td>
+                          <td>
+                              <input id="txtName" type="text" name="username" value="MyName" class="validate[required,custom[noSpecialCaracters],length[0,20]]"/>
+                          </td>
+                      </tr>
+                      <tr>
+                          <td>
+                              password:
+                          </td>
+                          <td>
+                              <input id="pwdPassword" type="password" name="password" />
+                          </td>
+                      </tr>
+                      <tr>
+                          <td>
+                              <input id="btnSubmit" type="submit" value="sub" />
+                          </td>
+                      </tr>
+                  </tbody>
+              </table>
+      </form>
+  </body>
+</html>

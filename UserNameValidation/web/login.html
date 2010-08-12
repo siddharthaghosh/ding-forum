@@ -1,0 +1,93 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+    <head>
+        <title>Form</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="css/validationEngine.jquery.css" media="screen" title="no title" charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="css/template.css" media="screen" title="no title" charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.8.2.custom.css" media="screen" charset="utf-8">
+        <script type="text/javascript" src="js/jquery-1.4.2.js"></script>
+        <script type="text/javascript" src="js/jquery-ui-1.8.2.custom.js"></script>
+        <script type="text/javascript" src="js/jquery.form.js"></script>
+        <script type="text/javascript" src="js/jquery.validationEngine-en.js"></script>
+        <script type="text/javascript" src="js/jquery.validationEngine.js"></script>
+        <script type="text/javascript">
+            <!--
+            $(function () {
+                var options = {
+                    beforeSubmit : showRequest,
+                    success : showResponse,
+                    complete : requestComplete
+                };
+                $("#myForm1").ajaxForm(options);
+                $("#myForm1").validationEngine({
+                    promptPosition : "topRight"
+                });
+                $("#btnLogin, #btnReset").button();
+                $("#btnLogin").click(function() {
+                    var isValid = $("#myForm1").validationEngine({returnIsValid:true});
+                    return isValid;
+                });
+                $("#btnReset").click(function(){
+                    $("#myForm1").resetForm();
+                    $("#txtName").select();
+                    return false;
+                });
+                $("#txtName").select();
+                SetWidgetCenter($("#loginContainer"));
+            });
+
+            function SetWidgetCenter(target) {
+                var h = $(target).height();
+                var w = $(target).width();
+                var win_h = $(window).height();
+                var win_w = $(window).width();
+                $(target).css("top", (win_h-h)/2);
+                $(target).css("left", (win_w-w)/2);
+                $(target);
+            }
+
+            function showRequest(data, form, option) {
+                $("#myForm1 input, #myForm1 button").attr("disabled", "disabled");
+                alert("sending...");
+                return true;
+            }
+
+            function showResponse(response, status, xhr, form) {
+            }
+
+            function requestComplete(xhr, status) {
+                alert(status);
+                $("#myForm1 input, #myForm1 button").removeAttr("disabled");
+            }
+            -->
+        </script>
+    </head>
+    <body>
+        <div id="loginContainer" style="outline-width: 0px; outline-style: initial; outline-color: initial; height: auto; width: 400px; display: block; z-index: 1001; " class="ui-dialog ui-widget ui-widget-content ui-corner-all ">
+            <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix">
+                <span class="ui-dialog-title">login</span>
+            </div>
+            <form id="myForm1" action="uname_pwd" method="post" class="ui-dialog-content ui-widget-content" style="width: auto; min-height: 75px; height: auto">
+                <fieldset>
+                    <legend>UserName and Password</legend>
+                    <label>
+                        <span>UserName:</span><br/>
+                        <input id="txtName" type="text" name="username" value="Input UserName" class="validate[required,custom[noSpecialCaracters],length[0,20]]"/>
+                        <br/>
+                    </label>
+                    <label>
+                        <span>Password:</span><br/>
+                        <input id="pwdPassword" type="password" name="password" class="validate[required]"/>
+                    </label>
+                </fieldset>
+                <button id="btnReset" style="float : right">Reset</button>
+                <button id="btnLogin" style="float : right">Login</button>
+            </form>
+        </div>
+    </body>
+</html>
