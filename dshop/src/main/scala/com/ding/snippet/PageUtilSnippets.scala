@@ -19,6 +19,11 @@ class PageUtilSnippets {
         kids
     }
 
+    def setXHTMLDocType(kids: NodeSeq): NodeSeq = {
+        S.setDocType(Full("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\">"))
+        kids
+    }
+
     def setContextToJS(in: NodeSeq) : NodeSeq = {
         import js._
         import JsCmds._
@@ -34,4 +39,4 @@ class PageUtilSnippets {
             {titleContent}
         </title>
     }
- }
+}
