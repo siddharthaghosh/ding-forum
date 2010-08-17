@@ -14,6 +14,9 @@ import net.liftweb.http.S
 class CategorySnippet {
 
     def metaModel = MetaModels.metaCategory
+    val rootCatId = 0
+    val rootCategory = metaModel.findOneInstance(rootCatId)
+
     def categoryMenu(kids: NodeSeq): NodeSeq = {
         val rootId = 0
         val rootCat = metaModel.findOneInstance(rootId)
@@ -23,9 +26,9 @@ class CategorySnippet {
                 makeCategoryNode(childCat)
             }
         }
-            <ul>
-                {childrenNodes}
-            </ul>
+        <ul>
+            {childrenNodes}
+        </ul>
     }
 
     def productList(kids: NodeSeq) : NodeSeq = {
@@ -46,6 +49,55 @@ class CategorySnippet {
                 {prolist}
             </div>
         </div>
+    }
+
+    def allCategory(kids : NodeSeq) : NodeSeq = {
+        val childrenCats1stLev = rootCategory.children()
+        val FirstLevNodes = childrenCats1stLev.flatMap {
+            childCat => {
+                make1stLevelCategoryNode(childCat)
+            }
+        }
+        FirstLevNodes
+    }
+
+    private def make1stLevelCategoryNode(category : Category) : NodeSeq = {
+    
+        val title = category.getName(LanguageUtils.getDefaultLang())
+        val titleUrl = makeCategoryURL(category)
+        val titleLink = <a href={titleUrl}>{title}</a>
+        val titleNode = <div class="ding-topCategory-titlebar">{titleLink}</div>
+        val childrenNode = category.children.flatMap {
+            child => {
+                make2ndLevelCategoryNode(child)
+            }
+        }
+        val contentNode = <div class="ding-topCategory-content">{childrenNode}</div>
+        val innerNode = titleNode ++ contentNode
+        <div class="ding-topCategory">{innerNode}</div>
+    }
+    
+    private def make2ndLevelCategoryNode(category : Category) : NodeSeq = {
+        val title = category.getName(LanguageUtils.getDefaultLang())
+        val titleUrl = makeCategoryURL(category)
+        val titleLink = <a href={titleUrl}>{title}</a>
+        val titleNode = <dt>{titleLink}</dt>
+        val childrenNode = category.children.flatMap {
+            child => {
+                make3rdLevelCategoryNode(child)
+            }
+        }
+        val contentNode = <dd>{childrenNode}</dd>
+        val innerNode = titleNode ++ contentNode
+        <dl>{innerNode}</dl>
+    }
+
+    private def make3rdLevelCategoryNode(category : Category) : NodeSeq = {
+        val title = category.getName(LanguageUtils.getDefaultLang())
+        val titleUrl = makeCategoryURL(category)
+        val titleLink : NodeSeq = <a href={titleUrl}>{title}</a>
+        titleLink
+        <span>{titleLink}</span>
     }
 
     private def getAllProduct(category : Category) : List[Product] = {
