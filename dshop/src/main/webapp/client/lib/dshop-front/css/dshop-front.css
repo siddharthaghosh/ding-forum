@@ -1,3 +1,6 @@
+/*
+ * topCategoryContainer
+ */
 .ding-topCategory {
     margin-bottom: 10px;
 }
@@ -5,15 +8,20 @@
 .ding-topCategory .ding-topCategory-titlebar {
     font-size: 1.2em;
     padding: 3px;
+}
 
+.ding-topCategory .ding-topCategory-titlebar .ui-icon {
+    float: left;
+    margin-right: 5px;
 }
 
 .ding-topCategory .ding-topCategory-content {
-    padding: 5px;
+    padding: 5px 5px 0px 5px;
     border-top-style: none;
 }
 
-.ding-topCategory dl {
+.ding-topCategory dl , .ding-topCategory dl.ui-state-default {
+    position: relative;
     margin: 0px;
     padding: 5px;
     border-left-style: none;
@@ -31,6 +39,7 @@
 }
 
 .ding-topCategory dd {
+    font-weight: normal;
     float: left;
     margin: 0px;
     width: 75%;
@@ -42,7 +51,6 @@
 
 .ding-topCategory .lastOne {
     border-bottom-style: none;
-    padding-bottom: 0px;
 }
 
 .ding-topCategory a {
