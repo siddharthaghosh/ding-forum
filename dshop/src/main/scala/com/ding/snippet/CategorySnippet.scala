@@ -10,6 +10,9 @@ import com.ding.model._
 import com.ding.util.MetaModels
 import com.ding.util.LanguageUtils
 import net.liftweb.http.S
+import net.liftweb.http.SHtml
+import net.liftweb.util.Helpers._
+import scala.xml.Text
 
 class CategorySnippet {
 
@@ -37,17 +40,18 @@ class CategorySnippet {
         val allproducts = getAllProduct(citem)
         val prolist = allproducts.flatMap {
             product => {
-                <li>
-                    <a href={makeProductURL(product)}>{product.getName(LanguageUtils.getDefaultLang)}</a>
-                </li>
+                makeProductNode(product)
             }
         }
-        <div>
-            <div>CategoryId: {cid.toString}</div>
-            <div>
-                Products:&nbsp;
-                {prolist}
-            </div>
+//        <div>
+//            <div>CategoryId: {cid.toString}</div>
+//            <div>
+//                Products:&nbsp;
+//                {prolist}
+//            </div>
+//        </div>
+        <div class="productShowcase">
+            {prolist}
         </div>
     }
 
@@ -143,5 +147,43 @@ class CategorySnippet {
         val params = "?productid=" + product.getID.toString
         val baseurl = "/client/product.html"
         baseurl + params
+    }
+
+    private def makePictureURL(pic : String) : String = {
+
+        val params = "?filename=" + urlEncode(pic)
+        val baseurl = "/image/thumbnail/image"
+        baseurl + params
+    }
+
+    private def makeProductNode(product : Product) : NodeSeq = {
+
+        val desc = product.getName(LanguageUtils.getDefaultLang)
+        val imageUrl = product.getFirstImageFileLocation
+        val mprice = product.Goods.head.getMarketPrice
+        val price = product.Goods.head.getPrice
+        val gid = product.Goods.head.getID
+        //图片显示
+        val imageNode = <img src={makePictureURL(imageUrl)} alt={desc}></img>
+        val imageLinkNode = <a target="_blank" href={makeProductURL(product)}>{imageNode}</a>
+        val imageDivNode = <div class="picture">{imageLinkNode}</div>
+        //描述显示
+        val descLinkNode = <a target="_blank" href={makeProductURL(product)}>{desc}</a>
+        val descDivNode = <div class="brief">{descLinkNode}</div>
+        //价格显示
+        val mpriceNode = <span>{mprice.toString}</span>
+        val priceNode = <span>{price.toString}</span>
+        val priceDivNode = <div class="price">{mpriceNode ++ priceNode}</div>
+//        //按钮显示
+//        val buyBtnNode : NodeSeq = <a target="_blank" href="#">{"buy"}</a>
+        val buyBtnNode : NodeSeq = SHtml.link("/client/cart.html",
+                                              () => {CartInfo.addItem(gid)},
+                                              Text("Buy"),
+                                              ("target", "_blank"))
+        val btnDivNode : NodeSeq = <div class="toolbar">{buyBtnNode}</div>
+        val resultNode = <div class="productCase">
+            {imageDivNode ++ descDivNode ++ priceDivNode ++ btnDivNode}
+                         </div>
+        resultNode
     }
 }
