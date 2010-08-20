@@ -69,7 +69,7 @@ object ImageUtils {
 //            }
 //            tnY = tnY + 1
 //        }
-        val destBuffer = ImageResizer.max(Some(ImageOrietation.ok), bi, width, height)
+        val destBuffer = ImageResizer.max(Some(ImageOrientation.ok), bi, width, height)
         destBuffer
 
     }
