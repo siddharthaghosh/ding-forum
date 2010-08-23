@@ -57,6 +57,10 @@
  * productShowcase
 */
 
+.productCase {
+    position: relative;
+}
+
 .productCase .picture {
     padding: 10px;
     margin: 0px 0px 5px 0px;
@@ -72,13 +76,13 @@
 
 .productCase .picture img {
     width: 200px;
+    height: 150px;
     padding: 0px;
     border-width: 0px;
     border-style: none;
 }
 
 .productCase .brief {
-    height: 36px;
     overflow:hidden;
     text-align: center;
     padding-left: 10px;
@@ -87,7 +91,6 @@
 }
 
 .productCase .brief a {
-    line-height: 18px;
     text-decoration: none;
     overflow:hidden;
     word-wrap: break-word;
@@ -100,18 +103,27 @@
     margin: 0px 0px 5px 0px;
 }
 
-.productCase .price span {
-    width: 45%;
-    float: left;
-    text-align: center;
+.productCase .price .marketPrice, .productCase .price .vipPrice {
+    margin: 0px 0px 5px 0px;
 }
 
-.productCase .price span.market-price {
+.productCase .price .marketPrice label {
+    float: left;
+    margin-right: 10px;
+}
+
+.productCase .price .marketPrice span {
+    float: left;
     text-decoration: line-through;
 }
 
-.productCase .price span.onsale-price {
+.productCase .price .vipPrice {
     color: red;
+}
+
+.productCase .price .vipPrice label {
+    float: left;
+    margin-right: 10px;
 }
 
 .productCase .toolbar {
@@ -121,7 +133,7 @@
 }
 
 .productCase .toolbar .ui-button-text {
-    padding: 2px 8px 2px 8px;
+    padding: 0px 8px 0px 8px;
 }
 
 .productCase .toolbar a {
