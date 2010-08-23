@@ -1,5 +1,5 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/">
-  <head>
+    <head>
     <lift:PageUtilSnippets.title>
     </lift:PageUtilSnippets.title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -18,15 +18,39 @@
         // <![CDATA[
         $(function() {
             $("#topCategoryContainer").topCategoryContainer();
+
+            $(".productCase").productCase();
         });
         // ]]>
     </script>
-  </head>
-  <body>
-      <div id="topCategoryContainer" class="container_16">
-            <lift:CategorySnippet.allCategory>
-            </lift:CategorySnippet.allCategory>
-      </div>
-        
-  </body>
+</head>
+<body>
+    <div id="topCategoryContainer" class="container_16">
+        <lift:CategorySnippet.allCategory>
+        </lift:CategorySnippet.allCategory>
+    </div>
+
+    <div class="productShowcase container_16">
+        <div class="productCase grid_4">
+            <div class="picture">
+                <a href="/client/product.html?productid=13" target="_blank">
+                    <img src="/client/a.jpg" alt="666" />
+                </a>
+            </div>
+            <div class="brief">
+                <a href="/client/product.html?productid=13" target="_blank">hello, this is 234324134ere adsfasdhkjhkjhkljhkjlhkjhkjhkljhjhgjhgjhgkhgkj</a>
+            </div>
+            <div class="price">
+                <span class="market-price">14.0</span>
+                <span class="onsale-price">12.0</span>
+            </div>
+            <div class="toolbar">
+                <a href="#" target="_blank">buy</a>
+            </div>
+        </div>
+    </div>
+
+
+
+</body>
 </html>
