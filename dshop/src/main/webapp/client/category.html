@@ -2,14 +2,37 @@
   <head>
     <lift:PageUtilSnippets.title>
     </lift:PageUtilSnippets.title>
+    <lift:PageUtilSnippets.setXHTMLDocType>
+    </lift:PageUtilSnippets.setXHTMLDocType>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="css/960gs/960.css" media="all" charset="utf-8" />
+<!--    <link rel="stylesheet" type="text/css" media="screen" href="css/cupertino-custom/jquery-ui-1.8.4.custom.css" />-->
+<link rel="stylesheet" type="text/css" media="screen" href="css/smoothness/jquery-ui-1.8.2.custom.css" />
+    <link rel="stylesheet" type="text/css" media="screen" href="lib/dshop-front/css/dshop-front.css" />
+    <script src="lib/jquery/jquery-1.4.2.min.js" type="text/javascript"></script>
+    <script src="lib/jquery-ui/jquery-ui-1.8.2.custom.min.js" type="text/javascript"></script>
+    <script src="lib/dshop-front/js/dshop-front.js" type="text/javascript"></script>
+    <style type="text/css">
+        body {
+            font-size: 0.7em;
+        }
+    </style>
   </head>
   <body>
 <!--      <div>
         <lift:CategorySnippet.categoryMenu>
         </lift:CategorySnippet.categoryMenu>
       </div>-->
-      <lift:CategorySnippet.productList>
-      </lift:CategorySnippet.productList>
+        <div class="container_16">
+          <lift:CategorySnippet.productList>
+          </lift:CategorySnippet.productList>
+      </div>
+          <script type="text/javascript">
+        // <![CDATA[
+        $(function() {
+            $(".productShowcase").productShowcase();
+        });
+        // ]]>
+    </script>
   </body>
 </html>
