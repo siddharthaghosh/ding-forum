@@ -177,8 +177,9 @@ class CategorySnippet {
     }
 
     private def selfURL() : String = {
-        S.request.open_!.request.url
-//        S.request.open_!.uri
+//        S.request.open_!.request.url
+        val params = S.request.open_!.params
+        S.request.open_!.uri
     }
 
     private def makeProductURL(product : Product) : String = {
@@ -224,7 +225,7 @@ class CategorySnippet {
                                               ("target", "_blank"))
         val btnDivNode : NodeSeq = <div class="toolbar">{buyBtnNode}</div>
         val resultNode = <div class="productCase">
-            {imageDivNode ++ descDivNode ++ priceDivNode ++ btnDivNode}
+            {imageDivNode ++ descDivNode ++ priceDivNode /* ++ btnDivNode */}
                          </div>
         resultNode
     }
