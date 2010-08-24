@@ -51,13 +51,13 @@ class CategorySnippet {
         val currentPage = if(totalPages == 0) 0 else S.param("page").openOr("1").toInt
         val prePage = currentPage - 1
         val nextPage = currentPage + 1
-        val currentPageNode = Text(currentPage.toString + "/" + totalPages.toString)
+        val currentPageNode = <div class="ding-product-showcase-toolbar-top-curpage">{Text(currentPage.toString + "/" + totalPages.toString)}</div>
 
         val tmpNode1 = if(prePage < 1) {
             currentPageNode
         } else {
             val prePageUrl = makeCategoryURL(citem) + "&page=" + (prePage).toString
-            val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"))
+            val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"),("class", "ding-product-showcase-toolbar-top-prev"))
             prePageLink ++ currentPageNode
         }
 
@@ -65,12 +65,12 @@ class CategorySnippet {
             tmpNode1
         } else {
             val nextPageUrl = makeCategoryURL(citem) + "&page=" + (currentPage + 1).toString
-            val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"))
+            val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "ding-product-showcase-toolbar-top-next"))
             tmpNode1 ++ nextPageLink
         }
 
-        val toolsNode = <div class="ding-product-toolbar-top">{
-                tmpNode2 ++ Text(selfURL())
+        val toolsNode = <div class="ding-product-showcase-toolbar-top">{
+        tmpNode2/*  ++ Text(selfURLWithoutPageInfo()) */
             }</div>
 
         val end = 0 + currentPage*itemsPerPage
@@ -83,7 +83,7 @@ class CategorySnippet {
             }
         }
         val showcaseNode = <div class="ding-product-showcase">
-            {/* toolsNode ++  */prolist}
+            { toolsNode ++ prolist}
                            </div>
         showcaseNode
     }
@@ -176,10 +176,22 @@ class CategorySnippet {
         baseurl + params
     }
 
-    private def selfURL() : String = {
+    private def selfURLWithoutPageInfo() : String = {
 //        S.request.open_!.request.url
         val params = S.request.open_!.params
-        S.request.open_!.uri
+        var paramstr = ""
+        params.foreach {
+            param => {
+                val pname = param._1
+                if(pname != "page") {
+                    val pvalue = param._2.head
+                    paramstr += (pname + "=" + pvalue + "&")
+                }             
+            }
+        }
+        paramstr = paramstr.substring(0, paramstr.length - 1)
+        println(S.request.open_!.uri + "?" + paramstr)
+        S.request.open_!.uri + "?" + paramstr
     }
 
     private def makeProductURL(product : Product) : String = {
