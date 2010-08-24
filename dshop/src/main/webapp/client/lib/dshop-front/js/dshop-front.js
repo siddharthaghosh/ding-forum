@@ -58,42 +58,15 @@
 
 })(jQuery);
 
-
 /*
- * $.fn.topCategoryContainer
+ * $.fn.hoverUnderline
  */
 (function($) {
 
-    /*
-     * $(".ding-topCategory")
-     */
-    function topCategory() {
+    $.fn.hoverUnderline = function() {
+
         return this.each(function() {
-
-            $(this).addClass("ui-widget");
-
-            var titlebar = $(this).children(".ding-topCategory-titlebar").addClass("ui-widget-header");
-            $("<span>").addClass("ui-icon ui-icon-home").prependTo(titlebar);
-
-            var content = $(this).children(".ding-topCategory-content").addClass("ui-widget-content");
-            if (content.children().size() == 0) {
-                content.css({
-                    "display": "none"
-                });
-            } else {
-                content.children("dl").addClass("ui-widget-content");
-                content.children("dl").last().css({
-                    "border-bottom-style": "none"
-                });
-
-                content.children().each(function() {
-                    $("<div>").css({
-                        "clear": "both"
-                    }).appendTo($(this));
-                });
-            }
-
-            $(this).find("a").hover(
+            $(this).hover(
                 function() {
                     $(this).css({
                         "text-decoration": "underline"
@@ -105,6 +78,61 @@
                     });
                 }
                 );
+        });
+
+    };
+
+})(jQuery);
+
+
+/*
+ * $.fn.topCategoryContainer
+ */
+(function($) {
+
+    /*
+     * $(".ding-topCategory")
+     */
+    function topCategory() {
+
+        function titlebar() {
+            return this.each(function() {
+                $(this).addClass("ui-widget-header");
+                $("<span>").addClass("ui-icon ui-icon-home").prependTo($(this));
+            });
+        };
+
+        function content() {
+            return this.each(function() {
+                $(this).addClass("ui-widget-content");
+                if ($(this).children().size() == 0) {
+                    $(this).css({
+                        "display": "none"
+                    });
+                } else {
+                    $(this).children("dl").addClass("ui-widget-content");
+                    $(this).children("dl").last().css({
+                        "border-bottom-style": "none"
+                    });
+
+                    $(this).children().each(function() {
+                        $("<div>").css({
+                            "clear": "both"
+                        }).appendTo($(this));
+                    });
+                }
+            });
+        };
+        
+        return this.each(function() {
+
+            $(this).addClass("ui-widget");
+
+            titlebar.call($(this).children(".ding-topCategory-titlebar"));
+
+            content.call($(this).children(".ding-topCategory-content"));
+
+            $(this).find("a").hoverUnderline();
 
             $(this).hover(
                 function(){
@@ -147,37 +175,36 @@
  */
 (function($) {
 
+    /*
+     * $(".productCase")
+     */
     function productCase() {
+
+        function brief() {
+            return this.each(function() {
+                $(this).find("a").hoverUnderline();
+            });
+        };
+
+        function price() {
+            return this.each(function() {
+                $("<div>").css({
+                    "clear": "both"
+                }).appendTo($(this).children(".marketPrice"));
+
+                $("<div>").css({
+                    "clear": "both"
+                }).appendTo($(this).children(".vipPrice"));
+            });
+        };
+
         return this.each(function() {
 
             $(this).addClass("ui-widget ui-widget-content");
 
-            $(this).find(".brief a").hover(
-                function() {
-                    $(this).css({
-                        "text-decoration": "underline"
-                    });
-                },
-                function() {
-                    $(this).css({
-                        "text-decoration": "none"
-                    });
-                }
-                );
+            brief.call($(this).children(".brief"));
 
-            $("<div>").css({
-                "clear": "both"
-            }).appendTo($(this).find(".marketPrice"));
-
-            $("<div>").css({
-                "clear": "both"
-            }).appendTo($(this).find(".vipPrice"));
-
-            $("<div>").css({
-                "clear": "both"
-            }).appendTo($(this).children(".toolbar"));
-
-            $(this).find(".toolbar a").button().removeClass("ui-corner-all");
+            price.call($(this).children(".price"));
 
             $(this).bind("resize", function() {
                 $(this).height($(this).parent().height());
@@ -214,7 +241,6 @@
 
             $(this).children().equalHeights();
             $(this).find(".productCase").trigger("resize");
-            //alert($(this).children().eq(0).children().eq(0).height());
         });
 
     };

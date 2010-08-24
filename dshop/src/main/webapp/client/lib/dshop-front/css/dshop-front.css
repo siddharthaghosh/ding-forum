@@ -126,18 +126,14 @@
     margin-right: 10px;
 }
 
+.productCase .price .vipPrice span {
+    float: left;
+}
+
 .productCase .toolbar {
     padding-left: 10px;
     padding-right: 10px;
     margin: 0px 0px 5px 0px;
-}
-
-.productCase .toolbar .ui-button-text {
-    padding: 0px 8px 0px 8px;
-}
-
-.productCase .toolbar a {
-    float: left;
 }
 
 
