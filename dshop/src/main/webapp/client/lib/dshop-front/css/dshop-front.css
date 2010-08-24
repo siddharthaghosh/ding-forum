@@ -1,26 +1,26 @@
 /*
  * topCategoryContainer
 */
-.ding-topCategory {
+.ding-topcategory {
     margin-bottom: 10px;
 }
 
-.ding-topCategory .ding-topCategory-titlebar {
+.ding-topcategory .ding-topcategory-titlebar {
     font-size: 1.2em;
     padding: 3px;
 }
 
-.ding-topCategory .ding-topCategory-titlebar .ui-icon {
+.ding-topcategory .ding-topcategory-titlebar .ui-icon {
     float: left;
     margin-right: 5px;
 }
 
-.ding-topCategory .ding-topCategory-content {
+.ding-topcategory .ding-topcategory-content {
     padding: 5px 5px 0px 5px;
     border-top-style: none;
 }
 
-.ding-topCategory dl , .ding-topCategory dl.ui-state-default {
+.ding-topcategory dl , .ding-topcategory dl.ui-state-default {
     position: relative;
     margin: 0px;
     padding: 5px;
@@ -29,7 +29,7 @@
     border-top-style: none;
 }
 
-.ding-topCategory dt {
+.ding-topcategory dt {
     float: left;
     margin: 0px;
     width: 20%;
@@ -38,18 +38,18 @@
     font-weight: bold;
 }
 
-.ding-topCategory dd {
+.ding-topcategory dd {
     font-weight: normal;
     float: left;
     margin: 0px;
     width: 75%;
 }
 
-.ding-topCategory dd a {
+.ding-topcategory dd a {
     margin-right: 5px;
 }
 
-.ding-topCategory a {
+.ding-topcategory a {
     text-decoration: none;
 }
 
@@ -57,24 +57,24 @@
  * productShowcase
 */
 
-.productCase {
+.ding-productthumb {
     position: relative;
 }
 
-.productCase .picture {
+.ding-productthumb .ding-productthumb-picture {
     padding: 10px;
     margin: 0px 0px 5px 0px;
     border-width: 0px;
     border-style: none;
 }
 
-.productCase .picture a {
+.ding-productthumb .ding-productthumb-picture a {
     display: block;
     padding: 0px;
     margin: 0px;
 }
 
-.productCase .picture img {
+.ding-productthumb .ding-productthumb-picture img {
     width: 200px;
     height: 150px;
     padding: 0px;
@@ -82,7 +82,7 @@
     border-style: none;
 }
 
-.productCase .brief {
+.ding-productthumb .ding-productthumb-brief {
     overflow:hidden;
     text-align: center;
     padding-left: 10px;
@@ -90,50 +90,44 @@
     margin: 0px 0px 5px 0px;
 }
 
-.productCase .brief a {
+.ding-productthumb .ding-productthumb-brief a {
     text-decoration: none;
     overflow:hidden;
     word-wrap: break-word;
     word-break: normal;
 }
 
-.productCase .price {
+.ding-productthumb .ding-productthumb-price {
     padding-left: 10px;
     padding-right: 10px;
     margin: 0px 0px 5px 0px;
 }
 
-.productCase .price .marketPrice, .productCase .price .vipPrice {
+.ding-productthumb .ding-productthumb-price .ding-productthumb-price-marketprice, .ding-productthumb .ding-productthumb-price .ding-productthumb-price-vipprice {
     margin: 0px 0px 5px 0px;
 }
 
-.productCase .price .marketPrice label {
+.ding-productthumb .ding-productthumb-price .ding-productthumb-price-marketprice label {
     float: left;
     margin-right: 10px;
 }
 
-.productCase .price .marketPrice span {
+.ding-productthumb .ding-productthumb-price .ding-productthumb-price-marketprice span {
     float: left;
     text-decoration: line-through;
 }
 
-.productCase .price .vipPrice {
+.ding-productthumb .ding-productthumb-price .ding-productthumb-price-vipprice {
     color: red;
 }
 
-.productCase .price .vipPrice label {
+.ding-productthumb .ding-productthumb-price .ding-productthumb-price-vipprice label {
     float: left;
     margin-right: 10px;
 }
 
-.productCase .price .vipPrice span {
+.ding-productthumb .ding-productthumb-price .ding-productthumb-price-vipprice span {
     float: left;
-}
-
-.productCase .toolbar {
-    padding-left: 10px;
-    padding-right: 10px;
-    margin: 0px 0px 5px 0px;
 }
 
 

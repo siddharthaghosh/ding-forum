@@ -91,7 +91,7 @@
 (function($) {
 
     /*
-     * $(".ding-topCategory")
+     * $(".ding-topcategory")
      */
     function topCategory() {
 
@@ -116,9 +116,7 @@
                     });
 
                     $(this).children().each(function() {
-                        $("<div>").css({
-                            "clear": "both"
-                        }).appendTo($(this));
+                        $("<div>").addClass("clear").appendTo($(this));
                     });
                 }
             });
@@ -128,9 +126,9 @@
 
             $(this).addClass("ui-widget");
 
-            titlebar.call($(this).children(".ding-topCategory-titlebar"));
+            titlebar.call($(this).children(".ding-topcategory-titlebar"));
 
-            content.call($(this).children(".ding-topCategory-content"));
+            content.call($(this).children(".ding-topcategory-content"));
 
             $(this).find("a").hoverUnderline();
 
@@ -150,7 +148,7 @@
 
         return this.each(function() {
 
-            var topCategoryList = topCategory.call($(this).children(".ding-topCategory")).detach();
+            var topCategoryList = topCategory.call($(this).children(".ding-topcategory")).detach();
 
             var column = [
             $("<div>").addClass("grid_8").appendTo($(this)),
@@ -176,9 +174,9 @@
 (function($) {
 
     /*
-     * $(".productCase")
+     * $(".ding-productthumb")
      */
-    function productCase() {
+    function productThumb() {
 
         function brief() {
             return this.each(function() {
@@ -188,13 +186,9 @@
 
         function price() {
             return this.each(function() {
-                $("<div>").css({
-                    "clear": "both"
-                }).appendTo($(this).children(".marketPrice"));
+                $("<div>").addClass("clear").appendTo($(this).children(".ding-productthumb-price-marketprice"));
 
-                $("<div>").css({
-                    "clear": "both"
-                }).appendTo($(this).children(".vipPrice"));
+                $("<div>").addClass("clear").appendTo($(this).children(".ding-productthumb-price-vipprice"));
             });
         };
 
@@ -202,9 +196,9 @@
 
             $(this).addClass("ui-widget ui-widget-content");
 
-            brief.call($(this).children(".brief"));
+            brief.call($(this).children(".ding-productthumb-brief"));
 
-            price.call($(this).children(".price"));
+            price.call($(this).children(".ding-productthumb-price"));
 
             $(this).bind("resize", function() {
                 $(this).height($(this).parent().height());
@@ -217,7 +211,7 @@
         return this.each(function() {
             $(this).addClass("grid_12");
 
-            var productCaseList = productCase.call($(this).children(".productCase")).detach();
+            var productCaseList = productThumb.call($(this).children(".ding-productthumb")).detach();
 
             var row = Math.ceil(productCaseList.size() / 3);
             for(var i=0;i<row;i++) {
@@ -240,7 +234,7 @@
             });
 
             $(this).children().equalHeights();
-            $(this).find(".productCase").trigger("resize");
+            $(this).find(".ding-productthumb").trigger("resize");
         });
 
     };
