@@ -83,7 +83,7 @@ class CategorySnippet {
             }
         }
         val showcaseNode = <div class="ding-product-showcase">
-            {toolsNode ++ prolist}
+            {/* toolsNode ++  */prolist}
                            </div>
         showcaseNode
     }
