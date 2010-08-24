@@ -12,6 +12,7 @@ import com.ding.util.LanguageUtils
 import net.liftweb.http.S
 import net.liftweb.http.SHtml
 import net.liftweb.util.Helpers._
+import net.liftweb.util.Props
 import scala.xml.Text
 
 class CategorySnippet {
@@ -38,11 +39,6 @@ class CategorySnippet {
         val cid = S.param("catid").openOr("0").toLong
         val citem = MetaModels.metaCategory.findOneInstance(cid)
         val allproducts = getAllProduct(citem)
-        val prolist = allproducts.flatMap {
-            product => {
-                makeProductNode(product)
-            }
-        }
 //        <div>
 //            <div>CategoryId: {cid.toString}</div>
 //            <div>
@@ -50,9 +46,46 @@ class CategorySnippet {
 //                {prolist}
 //            </div>
 //        </div>
-        <div class="productShowcase">
+        val itemsPerPage = Props.get("ProductNumberInOnePage").openOr("9").toInt
+        val totalPages = (allproducts.length / itemsPerPage) + (if((allproducts.length % itemsPerPage) > 0) 1 else 0)
+        val currentPage = if(totalPages == 0) 0 else S.param("page").openOr("1").toInt
+        val prePage = currentPage - 1
+        val nextPage = currentPage + 1
+        val currentPageNode = Text(currentPage.toString + "/" + totalPages.toString)
+
+        val tmpNode1 = if(prePage < 1) {
+            currentPageNode
+        } else {
+            val prePageUrl = makeCategoryURL(citem) + "&page=" + (prePage).toString
+            val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"))
+            prePageLink ++ currentPageNode
+        }
+
+        val tmpNode2 = if(nextPage > totalPages) {
+            tmpNode1
+        } else {
+            val nextPageUrl = makeCategoryURL(citem) + "&page=" + (currentPage + 1).toString
+            val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"))
+            tmpNode1 ++ nextPageLink
+        }
+
+        val toolsNode = <div class="showcaseTools">{
+                tmpNode2 ++ Text(selfURL())
+            }</div>
+
+        val end = 0 + currentPage*itemsPerPage
+        val start = end - itemsPerPage
+        val endIndex = if(end > allproducts.length) allproducts.length else end
+        val startIndex = if(start < allproducts.length) start else allproducts.length
+        val prolist = allproducts.slice(startIndex, endIndex).flatMap {
+            product => {
+                makeProductNode(product)
+            }
+        }
+        val showcaseNode = <div class="productShowcase">
             {prolist}
-        </div>
+                           </div>
+        toolsNode ++ showcaseNode
     }
 
     def allCategory(kids : NodeSeq) : NodeSeq = {
@@ -143,6 +176,11 @@ class CategorySnippet {
         baseurl + params
     }
 
+    private def selfURL() : String = {
+        S.request.open_!.request.url
+//        S.request.open_!.uri
+    }
+
     private def makeProductURL(product : Product) : String = {
         val params = "?productid=" + product.getID.toString
         val baseurl = "/client/product.html"
@@ -172,8 +210,12 @@ class CategorySnippet {
         val descDivNode = <div class="brief">{descLinkNode}</div>
         //价格显示
         val mpriceNode = <span>{mprice.toString}</span>
-        val priceNode = <span>{price.toString}</span>
-        val priceDivNode = <div class="price">{mpriceNode ++ priceNode}</div>
+        val mpriceLabelNode = <label>市场价:</label>
+        val mpriceDivNode = <div class="marketPrice">{mpriceLabelNode ++ mpriceNode}</div>
+        val vipPriceNode = <span>{price.toString}</span>
+        val vipPriceLabelNode = <label>会员价:</label>
+        val vipPriceDivNode = <div class="vipPrice">{vipPriceLabelNode ++ vipPriceNode}</div>
+        val priceDivNode = <div class="price">{mpriceDivNode ++ vipPriceDivNode}</div>
 //        //按钮显示
 //        val buyBtnNode : NodeSeq = <a target="_blank" href="#">{"buy"}</a>
         val buyBtnNode : NodeSeq = SHtml.link("/client/cart.html",
