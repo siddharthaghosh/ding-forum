@@ -137,15 +137,15 @@ class CategorySnippet {
         val title = category.getName(LanguageUtils.getDefaultLang())
         val titleUrl = makeCategoryURL(category)
         val titleLink = <a href={titleUrl}>{title}</a>
-        val titleNode = <div class="ding-topcategory-titlebar">{titleLink}</div>
+        val titleNode = <div class="topcategory-titlebar">{titleLink}</div>
         val childrenNode = category.children.flatMap {
             child => {
                 make2ndLevelCategoryNode(child)
             }
         }
-        val contentNode = <div class="ding-topcategory-content">{childrenNode}</div>
+        val contentNode = <div class="topcategory-content">{childrenNode}</div>
         val innerNode = titleNode ++ contentNode
-        <div class="ding-topcategory">{innerNode}</div>
+        <div class="topcategory">{innerNode}</div>
     }
     
     private def make2ndLevelCategoryNode(category : Category) : NodeSeq = {
