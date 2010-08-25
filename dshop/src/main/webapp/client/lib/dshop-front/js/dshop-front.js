@@ -91,7 +91,7 @@
 (function($) {
 
     /*
-     * $(".ding-topcategory")
+     * $(".topcategory")
      */
     function topCategory() {
 
@@ -126,9 +126,9 @@
 
             $(this).addClass("ui-widget");
 
-            titlebar.call($(this).children(".ding-topcategory-titlebar"));
+            titlebar.call($(this).children(".titlebar"));
 
-            content.call($(this).children(".ding-topcategory-content"));
+            content.call($(this).children(".content"));
 
             $(this).find("a").hoverUnderline();
 
@@ -148,7 +148,7 @@
 
         return this.each(function() {
 
-            var topCategoryList = topCategory.call($(this).children(".ding-topcategory")).detach();
+            var topCategoryList = topCategory.call($(this).children(".topcategory")).detach();
 
             var column = [
             $("<div>").addClass("grid_8").appendTo($(this)),
