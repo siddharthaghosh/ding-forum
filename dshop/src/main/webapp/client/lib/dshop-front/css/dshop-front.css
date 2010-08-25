@@ -5,17 +5,17 @@
     margin-bottom: 10px;
 }
 
-.ding-topcategory .ding-topcategory-titlebar {
+.ding-topcategory .titlebar {
     font-size: 1.2em;
     padding: 3px;
 }
 
-.ding-topcategory .ding-topcategory-titlebar .ui-icon {
+.ding-topcategory .titlebar .ui-icon {
     float: left;
     margin-right: 5px;
 }
 
-.ding-topcategory .ding-topcategory-content {
+.ding-topcategory .content {
     padding: 5px 5px 0px 5px;
     border-top-style: none;
 }
@@ -57,6 +57,27 @@
  * productShowcase
 */
 
+/*
+ * .ding-product-showcase-toolbar-top
+*/
+.ding-product-showcase-toolbar-top {
+    margin-bottom: 10px;
+    padding: 5px;
+}
+.ding-product-showcase-toolbar-top .ding-product-showcase-toolbar-top-curpage {
+    display: inline;
+    padding: 5px;
+}
+
+.ding-product-showcase-toolbar-top .ding-product-showcase-toolbar-top-next {
+}
+
+.ding-product-showcase-toolbar-top .ding-product-showcase-toolbar-top-prev {
+}
+
+/*
+ * .ding-productthumb
+*/
 .ding-productthumb {
     position: relative;
 }
