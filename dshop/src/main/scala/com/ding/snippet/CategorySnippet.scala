@@ -77,13 +77,13 @@ class CategorySnippet {
         val currentPage = if(totalPages == 0) 0 else S.param("page").openOr("1").toInt
         val prePage = currentPage - 1
         val nextPage = currentPage + 1
-        val currentPageNode = <div class="ding-product-showcase-toolbar-top-curpage">{Text(currentPage.toString + "/" + totalPages.toString)}</div>
+        val currentPageNode = <div class="curpage">{Text(currentPage.toString + "/" + totalPages.toString)}</div>
 
         val tmpNode1 = if(prePage < 1) {
             currentPageNode
         } else {
             val prePageUrl = selfURLWithoutPageInfo() + "&page=" + (prePage).toString
-            val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"),("class", "ding-product-showcase-toolbar-top-prev"))
+            val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"),("class", "prev"))
             prePageLink ++ currentPageNode
         }
 
@@ -91,7 +91,7 @@ class CategorySnippet {
             tmpNode1
         } else {
             val nextPageUrl = selfURLWithoutPageInfo() + "&page=" + (currentPage + 1).toString
-            val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "ding-product-showcase-toolbar-top-next"))
+            val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "next"))
             tmpNode1 ++ nextPageLink
         }
         val priceOrderAscUrl = makeCategoryURL(citem) + "&orderby=price_asc"
@@ -103,8 +103,9 @@ class CategorySnippet {
         val addOrderAscLink = SHtml.link(addOrderAscUrl, ()=>{}, Text("上架升序"))
         val addOrderDescLink = SHtml.link(addOrderDescUrl, ()=>{}, Text("上架降序"))
         val orderLinks = <span>{priceOrderAscLink ++ priceOrderDescLink ++ addOrderAscLink ++ addOrderDescLink}</span>
-        val toolsNode = <div class="ding-product-showcase-toolbar-top">{
-        tmpNode2 ++ orderLinks/*  ++ Text(selfURLWithoutPageInfo()) */
+        val pageLinks = <div class="pager">{tmpNode2}</div>
+        val toolsNode = <div class="top-toolbar">{
+                            tmpNode2/*  ++ orderLinks *//*  ++ Text(selfURLWithoutPageInfo()) */
             }</div>
 
         val end = 0 + currentPage*itemsPerPage
@@ -116,10 +117,13 @@ class CategorySnippet {
                 makeProductNode(product)
             }
         }
+        val prolistContainer = <div class="thumbcontainer">{prolist}</div>
         val showcaseNode = <div class="ding-product-showcase">
-            { /* toolsNode ++ */ prolist}
+            { 
+                toolsNode ++  prolistContainer
+            }
                            </div>
-        toolsNode ++ showcaseNode
+        /* toolsNode ++  */showcaseNode
     }
 
     def allCategory(kids : NodeSeq) : NodeSeq = {
@@ -137,13 +141,13 @@ class CategorySnippet {
         val title = category.getName(LanguageUtils.getDefaultLang())
         val titleUrl = makeCategoryURL(category)
         val titleLink = <a href={titleUrl}>{title}</a>
-        val titleNode = <div class="topcategory-titlebar">{titleLink}</div>
+        val titleNode = <div class="titlebar">{titleLink}</div>
         val childrenNode = category.children.flatMap {
             child => {
                 make2ndLevelCategoryNode(child)
             }
         }
-        val contentNode = <div class="topcategory-content">{childrenNode}</div>
+        val contentNode = <div class="content">{childrenNode}</div>
         val innerNode = titleNode ++ contentNode
         <div class="topcategory">{innerNode}</div>
     }
@@ -252,26 +256,26 @@ class CategorySnippet {
         //图片显示
         val imageNode = <img src={makePictureURL(imageUrl)} alt={desc}></img>
         val imageLinkNode = <a target="_blank" href={makeProductURL(product)}>{imageNode}</a>
-        val imageDivNode = <div class="ding-productthumb-picture">{imageLinkNode}</div>
+        val imageDivNode = <div class="picture">{imageLinkNode}</div>
         //描述显示
         val descLinkNode = <a target="_blank" href={makeProductURL(product)}>{desc}</a>
-        val descDivNode = <div class="ding-productthumb-brief">{descLinkNode}</div>
+        val descDivNode = <div class="brief">{descLinkNode}</div>
         //价格显示
         val mpriceNode = <span>{mprice.toString}</span>
         val mpriceLabelNode = <label>市场价:</label>
-        val mpriceDivNode = <div class="ding-productthumb-price-marketprice">{mpriceLabelNode ++ mpriceNode}</div>
+        val mpriceDivNode = <div class="marketprice">{mpriceLabelNode ++ mpriceNode}</div>
         val vipPriceNode = <span>{price.toString}</span>
         val vipPriceLabelNode = <label>会员价:</label>
-        val vipPriceDivNode = <div class="ding-productthumb-price-vipprice">{vipPriceLabelNode ++ vipPriceNode}</div>
-        val priceDivNode = <div class="ding-productthumb-price">{mpriceDivNode ++ vipPriceDivNode}</div>
+        val vipPriceDivNode = <div class="vipprice">{vipPriceLabelNode ++ vipPriceNode}</div>
+        val priceDivNode = <div class="price">{mpriceDivNode ++ vipPriceDivNode}</div>
 //        //按钮显示
 //        val buyBtnNode : NodeSeq = <a target="_blank" href="#">{"buy"}</a>
-        val buyBtnNode : NodeSeq = SHtml.link("/client/cart.html",
-                                              () => {CartInfo.addItem(gid)},
-                                              Text("Buy"),
-                                              ("target", "_blank"))
+//        val buyBtnNode : NodeSeq = SHtml.link("/client/cart.html",
+//                                              () => {CartInfo.addItem(gid)},
+//                                              Text("Buy"),
+//                                              ("target", "_blank"))
 //        val btnDivNode : NodeSeq = <div class="toolbar">{buyBtnNode}</div>
-        val resultNode = <div class="ding-productthumb">
+        val resultNode = <div class="productthumb">
             {imageDivNode ++ descDivNode ++ priceDivNode /* ++ btnDivNode */}
                          </div>
         resultNode
