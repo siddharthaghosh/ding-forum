@@ -9,6 +9,7 @@ import com.ding.model._
 import net.liftweb.mapper._
 import net.liftweb.json._
 import net.liftweb.json.JsonAST._
+import java.util.Date
 
 class LiftProduct extends LiftBaseModel[LiftProduct]
                      with Product
@@ -25,6 +26,7 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
     override def multiLangNameDescriptionObject() = LiftProductNameDescription
 
     object product_id extends MappedLongIndex(this)
+    object add_time extends MappedDateTime(this)
     object category extends MappedManyToMany(LiftProductCategory,
                                              LiftProductCategory.product_id,
                                              LiftProductCategory.category_id,
@@ -62,6 +64,12 @@ class LiftProduct extends LiftBaseModel[LiftProduct]
     object is_option_using extends MappedBoolean(this){
         override def defaultValue = false
         override def dbNotNull_? = true
+    }
+
+    override def getAddTime() : Date = this.add_time.is
+
+    override def setAddTime(date : Date) {
+        this.add_time(date)
     }
 
     override def getDisplayOrder(categoryId : Long) : Int = {
@@ -212,6 +220,11 @@ object LiftProduct extends LiftProduct with LiftMetaModel[LiftProduct] with Meta
     override def dbTableName = "dshop_product"
     override def findOneInstance(id : Long) = {
         LiftProduct.find(By(LiftProduct.product_id, id)).openOr(null)
+    }
+    override def newInstance() = {
+        val ni = this.create
+        ni.setAddTime(new Date())
+        ni
     }
 
 }
