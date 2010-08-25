@@ -1,26 +1,26 @@
 /*
- * topCategoryContainer
+ * .ding-topcategory-container
 */
-.ding-topcategory {
+.ding-topcategory-container .topcategory {
     margin-bottom: 10px;
 }
 
-.ding-topcategory .titlebar {
+.ding-topcategory-container .topcategory .titlebar {
     font-size: 1.2em;
     padding: 3px;
 }
 
-.ding-topcategory .titlebar .ui-icon {
+.ding-topcategory-container .topcategory .titlebar .ui-icon {
     float: left;
     margin-right: 5px;
 }
 
-.ding-topcategory .content {
+.ding-topcategory-container .topcategory .content {
     padding: 5px 5px 0px 5px;
     border-top-style: none;
 }
 
-.ding-topcategory dl , .ding-topcategory dl.ui-state-default {
+.ding-topcategory-container .topcategory dl , .ding-topcategory-container .topcategory dl.ui-state-default {
     position: relative;
     margin: 0px;
     padding: 5px;
@@ -29,7 +29,7 @@
     border-top-style: none;
 }
 
-.ding-topcategory dt {
+.ding-topcategory-container .topcategory dt {
     float: left;
     margin: 0px;
     width: 20%;
@@ -38,18 +38,18 @@
     font-weight: bold;
 }
 
-.ding-topcategory dd {
+.ding-topcategory-container .topcategory dd {
     font-weight: normal;
     float: left;
     margin: 0px;
     width: 75%;
 }
 
-.ding-topcategory dd a {
+.ding-topcategory-container .topcategory dd a {
     margin-right: 5px;
 }
 
-.ding-topcategory a {
+.ding-topcategory-container .topcategory a {
     text-decoration: none;
 }
 
