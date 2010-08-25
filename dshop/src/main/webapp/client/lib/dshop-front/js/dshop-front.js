@@ -173,8 +173,8 @@
  */
 (function($) {   
 
-    // $(".ding-product-showcase-thumbcontainer")
-    function productThumbContainer(options) {
+    // $(".thumbcontainer")
+    function thumbContainer() {
 
         // $(".ding-productthumb")
         function productThumb() {
@@ -187,9 +187,9 @@
 
             function price() {
                 return this.each(function() {
-                    $("<div>").addClass("clear").appendTo($(this).children(".ding-productthumb-price-marketprice"));
+                    $("<div>").addClass("clear").appendTo($(this).children(".marketprice"));
 
-                    $("<div>").addClass("clear").appendTo($(this).children(".ding-productthumb-price-vipprice"));
+                    $("<div>").addClass("clear").appendTo($(this).children(".vipprice"));
                 });
             };
 
@@ -197,9 +197,9 @@
 
                 $(this).addClass("ui-widget ui-widget-content");
 
-                brief.call($(this).children(".ding-productthumb-brief"));
+                brief.call($(this).children(".brief"));
 
-                price.call($(this).children(".ding-productthumb-price"));
+                price.call($(this).children(".price"));
 
                 $(this).bind("resize", function() {
                     $(this).height($(this).parent().height());
@@ -209,7 +209,7 @@
 
         return this.each(function() {
 
-            var thumbList = options.thumbList;
+            var thumbList = $(this).children(".productthumb").detach();
 
             productThumb.call(thumbList);
 
@@ -236,36 +236,9 @@
             });
 
             $(this).children().equalHeights();
-            $(this).find(".ding-productthumb").trigger("resize");
+            $(this).find(".productthumb").trigger("resize");
 
         });
-    };
-
-    // $(".ding-product-showcase-toolbar-top")
-    function toolbarTop() {
-
-        function pager() {
-            return this.each(function() {
-                var curpage = $(this).children(".ding-product-showcase-toolbar-top-curpage").detach();
-                var prev = $(this).children(".ding-product-showcase-toolbar-top-prev").detach();
-                var next = $(this).children(".ding-product-showcase-toolbar-top-next").detach();
-
-                $("<div>").addClass("ding-product-showcase-toolbar-top-pager").append(prev).append(curpage).append(next).css({
-                   "float": "right"
-                }).appendTo($(this));
-
-                prev.button().removeClass("ui-corner-all");
-                next.button().removeClass("ui-corner-all");
-            });
-        };
-        
-        return this.each(function() {
-
-            $(this).addClass("grid_12 alpha omega ui-widget ui-widget-header");
-
-            pager.call($(this));
-        });
-
     };
 
     $.fn.productShowcase = function() {
@@ -273,16 +246,7 @@
         return this.each(function() {
             $(this).addClass("grid_12");
 
-            toolbarTop.call($(this).children(".ding-product-showcase-toolbar-top"));
-
-            var thumbList = $(this).children(".ding-productthumb").detach();
-            var thumbContainer = $("<div>").insertAfter($(this).children(".ding-product-showcase-toolbar-top"))
-            .addClass(".ding-product-showcase-thumbcontainer");
-
-            productThumbContainer.call(thumbContainer, {
-                thumbList: thumbList
-            });
-            
+            thumbContainer.call($(this).children(".thumbcontainer"));            
         });
 
     };
