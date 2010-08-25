@@ -38,7 +38,33 @@ class CategorySnippet {
     def productList(kids: NodeSeq) : NodeSeq = {
         val cid = S.param("catid").openOr("0").toLong
         val citem = MetaModels.metaCategory.findOneInstance(cid)
-        val allproducts = getAllProduct(citem)
+//        val allproducts = getAllProduct(citem)
+
+        val orderby = S.param("orderby").openOr("default")
+
+        def price_asc(a : Product, b : Product) : Boolean = {
+            a.Goods.head.getPrice < b.Goods.head.getPrice
+        }
+
+        def add_asc(a : Product, b : Product) : Boolean = {
+            a.getAddTime.before(b.getAddTime)
+        }
+
+        val allproducts = orderby match {
+            case "add_asc" => {
+                    getAllProduct(citem).sortWith(add_asc(_, _))
+                }
+            case "add_desc" => {
+                    getAllProduct(citem).sortWith(!add_asc(_, _))
+                }
+            case "price_asc" => {
+                    getAllProduct(citem).sortWith(price_asc(_, _))
+                }
+            case "price_desc" => {
+                    getAllProduct(citem).sortWith(!price_asc(_, _))
+                }
+            case _ => getAllProduct(citem)
+        }
 //        <div>
 //            <div>CategoryId: {cid.toString}</div>
 //            <div>
@@ -56,7 +82,7 @@ class CategorySnippet {
         val tmpNode1 = if(prePage < 1) {
             currentPageNode
         } else {
-            val prePageUrl = makeCategoryURL(citem) + "&page=" + (prePage).toString
+            val prePageUrl = selfURLWithoutPageInfo() + "&page=" + (prePage).toString
             val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"),("class", "ding-product-showcase-toolbar-top-prev"))
             prePageLink ++ currentPageNode
         }
@@ -64,13 +90,21 @@ class CategorySnippet {
         val tmpNode2 = if(nextPage > totalPages) {
             tmpNode1
         } else {
-            val nextPageUrl = makeCategoryURL(citem) + "&page=" + (currentPage + 1).toString
+            val nextPageUrl = selfURLWithoutPageInfo() + "&page=" + (currentPage + 1).toString
             val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "ding-product-showcase-toolbar-top-next"))
             tmpNode1 ++ nextPageLink
         }
-
+        val priceOrderAscUrl = makeCategoryURL(citem) + "&orderby=price_asc"
+        val priceOrderDescUrl = makeCategoryURL(citem) + "&orderby=price_desc"
+        val addOrderAscUrl = makeCategoryURL(citem) + "&orderby=add_asc"
+        val addOrderDescUrl = makeCategoryURL(citem) + "&orderby=add_desc"
+        val priceOrderAscLink = SHtml.link(priceOrderAscUrl, ()=>{}, Text("价格升序"))
+        val priceOrderDescLink = SHtml.link(priceOrderDescUrl, ()=>{}, Text("价格降序"))
+        val addOrderAscLink = SHtml.link(addOrderAscUrl, ()=>{}, Text("上架升序"))
+        val addOrderDescLink = SHtml.link(addOrderDescUrl, ()=>{}, Text("上架降序"))
+        val orderLinks = <span>{priceOrderAscLink ++ priceOrderDescLink ++ addOrderAscLink ++ addOrderDescLink}</span>
         val toolsNode = <div class="ding-product-showcase-toolbar-top">{
-        tmpNode2/*  ++ Text(selfURLWithoutPageInfo()) */
+        tmpNode2 ++ orderLinks/*  ++ Text(selfURLWithoutPageInfo()) */
             }</div>
 
         val end = 0 + currentPage*itemsPerPage
@@ -83,9 +117,9 @@ class CategorySnippet {
             }
         }
         val showcaseNode = <div class="ding-product-showcase">
-            { toolsNode ++ prolist}
+            { /* toolsNode ++ */ prolist}
                            </div>
-        showcaseNode
+        toolsNode ++ showcaseNode
     }
 
     def allCategory(kids : NodeSeq) : NodeSeq = {
@@ -178,20 +212,21 @@ class CategorySnippet {
 
     private def selfURLWithoutPageInfo() : String = {
 //        S.request.open_!.request.url
-        val params = S.request.open_!.params
-        var paramstr = ""
-        params.foreach {
-            param => {
-                val pname = param._1
-                if(pname != "page") {
-                    val pvalue = param._2.head
-                    paramstr += (pname + "=" + pvalue + "&")
-                }             
-            }
-        }
-        paramstr = paramstr.substring(0, paramstr.length - 1)
-        println(S.request.open_!.uri + "?" + paramstr)
-        S.request.open_!.uri + "?" + paramstr
+//        val params = S.request.open_!.params
+//        var paramstr = ""
+//        params.foreach {
+//            param => {
+//                val pname = param._1
+//                if(pname != "page") {
+//                    val pvalue = param._2.head
+//                    paramstr += (pname + "=" + pvalue + "&")
+//                }
+//            }
+//        }
+//        paramstr = paramstr.substring(0, paramstr.length - 1)
+        val catidparam = "catid=" + S.param("catid").openOr("0")
+        val orderparam = if(S.param("orderby").isEmpty) "" else "&orderby=" + S.param("orderby").open_!
+        S.request.open_!.uri + "?" + catidparam + orderparam
     }
 
     private def makeProductURL(product : Product) : String = {

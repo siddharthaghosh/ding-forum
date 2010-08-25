@@ -4,6 +4,7 @@
  */
 
 package com.ding.model
+import java.util.Date
 
 trait Product
 extends ImageBaseModel
@@ -14,6 +15,8 @@ extends ImageBaseModel
 
     def categories() : List[Category]
     def addToCategory(categoryId : Long)
+    def getAddTime() : Date
+    def setAddTime(date : Date)
     def getDisplayOrder(categoryId : Long) : Int
     def setDisplayOrder(categoryId : Long, order : Int)
     def getParameter() : String
