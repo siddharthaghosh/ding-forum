@@ -78,24 +78,24 @@
 /*
  * .ding-productthumb
 */
-.ding-product-showcase .productthumb {
+.ding-product-showcase .thumbcontainer .productthumb {
     position: relative;
 }
 
-.ding-product-showcase .productthumb .picture {
+.ding-product-showcase .thumbcontainer .productthumb .picture {
     padding: 10px;
     margin: 0px 0px 5px 0px;
     border-width: 0px;
     border-style: none;
 }
 
-.ding-product-showcase .productthumb .picture a {
+.ding-product-showcase .thumbcontainer .productthumb .picture a {
     display: block;
     padding: 0px;
     margin: 0px;
 }
 
-.ding-product-showcase .productthumb .picture img {
+.ding-product-showcase .thumbcontainer .productthumb .picture img {
     width: 200px;
     height: 150px;
     padding: 0px;
@@ -103,7 +103,7 @@
     border-style: none;
 }
 
-.ding-product-showcase .productthumb .brief {
+.ding-product-showcase .thumbcontainer .productthumb .brief {
     overflow:hidden;
     text-align: center;
     padding-left: 10px;
@@ -111,43 +111,43 @@
     margin: 0px 0px 5px 0px;
 }
 
-.ding-product-showcase .productthumb .brief a {
+.ding-product-showcase .thumbcontainer .productthumb .brief a {
     text-decoration: none;
     overflow:hidden;
     word-wrap: break-word;
     word-break: normal;
 }
 
-.ding-product-showcase .productthumb .price {
+.ding-product-showcase .thumbcontainer .productthumb .price {
     padding-left: 10px;
     padding-right: 10px;
     margin: 0px 0px 5px 0px;
 }
 
-.ding-product-showcase .productthumb .price .marketprice, .ding-product-showcase .productthumb .price .vipprice {
+.ding-product-showcase .thumbcontainer .productthumb .price .marketprice, .ding-product-showcase .productthumb .price .vipprice {
     margin: 0px 0px 5px 0px;
 }
 
-.ding-product-showcase .productthumb .price .marketprice label {
+.ding-product-showcase .thumbcontainer .productthumb .price .marketprice label {
     float: left;
     margin-right: 10px;
 }
 
-.ding-product-showcase .productthumb .price .marketprice span {
+.ding-product-showcase .thumbcontainer .productthumb .price .marketprice span {
     float: left;
     text-decoration: line-through;
 }
 
-.ding-product-showcase .productthumb .price .vipprice {
+.ding-product-showcase .thumbcontainer .productthumb .price .vipprice {
     color: red;
 }
 
-.ding-product-showcase .productthumb .price .vipprice label {
+.ding-product-showcase .thumbcontainer .productthumb .price .vipprice label {
     float: left;
     margin-right: 10px;
 }
 
-.ding-product-showcase .productthumb .price .vipprice span {
+.ding-product-showcase .thumbcontainer .productthumb .price .vipprice span {
     float: left;
 }
 
