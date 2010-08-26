@@ -211,7 +211,9 @@
                 
                 $(this).children(".addtime").button().removeClass("ui-corner-all");
 
-                $(this).children(".ding-button-helper-disabled").button("disable");
+                $(this).children(".ding-button-helper-disabled").button("disable").click(function() {
+                    return false;
+                });
             });
         };
 
