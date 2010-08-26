@@ -186,16 +186,34 @@
                 }).removeClass("ui-corner-all");
                 $(this).children(".next").button({
                     icons: {
-                        secondary: 'ui-icon-triangle-1-e'
+                        secondary: "ui-icon-triangle-1-e"
                     }
                 }).removeClass("ui-corner-all");
             });
         };
 
+        function sort() {
+            return this.each(function() {
+                $(this).children(".price-desc").button({
+                    icons: {
+                        secondary: "ui-icon-arrowthick-1-s"
+                    }
+                }).removeClass("ui-corner-all");
+                $(this).children(".price-asc").button({
+                    icons: {
+                        secondary: "ui-icon-arrowthick-1-n"
+                    }
+                }).removeClass("ui-corner-all");
+                $(this).children(".addtime").button().removeClass("ui-corner-all");
+            });
+        };
+
+
         return this.each(function() {
             $(this).addClass("ui-widget ui-widget-header");
 
             pager.call($(this).children(".pager"));
+            sort.call($(this).children(".sort"));
 
             $("<div>").addClass("clear").appendTo($(this));
         });
