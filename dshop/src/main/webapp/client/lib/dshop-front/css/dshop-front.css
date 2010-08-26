@@ -64,6 +64,9 @@
     margin-bottom: 10px;
     padding: 5px;
 }
+.ding-product-showcase .top-toolbar .pager {
+    float: right;
+}
 .ding-product-showcase .top-toolbar .pager .curpage {
     display: inline;
     padding: 5px;
