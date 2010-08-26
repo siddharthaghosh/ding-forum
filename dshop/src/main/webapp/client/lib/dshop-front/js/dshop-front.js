@@ -179,11 +179,13 @@
         // $(".pager")
         function pager() {
             return this.each(function() {
+
                 $(this).children(".prev").button({
                     icons: {
                         primary: "ui-icon-triangle-1-w"
                     }
                 }).removeClass("ui-corner-all");
+
                 $(this).children(".next").button({
                     icons: {
                         secondary: "ui-icon-triangle-1-e"
@@ -194,17 +196,22 @@
 
         function sort() {
             return this.each(function() {
+
                 $(this).children(".price-desc").button({
                     icons: {
                         secondary: "ui-icon-arrowthick-1-s"
                     }
                 }).removeClass("ui-corner-all");
+
                 $(this).children(".price-asc").button({
                     icons: {
                         secondary: "ui-icon-arrowthick-1-n"
                     }
                 }).removeClass("ui-corner-all");
+                
                 $(this).children(".addtime").button().removeClass("ui-corner-all");
+
+                $(this).children("a[href='#']").button("disable");
             });
         };
 
