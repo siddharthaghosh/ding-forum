@@ -46,16 +46,16 @@ class CategorySnippet {
             a.Goods.head.getPrice < b.Goods.head.getPrice
         }
 
-        def add_asc(a : Product, b : Product) : Boolean = {
-            a.getAddTime.before(b.getAddTime)
+        def add_desc(a : Product, b : Product) : Boolean = {
+            a.getAddTime.after(b.getAddTime)
         }
 
         val allproducts = orderby match {
-            case "add_asc" => {
-                    getAllProduct(citem).sortWith(add_asc(_, _))
-                }
+//            case "add_asc" => {
+//                    getAllProduct(citem).sortWith(add_asc(_, _))
+//                }
             case "add_desc" => {
-                    getAllProduct(citem).sortWith(!add_asc(_, _))
+                    getAllProduct(citem).sortWith(add_desc(_, _))
                 }
             case "price_asc" => {
                     getAllProduct(citem).sortWith(price_asc(_, _))
@@ -94,18 +94,28 @@ class CategorySnippet {
             val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "next"))
             tmpNode1 ++ nextPageLink
         }
+
+
         val priceOrderAscUrl = makeCategoryURL(citem) + "&orderby=price_asc"
         val priceOrderDescUrl = makeCategoryURL(citem) + "&orderby=price_desc"
-        val addOrderAscUrl = makeCategoryURL(citem) + "&orderby=add_asc"
-        val addOrderDescUrl = makeCategoryURL(citem) + "&orderby=add_desc"
-        val priceOrderAscLink = SHtml.link(priceOrderAscUrl, ()=>{}, Text("价格升序"))
-        val priceOrderDescLink = SHtml.link(priceOrderDescUrl, ()=>{}, Text("价格降序"))
-        val addOrderAscLink = SHtml.link(addOrderAscUrl, ()=>{}, Text("上架升序"))
-        val addOrderDescLink = SHtml.link(addOrderDescUrl, ()=>{}, Text("上架降序"))
-        val orderLinks = <span>{priceOrderAscLink ++ priceOrderDescLink ++ addOrderAscLink ++ addOrderDescLink}</span>
+//        val addOrderAscUrl = makeCategoryURL(citem) + "&orderby=add_asc"
+        val addOrderDescUrl = if(orderby == "add_desc") "" else (makeCategoryURL(citem) + "&orderby=add_desc")
+
+        val priceOrderUrl = if(orderby == "price_asc") priceOrderDescUrl else priceOrderAscUrl
+        val priceOrderClass = if(orderby == "price_asc") "price-desc" else "price-asc"
+        val addOrderClass = if(orderby == "add_desc") "addtime ding-button-helper-disabled" else "addtime"
+//        val priceOrderAscLink = SHtml.link(priceOrderAscUrl, ()=>{}, Text("价格升序"))
+//        val priceOrderDescLink = SHtml.link(priceOrderDescUrl, ()=>{}, Text("价格降序"))
+        val priceOrderLink = SHtml.link(priceOrderUrl, ()=>{}, Text("价格"), ("class", priceOrderClass))
+//        val addOrderAscLink = SHtml.link(addOrderAscUrl, ()=>{}, Text("上架升序"))
+        val addOrderDescLink = SHtml.link(addOrderDescUrl, ()=>{}, Text("上架时间"), ("class", addOrderClass))
+        val orderLinks = <div class="sort">
+            {/*priceOrderAscLink ++ priceOrderDescLink  ++ addOrderAscLink */ priceOrderLink ++ addOrderDescLink}
+                         </div>
         val pageLinks = <div class="pager">{tmpNode2}</div>
+
         val toolsNode = <div class="top-toolbar">{
-                            tmpNode2/*  ++ orderLinks *//*  ++ Text(selfURLWithoutPageInfo()) */
+                pageLinks  ++ orderLinks /*  ++ Text(selfURLWithoutPageInfo()) */
             }</div>
 
         val end = 0 + currentPage*itemsPerPage
@@ -120,7 +130,7 @@ class CategorySnippet {
         val prolistContainer = <div class="thumbcontainer">{prolist}</div>
         val showcaseNode = <div class="ding-product-showcase">
             { 
-                toolsNode ++  prolistContainer
+                 toolsNode ++  prolistContainer
             }
                            </div>
         /* toolsNode ++  */showcaseNode
