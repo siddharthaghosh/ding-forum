@@ -171,12 +171,32 @@
 /*
  * $.fn.productShowcase
  */
-(function($) {   
+(function($) {
+
+    // $(."top-toolbar")
+    function topToolbar() {
+
+        // $(".pager")
+        function pager() {
+            return this.each(function() {
+                $(this).children(".prev").button().removeClass("ui-corner-all");
+                $(this).children(".next").button().removeClass("ui-corner-all");
+            });
+        };
+
+        return this.each(function() {
+            $(this).addClass("ui-widget ui-widget-header");
+
+            pager.call($(this).children(".pager"));
+
+            $("<div>").addClass("clear").appendTo($(this));
+        });
+    };
 
     // $(".thumbcontainer")
     function thumbContainer() {
 
-        // $(".ding-productthumb")
+        // $(".productthumb")
         function productThumb() {
 
             function brief() {
@@ -245,6 +265,8 @@
         
         return this.each(function() {
             $(this).addClass("grid_12");
+
+            topToolbar.call($(this).children(".top-toolbar"));
 
             thumbContainer.call($(this).children(".thumbcontainer"));            
         });
