@@ -229,7 +229,7 @@
 
                 price.call($(this).children(".price"));
 
-                $(this).bind("resize", function() {
+                $(this).bind("fillSpace", function() {
                     $(this).height($(this).parent().height());
                 });
             });
@@ -240,8 +240,6 @@
             var thumbList = $(this).children(".productthumb").detach();
 
             productThumb.call(thumbList);
-
-            // $(this).addClass("grid_12 alpha omega");
 
             var row = Math.ceil(thumbList.size() / 3);
             for(var i=0;i<row;i++) {
@@ -264,7 +262,7 @@
             });
 
             $(this).children().equalHeights();
-            $(this).find(".productthumb").trigger("resize");
+            $(this).find(".productthumb").trigger("fillSpace");
             $("<div>").addClass("clear").appendTo($(this));
         });
     };
@@ -275,8 +273,8 @@
             $(this).addClass("grid_12");
 
             topToolbar.call($(this).children(".top-toolbar"));
-
-            thumbContainer.call($(this).children(".thumbcontainer"));            
+        
+            thumbContainer.call($(this).children(".thumbcontainer"));
         });
 
     };

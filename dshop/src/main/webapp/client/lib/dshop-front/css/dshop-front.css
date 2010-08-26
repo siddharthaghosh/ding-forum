@@ -62,7 +62,7 @@
 */
 .ding-product-showcase .top-toolbar {
     margin-bottom: 10px;
-    padding: 5px;
+    padding: 3px;
 }
 .ding-product-showcase .top-toolbar .pager {
     float: right;
@@ -72,10 +72,14 @@
     padding: 5px;
 }
 
-.ding-product-showcase .top-toolbar .pager .next {
+.ding-product-showcase .top-toolbar .pager .next .ui-button-text {
+    padding-bottom: 0px;
+    padding-top: 0px;
 }
 
-.ding-product-showcase .top-toolbar .pager .prev {
+.ding-product-showcase .top-toolbar .pager .prev .ui-button-text {
+    padding-bottom: 0px;
+    padding-top: 0px;
 }
 
 /*
