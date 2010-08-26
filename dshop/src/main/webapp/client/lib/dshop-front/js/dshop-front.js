@@ -179,8 +179,16 @@
         // $(".pager")
         function pager() {
             return this.each(function() {
-                $(this).children(".prev").button().removeClass("ui-corner-all");
-                $(this).children(".next").button().removeClass("ui-corner-all");
+                $(this).children(".prev").button({
+                    icons: {
+                        primary: "ui-icon-triangle-1-w"
+                    }
+                }).removeClass("ui-corner-all");
+                $(this).children(".next").button({
+                    icons: {
+                        secondary: 'ui-icon-triangle-1-e'
+                    }
+                }).removeClass("ui-corner-all");
             });
         };
 
@@ -233,7 +241,7 @@
 
             productThumb.call(thumbList);
 
-            $(this).addClass("grid_12 alpha omega");
+            // $(this).addClass("grid_12 alpha omega");
 
             var row = Math.ceil(thumbList.size() / 3);
             for(var i=0;i<row;i++) {
@@ -257,7 +265,7 @@
 
             $(this).children().equalHeights();
             $(this).find(".productthumb").trigger("resize");
-
+            $("<div>").addClass("clear").appendTo($(this));
         });
     };
 
