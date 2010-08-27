@@ -173,7 +173,7 @@
  */
 (function($) {
 
-    // $(."top-toolbar")
+    // $(".top-toolbar")
     function topToolbar() {
 
         // $(".pager")
@@ -223,6 +223,38 @@
 
             pager.call($(this).children(".pager"));
             sort.call($(this).children(".sort"));
+
+            $("<div>").addClass("clear").appendTo($(this));
+        });
+    };
+    
+    // $(".bottom-toolbar")
+    function bottomToolbar() {
+
+        function pager() {
+            return this.each(function() {
+
+                $(this).children(".prev").button({
+                    icons: {
+                        primary: "ui-icon-triangle-1-w"
+                    },
+                    text: false
+                }).removeClass("ui-corner-all");
+
+                $(this).children(".next").button({
+                    icons: {
+                        secondary: "ui-icon-triangle-1-e"
+                    }
+                }).removeClass("ui-corner-all");
+                $(this).children(".page-n").button().removeClass("ui-corner-all");
+                
+            });
+        };
+
+        return this.each(function() {
+            $(this).addClass("ui-widget ui-widget-header");
+
+            pager.call($(this).children(".pager"));
 
             $("<div>").addClass("clear").appendTo($(this));
         });
@@ -300,6 +332,7 @@
             $(this).addClass("grid_12");
 
             topToolbar.call($(this).children(".top-toolbar"));
+            bottomToolbar.call($(this).children(".bottom-toolbar"));
         
             thumbContainer.call($(this).children(".thumbcontainer"));
         });

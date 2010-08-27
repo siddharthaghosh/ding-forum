@@ -54,11 +54,11 @@
 }
 
 /*
- * productShowcase
+ * .ding-product-showcase
 */
 
 /*
- * .ding-product-showcase-toolbar-top
+ * .ding-product-showcase .top-toolbar
 */
 .ding-product-showcase .top-toolbar {
     margin-bottom: 10px;
@@ -83,7 +83,38 @@
 }
 
 /*
- * .ding-productthumb
+ * .ding-product-showcase .bottom-toolbar
+*/
+.ding-product-showcase .bottom-toolbar {
+    padding: 3px;
+}
+
+.ding-product-showcase .bottom-toolbar .ui-button-text {
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+.ding-product-showcase .bottom-toolbar .pager .page-n .ui-button-text {
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.ding-product-showcase .bottom-toolbar .pager .ellipsis {
+    display: inline;
+    padding: 5px;
+}
+
+.ding-product-showcase .top-toolbar .ui-button-text {
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+.ding-product-showcase .bottom-toolbar .pager {
+    float: right;
+}
+
+/*
+ * .ding-product-showcase .thumbcontainer
 */
 .ding-product-showcase .thumbcontainer .productthumb {
     position: relative;
