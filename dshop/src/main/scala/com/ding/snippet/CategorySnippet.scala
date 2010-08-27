@@ -65,36 +65,114 @@ class CategorySnippet {
                 }
             case _ => getAllProduct(citem)
         }
-//        <div>
-//            <div>CategoryId: {cid.toString}</div>
-//            <div>
-//                Products:&nbsp;
-//                {prolist}
-//            </div>
-//        </div>
-        val itemsPerPage = Props.get("ProductNumberInOnePage").openOr("9").toInt
-        val totalPages = (allproducts.length / itemsPerPage) + (if((allproducts.length % itemsPerPage) > 0) 1 else 0)
-        val currentPage = if(totalPages == 0) 0 else S.param("page").openOr("1").toInt
-        val prePage = currentPage - 1
-        val nextPage = currentPage + 1
-        val currentPageNode = <div class="curpage">{Text(currentPage.toString + "/" + totalPages.toString)}</div>
 
-        val tmpNode1 = if(prePage < 1) {
-            currentPageNode
-        } else {
+        //从配置文件中获取每页显示商品数
+        val itemsPerPage = Props.get("ProductNumberInOnePage").openOr("9").toInt
+        //计算总页数
+        val totalPages = (allproducts.length / itemsPerPage) + (if((allproducts.length % itemsPerPage) > 0) 1 else 0)
+        //从请求参数中获得当前请求页
+        val currentPage = if(totalPages == 0)
+            0
+        else {
+            val cpage = S.param("page").openOr("1").toInt
+            if(cpage < 1)
+                1
+            else
+                cpage
+        }
+
+        //获取当前请求页的商品节点
+        val end = 0 + currentPage*itemsPerPage
+        val start = end - itemsPerPage
+        val endIndex = if(end > allproducts.length) allproducts.length else end
+        val startIndex = if(start < allproducts.length) start else allproducts.length
+        val prolist = allproducts.slice(startIndex, endIndex).flatMap {
+            product => {
+                makeProductNode(product)
+            }
+        }
+        
+        def PageToolNodes(pageToolPosition : String) : NodeSeq = {
+
+            val prePage = currentPage - 1
+            val nextPage = currentPage + 1
+            //上一页的链接与节点
             val prePageUrl = selfURLWithoutPageInfo() + "&page=" + (prePage).toString
             val prePageLink = SHtml.link(prePageUrl, ()=>{}, Text("上一页"),("class", "prev"))
-            prePageLink ++ currentPageNode
-        }
-
-        val tmpNode2 = if(nextPage > totalPages) {
-            tmpNode1
-        } else {
+            //下一页的链接与节点
             val nextPageUrl = selfURLWithoutPageInfo() + "&page=" + (currentPage + 1).toString
             val nextPageLink = SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "next"))
-            tmpNode1 ++ nextPageLink
-        }
 
+            val pageToolNodes = if(pageToolPosition == "top-toolbar") {
+                //上工具条中的页面工具
+                val currentPageNode = <div class="curpage">{Text(currentPage.toString + "/" + totalPages.toString)}</div>
+
+                val tmpNode1 = if(prePage < 1) {
+                    currentPageNode
+                } else {
+                    prePageLink ++ currentPageNode
+                }
+
+                val tmpNode2 = if(nextPage > totalPages) {
+                    tmpNode1
+                } else {
+                    tmpNode1 ++ nextPageLink
+                }
+
+                tmpNode2
+                
+            } else if(pageToolPosition == "bottom-toolbar") {
+                //下工具条中的页面工具
+                val numberPageClass = "page-n"
+                val firstPageUrl = selfURLWithoutPageInfo() + "&page=1"
+                val firstPageLink = SHtml.link(firstPageUrl, ()=>{}, Text("1"), ("class", numberPageClass))
+                val lastPageUrl = selfURLWithoutPageInfo() + "&page=" + totalPages.toString
+                val lastPageLink = SHtml.link(lastPageUrl, ()=>{}, Text(totalPages.toString), ("class", numberPageClass))
+                val prePageNumLink = SHtml.link(prePageUrl, ()=>{}, Text(prePage.toString), ("class", numberPageClass))
+                val nextPageNumLink = SHtml.link(nextPageUrl, ()=>{}, Text(nextPage.toString), ("class", numberPageClass))
+                val currentPageNumDiv = <div class={numberPageClass}>{currentPage.toString}</div>
+                val ellipsisDiv = <div class="ellipsis">{"..."}</div>
+                val emptyNode = Text("")
+
+                if(currentPage == 0) {
+                    <div />
+                } else {
+                    val prePageNode : NodeSeq = if(currentPage == 1) {
+                        emptyNode
+                    } else {
+                        prePageLink
+                    }
+
+                    val nextPageNode : NodeSeq = if(currentPage == totalPages) {
+                        emptyNode
+                    } else {
+                        nextPageLink
+                    }
+
+                    val firstPageNode : NodeSeq = if(currentPage == 1 || prePage == 1) {
+                        emptyNode
+                    } else {
+                        firstPageLink
+                    }
+
+                    val lastPageNode : NodeSeq = if(currentPage == totalPages || nextPage == totalPages) {
+                        emptyNode
+                    } else {
+                        lastPageLink
+                    }
+
+                    val currentPageNode : NodeSeq = currentPageNumDiv
+
+                    prePageNode ++ firstPageNode ++ currentPageNode ++ lastPageNode ++ nextPageNode
+                }
+//                {prePageLink ++ firstPageLink} ++ ellipsisDiv ++ {prePageNumLink ++ currentPageNumDiv ++ nextPageNumLink} ++ ellipsisDiv ++ {lastPageLink ++ nextPageLink}
+            } else {
+                //位置信息错误
+                <div />
+            }
+
+            <div class="pager">{pageToolNodes}</div>
+        }
 
         val priceOrderAscUrl = makeCategoryURL(citem) + "&orderby=price_asc"
         val priceOrderDescUrl = makeCategoryURL(citem) + "&orderby=price_desc"
@@ -110,27 +188,22 @@ class CategorySnippet {
 //        val addOrderAscLink = SHtml.link(addOrderAscUrl, ()=>{}, Text("上架升序"))
         val addOrderDescLink = SHtml.link(addOrderDescUrl, ()=>{}, Text("上架时间"), ("class", addOrderClass))
         val orderLinks = <div class="sort">
-            {/*priceOrderAscLink ++ priceOrderDescLink  ++ addOrderAscLink */ priceOrderLink ++ addOrderDescLink}
+ {/*priceOrderAscLink ++ priceOrderDescLink  ++ addOrderAscLink */ priceOrderLink ++ addOrderDescLink}
                          </div>
-        val pageLinks = <div class="pager">{tmpNode2}</div>
+        val topPageLinks = PageToolNodes("top-toolbar")
+        val bottomPageLinks = PageToolNodes("bottom-toolbar")
 
-        val toolsNode = <div class="top-toolbar">{
-                pageLinks  ++ orderLinks /*  ++ Text(selfURLWithoutPageInfo()) */
+        val topToolsNode = <div class="top-toolbar">{
+                topPageLinks  ++ orderLinks /*  ++ Text(selfURLWithoutPageInfo()) */
+            }</div>
+        val bottomToolsNode = <div class="bottom-toolbar">{
+                bottomPageLinks
             }</div>
 
-        val end = 0 + currentPage*itemsPerPage
-        val start = end - itemsPerPage
-        val endIndex = if(end > allproducts.length) allproducts.length else end
-        val startIndex = if(start < allproducts.length) start else allproducts.length
-        val prolist = allproducts.slice(startIndex, endIndex).flatMap {
-            product => {
-                makeProductNode(product)
-            }
-        }
         val prolistContainer = <div class="thumbcontainer">{prolist}</div>
         val showcaseNode = <div class="ding-product-showcase">
             { 
-                 toolsNode ++  prolistContainer
+                topToolsNode ++  prolistContainer ++ bottomToolsNode
             }
                            </div>
         /* toolsNode ++  */showcaseNode
