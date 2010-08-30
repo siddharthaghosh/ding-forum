@@ -323,9 +323,14 @@
 
             var row = Math.ceil(thumbList.size() / 3);
             for(var i=0;i<row;i++) {
-                var innerGrid12 = $("<div>").addClass("grid_12 alpha omega").appendTo($(this)).css({
-                    "margin-bottom": "10px"
-                });
+                var innerGrid12 = $("<div>").addClass("grid_12 alpha omega").appendTo($(this));
+
+                if (i != row - 1) {
+                    innerGrid12.css({
+                       "margin-bottom": "10px"
+                    });
+                }
+
                 $("<div>").addClass("grid_4 alpha").appendTo(innerGrid12);
                 $("<div>").addClass("grid_4").appendTo(innerGrid12);
                 $("<div>").addClass("grid_4 omega").appendTo(innerGrid12);

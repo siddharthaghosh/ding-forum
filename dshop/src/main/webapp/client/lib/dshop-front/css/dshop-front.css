@@ -121,6 +121,10 @@
  * .ding-product-showcase .thumbcontainer
 */
 
+.ding-product-showcase .thumbcontainer {
+    margin-bottom: 10px;
+}
+
 .ding-product-showcase .thumbcontainer .productthumb .picture {
     padding: 9px;
     margin: 0px 0px 5px 0px;
