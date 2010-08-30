@@ -130,7 +130,10 @@ class CategorySnippet {
                 val lastPageLink = SHtml.link(lastPageUrl, ()=>{}, Text(totalPages.toString), ("class", numberPageClass))
                 val prePageNumLink = SHtml.link(prePageUrl, ()=>{}, Text(prePage.toString), ("class", numberPageClass))
                 val nextPageNumLink = SHtml.link(nextPageUrl, ()=>{}, Text(nextPage.toString), ("class", numberPageClass))
-                val currentPageNumDiv = <div class={numberPageClass}>{currentPage.toString}</div>
+//                val currentPageNumDiv = <div class={numberPageClass}>{currentPage.toString}</div>
+                val currentPageUrl = selfURLWithoutPageInfo + "&page=" + currentPage.toString
+                val currentPageNumDiv = SHtml.link(currentPageUrl, ()=>{}, Text(currentPage.toString), ("class", numberPageClass))
+//                val currentPageNumDiv = <span class={numberPageClass}>{currentPage.toString}</span>
                 val ellipsisDiv = <div class="ellipsis">{"..."}</div>
                 val emptyNode = Text("")
 
