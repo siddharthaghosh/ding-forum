@@ -161,9 +161,37 @@ class CategorySnippet {
                         lastPageLink
                     }
 
+                    val prePageNumNode : NodeSeq = if(currentPage == 1) {
+                        emptyNode
+                    } else {
+                        prePageNumLink
+                    }
+
+                    val nextPageNumNode : NodeSeq = if(currentPage == totalPages) {
+                        emptyNode
+                    } else {
+                        nextPageNumLink
+                    }
+
+                    val frontEllipsisNode : NodeSeq = if(prePage < 3) {
+                        emptyNode
+                    } else {
+                        ellipsisDiv
+                    }
+
+                    val endEllipsisNode : NodeSeq = if(nextPage > totalPages -2) {
+                        emptyNode
+                    } else {
+                        ellipsisDiv
+                    }
+
                     val currentPageNode : NodeSeq = currentPageNumDiv
 
-                    prePageNode ++ firstPageNode ++ currentPageNode ++ lastPageNode ++ nextPageNode
+                    prePageNode ++ firstPageNode ++
+                    frontEllipsisNode ++
+                    prePageNumNode ++ currentPageNode ++ nextPageNumNode ++
+                    endEllipsisNode ++
+                    lastPageNode ++ nextPageNode
                 }
 //                {prePageLink ++ firstPageLink} ++ ellipsisDiv ++ {prePageNumLink ++ currentPageNumDiv ++ nextPageNumLink} ++ ellipsisDiv ++ {lastPageLink ++ nextPageLink}
             } else {
