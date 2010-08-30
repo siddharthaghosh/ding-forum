@@ -1,0 +1,26 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:lift="http://liftweb.net/">
+    <head>
+    <lift:PageUtilSnippets.title>
+    </lift:PageUtilSnippets.title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="js/fg.menu.js"></script>
+    <script type="text/javascript" src="js/documentReadyFunction.js"></script>
+
+    <link type="text/css" href="css/darkness/jquery-ui-1.8.2.custom.css" media="screen" rel="stylesheet" />
+    <link type="text/css" href="css/fg.menu.css" media="screen" rel="stylesheet" />
+
+    <script type="text/javascript">
+        $(documentReadyFunction);
+    </script>
+</head>
+<body>
+    <div id="categoryMenu">
+        <a>TestMenu</a>
+        <div>
+            <lift:CategorySnippet.categoryMenu>
+            </lift:CategorySnippet.categoryMenu>
+        </div>
+    </div>
+</body>
+</html>
