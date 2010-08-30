@@ -64,7 +64,6 @@
     margin-bottom: 10px;
     padding: 3px;
 }
-
 .ding-product-showcase .top-toolbar .ui-button-text {
     padding-bottom: 0px;
     padding-top: 0px;
@@ -72,16 +71,25 @@
 
 .ding-product-showcase .top-toolbar .pager {
     float: right;
+    display: inline;
 }
 .ding-product-showcase .top-toolbar .pager .curpage {
     display: inline;
-    padding: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+.ding-product-showcase .top-toolbar .pager a,
+.ding-product-showcase .top-toolbar .pager .curpage {
+    float: left;
 }
 
 .ding-product-showcase .top-toolbar .sort {
     float: left;
+    display: inline;
 }
-
+.ding-product-showcase .top-toolbar .sort a {
+    float: left;
+}
 /*
  * .ding-product-showcase .bottom-toolbar
 */
@@ -94,34 +102,27 @@
     padding-top: 0px;
 }
 
-.ding-product-showcase .bottom-toolbar .pager .page-n .ui-button-text {
-    padding-left: 4px;
-    padding-right: 4px;
+.ding-product-showcase .bottom-toolbar .pager {
+    float: right;
 }
 
 .ding-product-showcase .bottom-toolbar .pager .ellipsis {
     display: inline;
-    padding: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
-.ding-product-showcase .top-toolbar .ui-button-text {
-    padding-bottom: 0px;
-    padding-top: 0px;
-}
-
-.ding-product-showcase .bottom-toolbar .pager {
-    float: right;
+.ding-product-showcase .bottom-toolbar .pager a,
+.ding-product-showcase .bottom-toolbar .pager .ellipsis{
+    float: left;
 }
 
 /*
  * .ding-product-showcase .thumbcontainer
 */
-.ding-product-showcase .thumbcontainer .productthumb {
-    position: relative;
-}
 
 .ding-product-showcase .thumbcontainer .productthumb .picture {
-    padding: 10px;
+    padding: 9px;
     margin: 0px 0px 5px 0px;
     border-width: 0px;
     border-style: none;
@@ -136,6 +137,7 @@
 .ding-product-showcase .thumbcontainer .productthumb .picture img {
     width: 200px;
     height: 150px;
+    margin: 0px;
     padding: 0px;
     border-width: 0px;
     border-style: none;
