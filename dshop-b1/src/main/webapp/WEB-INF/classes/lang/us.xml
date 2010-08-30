@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">  
+<properties>    
+<entry key="name">America</entry>  
+<entry key="code">us</entry>  
+<entry key="directory">america</entry>  
+<entry key="image">us</entry>   
+</properties> 
