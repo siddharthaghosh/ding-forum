@@ -29,10 +29,17 @@
         <div class="container_16">
             <div class="ding-product-showcase">
                 <div class="top-toolbar">
-                    <div class="pager">
+                    <!--<div class="pager">
                         <div class="curpage"></div>
                         <a>下一页</a>
-                    </div>
+                    </div>-->
+                    <lift:CategorySnippet2.topPager >
+                        <div class="pager">
+                            <top-pager:prelink class="prev"/>
+                            <top-pager:curpage class="curpage"/>
+                            <top-pager:nextlink class="next"/>
+                        </div>
+                    </lift:CategorySnippet2.topPager>
                 </div>
                 <div class="thumbcontainer"></div>
                 <div class="bottom-toolbar"></div>
