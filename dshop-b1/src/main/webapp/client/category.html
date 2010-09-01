@@ -22,24 +22,22 @@
         </style>
     </head>
     <body>
-        <!--      <div>
-                <lift:CategorySnippet.categoryMenu>
-                </lift:CategorySnippet.categoryMenu>
-              </div>-->
         <div class="container_16">
             <div class="ding-product-showcase">
                 <div class="top-toolbar">
-                    <!--<div class="pager">
-                        <div class="curpage"></div>
-                        <a>下一页</a>
-                    </div>-->
-                    <lift:CategorySnippet2.topPager >
+                    <lift:CategorySnippet2.topPager>
                         <div class="pager">
-                            <top-pager:prelink class="prev"/>
+                            <top-pager:prelink class="prev">上一页</top-pager:prelink>
                             <top-pager:curpage class="curpage"/>
-                            <top-pager:nextlink class="next"/>
+                            <top-pager:nextlink class="next">下一页</top-pager:nextlink>
                         </div>
                     </lift:CategorySnippet2.topPager>
+                    <lift:CategorySnippet2.sortButton>
+                        <div class="sort">
+                            <sort-button:price>价格</sort-button:price>
+                            <sort-button:addtime>上架时间</sort-button:addtime>
+                        </div>
+                    </lift:CategorySnippet2.sortButton>
                 </div>
                 <div class="thumbcontainer"></div>
                 <div class="bottom-toolbar"></div>
