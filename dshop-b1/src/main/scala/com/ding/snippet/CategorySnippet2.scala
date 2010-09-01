@@ -6,14 +6,21 @@
 package com.ding.snippet
 
 import scala.xml.NodeSeq
+import scala.xml.UnprefixedAttribute
+import scala.xml.Null
 import com.ding.model._
 import com.ding.util.MetaModels
 import com.ding.util.LanguageUtils
 import net.liftweb.http.S
 import net.liftweb.http.SHtml
 import net.liftweb.util.Helpers._
+import net.liftweb.util.BindHelpers
 import net.liftweb.util.Props
 import scala.xml.Text
+import scala.xml.Elem
+import net.liftweb.common.Empty
+import net.liftweb.common.Full
+import net.liftweb.common.Box
 
 class CategorySnippet2 {
 
@@ -42,33 +49,54 @@ class CategorySnippet2 {
         val prePage = currentPage - 1
         val nextPage = currentPage + 1
 
-        val emptyNode = Text("")
+        val emptyNode : NodeSeq = Text("")
 
         //上一页的链接与节点
         val prePageUrl = selfURLWithoutPageInfo() + "&page=" + (prePage).toString
-        val prePageLink = if(prePage < 1) emptyNode else SHtml.link(prePageUrl, ()=>{}, Text("上一页"),("class", "prev"))
         //下一页的链接与节点
         val nextPageUrl = selfURLWithoutPageInfo() + "&page=" + (currentPage + 1).toString
-        val nextPageLink = if(nextPage > totalPages) emptyNode else SHtml.link(nextPageUrl, ()=>{}, Text("下一页"), ("class", "next"))
         
         val currentPageNode = <div>{Text(currentPage.toString + "/" + totalPages.toString)}</div>
-        val tmpNode1 = if(prePage < 1) {
-            currentPageNode
-        } else {
-            prePageLink ++ currentPageNode
+        
+        def getPrePageLink(in : NodeSeq) : Box[Elem] = {
+            if(prePage < 1) Empty else Full(SHtml.link(prePageUrl, ()=>{}, in))
         }
-        val tmpNode2 = if(nextPage > totalPages) {
-            tmpNode1
-        } else {
-            tmpNode1 ++ nextPageLink
+        def getNextPageLink(in : NodeSeq) : Box[Elem] = {
+            if(nextPage > totalPages) Empty else Full(SHtml.link(nextPageUrl, ()=>{}, Text("下一页")))
         }
-        tmpNode2
+
         bind("top-pager", kids,
-             "prelink" -> ((in : NodeSeq) => {prePageLink}),
-             "curpage" -> ((in : NodeSeq) => {
-                    currentPageNode
-                }),
-             "nextlink" -> ((in : NodeSeq) => {nextPageLink})
+             FuncBindParam("prelink", kid => getPrePageLink(kid).map(_ % (BindHelpers.currentNode.map(_.attributes) openOr Null)) openOr NodeSeq.Empty),
+             "curpage" -%> currentPageNode,
+             FuncBindParam("nextlink", kid => getNextPageLink(kid).map(_ % (BindHelpers.currentNode.map(_.attributes) openOr Null)) openOr NodeSeq.Empty)
+        )
+    }
+
+    def sortButton(kids : NodeSeq) : NodeSeq = {
+
+        val cid = S.param("catid").openOr("0").toLong
+        val citem = MetaModels.metaCategory.findOneInstance(cid)
+
+        val priceOrderAscUrl = makeCategoryURL(citem) + "&orderby=price_asc"
+        val priceOrderDescUrl = makeCategoryURL(citem) + "&orderby=price_desc"
+        val orderby = S.param("orderby").openOr("default")
+
+        val priceOrderClass = if(orderby == "price_asc") "price-desc" else "price-asc"
+        val priceOrderUrl = if(orderby == "price_asc") priceOrderDescUrl else priceOrderAscUrl
+
+        def getPriceLink(in : NodeSeq) : Box[Elem] = {
+            Full(SHtml.link(priceOrderUrl, ()=>{}, in, ("class", priceOrderClass)))
+        }
+
+        val addOrderDescUrl = if(orderby == "add_desc") "" else (makeCategoryURL(citem) + "&orderby=add_desc")
+        val addOrderClass = if(orderby == "add_desc") "addtime ding-button-helper-disabled" else "addtime"
+        def getAddTimeLink(in : NodeSeq) : Box[Elem] = {
+            Full(SHtml.link(addOrderDescUrl, ()=>{}, in, ("class", addOrderClass)))
+        }
+
+        bind("sort-button", kids,
+             FuncBindParam("price", kid => getPriceLink(kid).map(_ % (BindHelpers.currentNode.map(_.attributes) openOr Null)) openOr NodeSeq.Empty),
+             FuncBindParam("addtime", kid => getAddTimeLink(kid).map(_ % (BindHelpers.currentNode.map(_.attributes) openOr Null)) openOr NodeSeq.Empty)
         )
     }
 
@@ -89,5 +117,11 @@ class CategorySnippet2 {
         val catidparam = "catid=" + S.param("catid").openOr("0")
         val orderparam = if(S.param("orderby").isEmpty) "" else "&orderby=" + S.param("orderby").open_!
         S.request.open_!.uri + "?" + catidparam + orderparam
+    }
+
+    private def makeCategoryURL(category : Category) : String = {
+        val params = "?catid=" + category.getID.toString
+        val baseurl = "/client/category.html"
+        baseurl + params
     }
 }
