@@ -27,8 +27,8 @@
                 <div class="top-toolbar">
                     <lift:CategorySnippet2.topPager>
                         <div class="pager">
-                            <top-pager:prelink class="prev">上一页</top-pager:prelink>
-                            <top-pager:curpage class="curpage"/>
+                            <top-pager:prevlink class="prev">上一页</top-pager:prevlink>
+                            <top-pager:currentpage class="curpage"/>
                             <top-pager:nextlink class="next">下一页</top-pager:nextlink>
                         </div>
                     </lift:CategorySnippet2.topPager>
@@ -39,8 +39,32 @@
                         </div>
                     </lift:CategorySnippet2.sortButton>
                 </div>
-                <div class="thumbcontainer"></div>
-                <div class="bottom-toolbar"></div>
+                <div class="thumbcontainer">
+                    <lift:CategorySnippet2.thumbItems>
+                        <div class="productthumb">
+                            <thumb-item:picture class="picture" />
+                            <thumb-item:brief class="brief" />
+                            <div class="price">
+                                <thumb-item:market-price class="maketprice">
+                                    <label>市场价:</label>
+                                </thumb-item:market-price>
+                                <thumb-item:vip-price class="vipprice">
+                                    <label>会员价:</label>
+                                </thumb-item:vip-price>
+                            </div>
+                        </div>
+                    </lift:CategorySnippet2.thumbItems>
+                </div>
+                <div class="bottom-toolbar">
+                    <lift:CategorySnippet2.bottomPager>
+                        <div class="pager">
+                            <bottom-pager:prevlink class="prev">上一页</bottom-pager:prevlink>
+                            <bottom-pager:pagenumber class="page-n"/>
+                            <bottom-pager:ellipsis class="ellipsis"/>
+                            <bottom-pager:nextlink class="next">下一页</bottom-pager:nextlink>
+                        </div>
+                    </lift:CategorySnippet2.bottomPager>
+                </div>
             </div>
         </div>
         <script type="text/javascript">
